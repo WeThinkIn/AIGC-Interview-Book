@@ -38,6 +38,7 @@
 - [36.如果要将Memory机制构建到商业级AI Agent系统中，需要考虑哪些工程化问题？](#36.如果要将Memory机制构建到商业级AI-Agent系统中，需要考虑哪些工程化问题？)
 - [37.AI Agent系统中主流的Memory机制的工作流程是什么样的？](#37.AI-Agent系统中主流的Memory机制的工作流程是什么样的？)
 - [38.AI Agent系统中出现上下文窗口溢出时的主流解决方案有哪些？](#38.AI-Agent系统中出现上下文窗口溢出时的主流解决方案有哪些？)
+- [39.介绍一下AI Agent系统中Skills的原理和作用](#39.介绍一下AI-Agent系统中Skills的原理和作用)
 
 
 <h2 id="1.什么是AI-Agent（智能体）？">1.什么是AI Agent（智能体）？</h2>
@@ -2079,4 +2080,79 @@ Memory机制的核心目标是为AI Agent系统提供统一的内存框架，实
 **缺点**：
 - ❌ 管理复杂度高
 - ❌ 需要精心设计策略
+
+
+<h2 id="39.介绍一下AI-Agent系统中Skills的原理和作用">39.介绍一下AI Agent系统中Skills的原理和作用</h2>
+
+## Skills 概述
+
+Skills 是基于 Anthropic 的 [Agent Skills 规范](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) 实现的功能，用于扩展AI Agent的能力，让AI Agent 能够**逐步发现、获取和使用**专业知识和能力。
+
+## 核心原理
+
+### 1. 什么是 Skill？
+
+Skill 是一个**自包含的知识包**，包含：
+
+| 组件 | 说明 |
+|------|------|
+| **Instructions** | 详细指导（在 `SKILL.md` 中） |
+| **Scripts** | 可选的可执行脚本 |
+| **References** | 可选的参考文档 |
+
+### 2. 目录结构
+
+```
+my-skill/
+├── SKILL.md           # 必需：带 YAML 前置元数据的指令
+├── scripts/           # 可选：可执行脚本
+│   └── helper.py
+└── references/        # 可选：参考文档
+    └── guide.md
+```
+
+### 3. SKILL.md 文件示例
+
+```yaml
+---
+name: code-review
+description: 代码审查助手，提供风格检查和最佳实践
+license: Apache-2.0
+metadata:
+  version: "1.0.0"
+  author: your-name
+---
+
+# 代码审查技能
+
+当审查代码质量、风格和最佳实践时使用此技能。
+
+## 何时使用
+- 用户请求代码审查
+- 用户想改进代码质量
+
+## 流程
+1. 分析结构
+2. 检查风格
+3. 识别问题
+4. 提供建议
+```
+
+## 核心作用
+
+### 1. 按需加载领域专业知识
+不需要在系统消息中填满所有指令，Skills让需要让我们前置的将知识组织成**聚焦的包**，AI Agent只加载需要的内容，**节省tokens和成本**。
+
+### 2. 可复用的知识包
+创建一次，多个AI Agent可以共享使用。
+
+### 3. 渐进式发现（懒加载）
+
+```
+1. 浏览 → AI Agentci在系统提示中看到技能摘要
+2. 加载 → 任务匹配时，AI Agent加载完整指令
+3. 引用 → AI Agent按需访问详细文档
+4. 执行 → AI Agent可运行技能中的脚本
+```
+
 
