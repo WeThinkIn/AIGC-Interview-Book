@@ -142,11 +142,7 @@ Elliot Qi，互联网大厂AIGC算法工程师，在计算机视觉顶会发表�
 ## 💡AIGC行业技术交流群
 
 <div align=center>
-<img src="imgs/AI绘画交流群.jpg" alt="AIGCmagic社区-AI绘画交流群" width="200"/><img src="imgs/AI视频交流群.jpg" alt="AIGCmagic社区-AI视频交流群" width="200"/><img src="imgs/大模型交流群.jpg" alt="AIGCmagic社区-大模型交流群" width="200"/>
-</div>
-
-<div align=center>
-<img src="imgs/AI多模态交流群.jpg" alt="AIGCmagic社区-AI多模态交流群" width="200"/><img src="imgs/传统深度学习交流群.jpg" alt="AIGCmagic社区-传统深度学习交流群" width="200"/><img src="imgs/自动驾驶交流群.jpg" alt="AIGCmagic社区-自动驾驶交流群" width="200"/>
+<img src="imgs/AIGC-LLM交流群.jpg" alt="AIGCmagic社区-AIGC/LLM交流群" width="200"/><img src="imgs/传统深度学习交流群.jpg" alt="AIGCmagic社区-传统深度学习交流群" width="200"/><img src="imgs/自动驾驶交流群.jpg" alt="AIGCmagic社区-自动驾驶交流群" width="200"/>
 </div>
 
 ![【三年面试五年模拟】内容大纲](imgs/框架.png)
