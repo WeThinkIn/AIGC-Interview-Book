@@ -43,7 +43,7 @@ LoRA也是一种微调 Stable Diffusion 模型的技术，其可用于对关键�
 
 我们在使用多个LoRA模型进行组合（如不同的角色、服装、风格、背景等）推理时，除了使用经典的Merge策略外，还可以使用Switch和Composite两种高阶组合策略。
 
-![多LoRA组合生成效果](./imgs/多lora效果.png)
+![多LoRA组合生成效果](./imgs/多LoRA组合生成效果.png)
 
 
 **在大量不同功能的LoRA模型组合推理时，通过Merge策略会损失一些LoRA的原本特征细节，甚至完全丢失某个LoRA的特征，使其完全失效**。而Switch和Composite策略都会比Merge策略保留更多LoRA的原本特征，同时通过Switch和Composite策略生成的图像中的人物角色特征会比Merge策略要更自然。
