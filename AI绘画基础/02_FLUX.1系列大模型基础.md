@@ -15,6 +15,7 @@
 - [11.介绍一下FLUX.1 Lite与FLUX.1的异同](#11.介绍一下FLUX.1-Lite与FLUX.1的异同)
 - [12.什么是flow matching？](#12.什么是flow-matching？)
 - [13.Flow Matching和DDPM之间有什么区别？](#13.Flow-Matching和DDPM之间有什么区别？)
+- [14.介绍一下FLUX.1 Krea的训练策略](#14.介绍一下FLUX.1-Krea的训练策略)
 
 
 ## 第二章 FLUX.1 Kontext系列核心高频考点
@@ -234,6 +235,11 @@ DDPM通过随机扩散和去噪过程生成数据，强调概率建模；Flow Ma
 | **采样速度**       | 慢（多步迭代）                | 快（少步或一步）               |
 | **路径性质**       | 随机噪声扰动                  | 确定性最优路径                 |
 | **数学复杂度**     | 中等（马尔可夫链）            | 高（ODE求解/最优传输）         |
+
+
+<h2 id="14.介绍一下FLUX.1-Krea的训练策略">14.介绍一下FLUX.1 Krea的训练策略</h2>
+
+
 
 ---
 
