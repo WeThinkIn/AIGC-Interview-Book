@@ -1,16 +1,15 @@
 # 目录
 
-- [1.使用lora微调Stable Diffusion模型](#1.使用lora微调Stable_Diffusion模型)
-- [2.在多LoRA组合推理时，有哪些融合策略？这些策略各自的优缺点是什么？](#2.在多LoRA组合推理时，有哪些融合策略？这些策略各自的优缺点是什么？)
+- [1.介绍一下AIGC图像生成领域的LoRA技术原理](#1.介绍一下AIGC图像生成领域的LoRA技术原理)
+- [2.在AIGC图像生成领域中，LoRA模型有哪些特性和优势？](#2.在AIGC图像生成领域中，LoRA模型有哪些特性和优势？)
+- [5.在多LoRA组合推理时，有哪些融合策略？这些策略各自的优缺点是什么？](#5.在多LoRA组合推理时，有哪些融合策略？这些策略各自的优缺点是什么？)
 - [8.什么是Textual Inversion(文本反演)？](#8.什么是Textual-Inversion(文本反演)？)
 - [9.什么是DreamBooth技术？](#9.什么是DreamBooth技术？)
 - [10.LoRA和DreamBooth对比](#10.LoRA和DreamBooth对比)
-- [11.介绍一下LoRA技术的原理](#11.介绍一下LoRA技术的原理)
 - [12.Stable Diffusion直接微调训练和LoRA微调训练有哪些区别？](#12.Stable-Diffusion直接微调训练和LoRA微调训练有哪些区别？)
 - [13.LoRA训练过程是什么样的？推理过程中有额外计算吗？](#13.LoRA训练过程是什么样的？推理过程中有额外计算吗？)
 - [14.LoRA模型的微调训练流程一般包含哪几部分核心内容？](#14.LoRA模型的微调训练流程一般包含哪几部分核心内容？)
 - [15.LoRA模型的微调训练流程中有哪些关键参数？](#15.LoRA模型的微调训练流程中有哪些关键参数？)
-- [16.LoRA模型有哪些特性？](#16.LoRA模型有哪些特性？)
 - [17.LoRA模型有哪些高阶用法？](#17.LoRA模型有哪些高阶用法？)
 - [18.LoRA模型的融合方式有哪些？](#18.LoRA模型的融合方式有哪些？)
 - [19.训练U-Net LoRA和Text Encoder LoRA的区别是什么？](#19.训练U-Net-LoRA和Text-Encoder-LoRA的区别是什么？)
@@ -26,7 +25,8 @@
 - [29.介绍一下Parameter-Efficient Fine-Tuning(PEFT)技术的概念，其在AIGC图像生成领域的应用场景有哪些？](#29.介绍一下Parameter-Efficient-Fine-Tuning(PEFT)技术的概念，其在AIGC图像生成领域的应用场景有哪些？)
 - [30.如何训练得到差异化LoRA？差异化LoRA的作用是什么？](#30.如何训练得到差异化LoRA？差异化LoRA的作用是什么？)
 
-<h2 id="1.使用lora微调Stable_Diffusion模型">1.使用lora微调Stable Diffusion模型</h2>
+
+<h2 id="1.介绍一下AIGC图像生成领域的LoRA技术原理">1.介绍一下AIGC图像生成领域的LoRA技术原理</h2>
 
 [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685) 是微软研究员引入的一项新技术，主要用于处理大模型微调的问题。目前超过数十亿以上参数的具有强能力的大模型 (例如 GPT-3) 通常在为了适应其下游任务的微调中会呈现出巨大开销。LoRA 建议冻结预训练模型的权重并在每个 Transformer 块中注入可训练层 (*秩-分解矩阵*)。因为不需要为大多数模型权重计算梯度，所以大大减少了需要训练参数的数量并且降低了 GPU 的内存要求。研究人员发现，通过聚焦大模型的 Transformer 注意力块，使用 LoRA 进行的微调质量与全模型微调相当，同时速度更快且需要更少的计算。
 
@@ -39,7 +39,10 @@ LoRA也是一种微调 Stable Diffusion 模型的技术，其可用于对关键�
 ![image-20240611204740644](./imgs/lORA.png)
 
 
-<h2 id="2.在多LoRA组合推理时，有哪些融合策略？这些策略各自的优缺点是什么？">2.在多LoRA组合推理时，有哪些融合策略？这些策略各自的优缺点是什么？</h2>
+<h2 id="2.在AIGC图像生成领域中，LoRA模型有哪些特性和优势？">2.在AIGC图像生成领域中，LoRA模型有哪些特性和优势？</h2>
+
+
+<h2 id="5.在多LoRA组合推理时，有哪些融合策略？这些策略各自的优缺点是什么？">5.在多LoRA组合推理时，有哪些融合策略？这些策略各自的优缺点是什么？</h2>
 
 我们在使用多个LoRA模型进行组合（如不同的角色、服装、风格、背景等）推理时，除了使用经典的Merge策略外，还可以使用Switch和Composite两种高阶组合策略。
 
@@ -470,9 +473,6 @@ class LoRALayer(nn.Module):
 - 需要频繁切换不同适配的场景
 
 
-<h2 id="11.介绍一下LoRA技术的原理">11.介绍一下LoRA技术的原理</h2>
-
-
 <h2 id="12.Stable-Diffusion直接微调训练和LoRA微调训练有哪些区别？">12.Stable Diffusion直接微调训练和LoRA微调训练有哪些区别？</h2>
 
 
@@ -483,9 +483,6 @@ class LoRALayer(nn.Module):
 
 
 <h2 id="15.LoRA模型的微调训练流程中有哪些关键参数？">15.LoRA模型的微调训练流程中有哪些关键参数？</h2>
-
-
-<h2 id="16.LoRA模型有哪些特性？">16.LoRA模型有哪些特性？</h2>
 
 
 <h2 id="17.LoRA模型有哪些高阶用法？">17.LoRA模型有哪些高阶用法？</h2>
