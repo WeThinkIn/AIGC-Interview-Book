@@ -61,7 +61,7 @@
 
 ## 👨作者介绍
 
->Rocky Ding 主编
+### Rocky Ding 主编
 
 <a href="https://www.zhihu.com/people/bei-jing-de-wen-zhou-ren"><img src="https://img.shields.io/badge/Rocky Ding-知乎-blue"></a>
 <a href="imgs/WeThinkIn公众号.jpg"><img src="https://img.shields.io/badge/WeThinkIn-公众号-brightgreen"></a>
@@ -71,7 +71,7 @@ Rocky Ding，AIGCmagic社区创始人，知乎AI领域知名博主（同名Rocky
 
 Rocky最新撰写完成10万字的Stable Diffusion 3和FLUX.1系列模型全网最详细讲解文章：[深入浅出完整解析Stable Diffusion 3（SD 3）和FLUX.1系列核心基础知识](https://zhuanlan.zhihu.com/p/684068402)
 
->猫先生 副主编
+### 猫先生 副主编
 
 <a href="https://mp.weixin.qq.com/s/93TT88Fize3IBSbidnEJiw"><img src="https://img.shields.io/badge/魔方AI空间-公众号-brightgreen"></a>
 <a href="https://blog.csdn.net/m_aigc2022?type=blog"><img src="https://img.shields.io/badge/猫先生-CSDN-red"></a>
@@ -83,7 +83,7 @@ Rocky最新撰写完成10万字的Stable Diffusion 3和FLUX.1系列模型全网�
 - [一文梳理主流热门智能体框架：Dify、Coze、n8n、AutoGen、LangChain、CrewAI](http://mp.weixin.qq.com/s/5zLnArJcI0TDxL-iiuikPg)
 - [一文梳理主流大模型推理部署框架：vLLM、SGLang、TensorRT-LLM、ollama、XInference](http://mp.weixin.qq.com/s/Fsaz7PAUSiKizl_lw-KSeg)
 
->张一凡 副主编
+### 张一凡 副主编
 
 张一凡，资深AIGC算法专家，曾就职于国内top安防公司，专注于AIGC算法实现与落地部署，目前在国内某研究所主要从事AI大模型相关的研究。
 
@@ -91,19 +91,19 @@ Rocky最新撰写完成10万字的Stable Diffusion 3和FLUX.1系列模型全网�
 
 徐晨轩，"AI+"博士，传统工科与人工智能的跨界博士研究生。致力于将AI技术融入打灰工程，探索交叉学科的创新边界。
 
->刘一手 副主编
+### 刘一手 副主编
 
 刘一手，资深高级算法工程师，先后就职于AI教育独角兽企业和百亿规模的私募金融机构，擅长AI算法的工程研发。目前专注于计算机视觉算法和多模态大模型在教育与金融两大场景中的创新应用与实践落地。
 
->玉箫然 副主编
+### 玉箫然 副主编
 
 玉箫然，资深高级算法工程师，在CV、AIGC、大模型等多个领域经验丰富，在国内头部金融投顾公司任职，主要从事大模型相关的应用落地、性能优化。
 
->Elliot Qi 副主编
+### Elliot Qi 副主编
 
 Elliot Qi，互联网大厂AIGC算法工程师，在计算机视觉顶会发表多篇论文，曾多次获得天池、顶会Challenge冠亚季军，主要研究方向为扩散模型、可控图像生成和视频生成等。
 
->初街夜话 副主编
+### 初街夜话 副主编
 
 初街夜话，计算机视觉方向的在读博士，主要研究目标检测，也会折腾一些 AIGC 技术，享受探索人工智能前沿的过程。
 
