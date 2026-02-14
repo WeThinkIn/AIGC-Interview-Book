@@ -2,48 +2,29 @@
 
 ## 第一章 FLUX.1系列核心高频考点
 
-- [1.介绍一下FLUX.1的整体架构](#1.介绍一下FLUX.1的整体架构)
-- [2.与Stable Diffusion 3相比，FLUX.1的核心优化有哪些？](#2.与Stable-Diffusion-3相比，FLUX.1的核心优化有哪些？)
-- [3.介绍一下FLUX.1中VAE部分的特点，比起Stable Diffusion 3有哪些改进？详细分析改进的意图](#3.介绍一下FLUX.1中VAE部分的特点，比起Stable-Diffusion-3有哪些改进？详细分析改进的意图)
-- [4.介绍一下FLUX.1中Backbone部分的特点，比起Stable Diffusion 3有哪些改进？详细分析改进的意图](#4.介绍一下FLUX.1中Backbone部分的特点，比起Stable-Diffusion-3有哪些改进？详细分析改进的意图)
-- [5.介绍一下FLUX.1中Text Encoder部分的特点，比起Stable Diffusion 3有哪些改进？详细分析改进的意图](#5.介绍一下FLUX.1中Text-Encoder部分的特点，比起Stable-Diffusion-3有哪些改进？详细分析改进的意图)
-- [6.介绍一下Rectified Flow的原理，Rectified Flow相比于DDPM、DDIM有哪些优点？](#6.介绍一下Rectified-Flow的原理，Rectified-Flow相比于DDPM、DDIM有哪些优点？)
-- [7.FLUX.1系列不同版本模型之间的差异是什么？](#7.FLUX.1系列不同版本模型之间的差异是什么？)
-- [8.训练FLUX.1过程中官方使用了哪些训练技巧？](#8.训练FLUX.1过程中官方使用了哪些训练技巧？)
-- [9.FLUX.1模型的微调训练流程一般包含哪几部分核心内容？](#9.FLUX.1模型的微调训练流程一般包含哪几部分核心内容？)
-- [10.FLUX.1模型的微调训练流程中有哪些关键参数？](#10.FLUX.1模型的微调训练流程中有哪些关键参数？)
-- [11.介绍一下FLUX.1 Lite与FLUX.1的异同](#11.介绍一下FLUX.1-Lite与FLUX.1的异同)
-- [12.什么是flow matching？](#12.什么是flow-matching？)
-- [13.Flow Matching和DDPM之间有什么区别？](#13.Flow-Matching和DDPM之间有什么区别？)
-- [14.介绍一下FLUX.1 Krea的训练策略](#14.介绍一下FLUX.1-Krea的训练策略)
+- [1.介绍一下FLUX.1的整体架构。与Stable Diffusion 3相比，FLUX.1的核心架构优化有哪些？详细分析改进的意图（VAE、Backbone、Text Encoder）](#1.介绍一下FLUX.1的整体架构。与Stable-Diffusion-3相比，FLUX.1的核心架构优化有哪些？详细分析改进的意图（VAE、Backbone、Text-Encoder）)
+- [2.训练FLUX.1过程中官方使用了哪些训练技巧？](#2.训练FLUX.1过程中官方使用了哪些训练技巧？)
+- [3.FLUX.1模型的微调训练流程一般包含哪几部分核心内容？](#3.FLUX.1模型的微调训练流程一般包含哪几部分核心内容？)
+- [4.FLUX.1模型的微调训练流程中有哪些关键参数？](#4.FLUX.1模型的微调训练流程中有哪些关键参数？)
+- [5.介绍一下FLUX.1 Lite与FLUX.1的异同](#5.介绍一下FLUX.1-Lite与FLUX.1的异同)
+- [6.介绍一下FLUX.1 Kontext的原理，FLUX.1 Kontext能够执行哪些AIGC任务？](#6.介绍一下FLUX.1-Kontext的原理，FLUX.1-Kontext能够执行哪些AIGC任务？)
+- [7.FLUX.1 Kontext和FLUX.1相比，有哪些核心优化？详细分析改进的意图](#7.FLUX.1-Kontext和FLUX.1相比，有哪些核心优化？详细分析改进的意图)
+- [8.介绍一下FLUX.1 Krea的训练策略](#8.介绍一下FLUX.1-Krea的训练策略)
+- [9.介绍一下FLUX.1 Krea中监督微调（SFT）的流程](#9.介绍一下FLUX.1-Krea中监督微调（SFT）的流程)
+- [10.FLUX.1 Krea的后训练过程中有哪些关键要点？](#10.FLUX.1-Krea的后训练过程中有哪些关键要点？)
+- [11.介绍一下FLUX.1 Krea的后训练过程中使用的Tuned Preference Optimization技术](#11.介绍一下FLUX.1-Krea的后训练过程中使用的Tuned-Preference-Optimization技术)
 
 
-## 第二章 FLUX.1 Kontext系列核心高频考点
+## 第二章 FLUX.2系列核心高频考点
 
-- [1.介绍一下FLUX.1 Kontext的原理](#1.介绍一下FLUX.1-Kontext的原理)
-- [2.FLUX.1 Kontext能够执行哪些AIGC任务？](#2.FLUX.1-Kontext能够执行哪些AIGC任务？)
-- [3.FLUX.1 Kontext和FLUX.1相比，有哪些核心优化？详细分析改进的意图](#3.FLUX.1-Kontext和FLUX.1相比，有哪些核心优化？详细分析改进的意图)
-- [4.介绍一下FLUX.1 Kontext的提示词构建技巧](#4.介绍一下FLUX.1-Kontext的提示词构建技巧)
-- [5.介绍一下FLUX.1 Krea中监督微调（SFT）的流程](#5.介绍一下FLUX.1-Krea中监督微调（SFT）的流程)
-- [6.FLUX.1 Krea的后训练过程中有哪些关键要点？](#6.FLUX.1-Krea的后训练过程中有哪些关键要点？)
-- [7.介绍一下FLUX.1 Krea的后训练过程中使用的Tuned Preference Optimization技术](#7.介绍一下FLUX.1-Krea的后训练过程中使用的Tuned-Preference-Optimization技术)
+- [1.与FLUX.1相比，FLUX.2有哪些新特性与优化亮点？详细分析改进的意图（VAE、Backbone、Text Encoder）](#1.与FLUX.1相比，FLUX.2有哪些新特性与优化亮点？详细分析改进的意图（VAE、Backbone、Text-Encoder）)
 
-
-## 第三章 FLUX.2系列核心高频考点
-
-- [1.与FLUX.1相比，FLUX.2有哪些新特性与优化亮点？](#1.与FLUX.1相比，FLUX.2有哪些新特性与优化亮点？)
-- [2.与FLUX.1相比，FLUX.2的Text Encoder部分有哪些优化？](#2.与FLUX.1相比，FLUX.2的Text-Encoder部分有哪些优化？)
-- [3.与FLUX.1相比，FLUX.2的DiT Backbone部分有哪些优化？](#3.与FLUX.1相比，FLUX.2的DiT-Backbone部分有哪些优化？)
-- [4.与FLUX.1相比，FLUX.2的VAE部分有哪些优化？](#4.与FLUX.1相比，FLUX.2的VAE部分有哪些优化？)
 
 ---
 
 # 第一章 FLUX.1系列核心高频考点
 
-<h2 id="1.介绍一下FLUX.1的整体架构">1.介绍一下FLUX.1的整体架构</h2>
-
-
-<h2 id="2.与Stable-Diffusion-3相比，FLUX.1的核心优化有哪些？">2.与Stable Diffusion 3相比，FLUX.1的核心优化有哪些？</h2>
+<h2 id="1.介绍一下FLUX.1的整体架构。与Stable-Diffusion-3相比，FLUX.1的核心架构优化有哪些？详细分析改进的意图（VAE、Backbone、Text-Encoder）">1.介绍一下FLUX.1的整体架构。与Stable Diffusion 3相比，FLUX.1的核心架构优化有哪些？详细分析改进的意图（VAE、Backbone、Text Encoder）</h2>
 
 FLUX.1系列模型是基于Stable Diffuson 3进行了升级优化，是目前性能最强的开源AI绘画大模型，其主要的创新点如下所示：
 
@@ -53,8 +34,7 @@ FLUX.1系列模型是基于Stable Diffuson 3进行了升级优化，是目前性
 4. FLUX.1系列模型中在DiT架构中设计了双流DiT结构和单流DiT结构，同时加入了二维旋转式位置编码 (RoPE) 策略。
 5. FLUX.1系列模型在单流的DiT中引入了并行注意力层的设计，注意力层和MLP并联执行，执行速度有所提升。
 
-
-<h2 id="3.介绍一下FLUX.1中VAE部分的特点，比起Stable-Diffusion-3有哪些改进？详细分析改进的意图">3.介绍一下FLUX.1中VAE部分的特点，比起Stable Diffusion 3有哪些改进？详细分析改进的意图</h2>
+### VAE部分的改进
 
 **FLUX.1系列中，FLUX.1 VAE架构依然继承了SD 3 VAE的8倍下采样和输入通道数（16）。在FLUX.1 VAE输出Latent特征，并在Latent特征输入扩散模型前，还进行了Pack_Latents操作，一下子将Latent特征通道数提高到64（16 -> 64），换句话说，FLUX.1系列的扩散模型部分输入通道数为64，是SD 3的四倍**。这也代表FLUX.1要学习拟合的内容比起SD 3也增加了4倍，所以官方大幅增加FLUX.1模型的参数量级来提升模型容量（model capacity）。下面是Pack_Latents操作的详细代码，让大家能够更好的了解其中的含义：
 
@@ -94,170 +74,28 @@ def encode(self, x: Tensor) -> Tensor:
 **Rocky认为Stable Diffusion系列和FLUX.1系列中VAE模型的改进历程，为工业界、学术界、竞赛界以及应用界都带来了很多灵感，有很好的借鉴价值。Rocky也相信AI绘画中针对VAE的优化是学术界一个非常重要的论文录用点！**
 
 
-<h2 id="4.介绍一下FLUX.1中Backbone部分的特点，比起Stable-Diffusion-3有哪些改进？详细分析改进的意图">4.介绍一下FLUX.1中Backbone部分的特点，比起Stable Diffusion 3有哪些改进？详细分析改进的意图</h2>
+<h2 id="2.训练FLUX.1过程中官方使用了哪些训练技巧？">2.训练FLUX.1过程中官方使用了哪些训练技巧？</h2>
 
 
-<h2 id="5.介绍一下FLUX.1中Text-Encoder部分的特点，比起Stable-Diffusion-3有哪些改进？详细分析改进的意图">5.介绍一下FLUX.1中Text Encoder部分的特点，比起Stable Diffusion 3有哪些改进？详细分析改进的意图</h2>
+<h2 id="3.FLUX.1模型的微调训练流程一般包含哪几部分核心内容？">3.FLUX.1模型的微调训练流程一般包含哪几部分核心内容？</h2>
 
 
-<h2 id="6.介绍一下Rectified-Flow的原理，Rectified-Flow相比于DDPM、DDIM有哪些优点？">6.介绍一下Rectified Flow的原理，Rectified Flow相比于DDPM、DDIM有哪些优点？</h2>
+<h2 id="4.FLUX.1模型的微调训练流程中有哪些关键参数？">4.FLUX.1模型的微调训练流程中有哪些关键参数？</h2>
 
 
-<h2 id="7.FLUX.1系列不同版本模型之间的差异是什么？">7.FLUX.1系列不同版本模型之间的差异是什么？</h2>
+<h2 id="5.介绍一下FLUX.1-Lite与FLUX.1的异同">5.介绍一下FLUX.1-Lite与FLUX.1的异同</h2>
 
 
-<h2 id="8.训练FLUX.1过程中官方使用了哪些训练技巧？">8.训练FLUX.1过程中官方使用了哪些训练技巧？</h2>
+<h2 id="6.介绍一下FLUX.1-Kontext的原理，FLUX.1-Kontext能够执行哪些AIGC任务？">6.介绍一下FLUX.1 Kontext的原理，FLUX.1 Kontext能够执行哪些AIGC任务？</h2>
 
 
-<h2 id="9.FLUX.1模型的微调训练流程一般包含哪几部分核心内容？">9.FLUX.1模型的微调训练流程一般包含哪几部分核心内容？</h2>
+<h2 id="7.FLUX.1-Kontext和FLUX.1相比，有哪些核心优化？详细分析改进的意图">7.FLUX.1 Kontext和FLUX.1相比，有哪些核心优化？详细分析改进的意图</h2>
 
 
-<h2 id="10.FLUX.1模型的微调训练流程中有哪些关键参数？">10.FLUX.1模型的微调训练流程中有哪些关键参数？</h2>
+<h2 id="8.介绍一下FLUX.1-Krea的训练策略">8.介绍一下FLUX.1 Krea的训练策略</h2>
 
 
-<h2 id="11.介绍一下FLUX.1-Lite与FLUX.1的异同">11.介绍一下FLUX.1-Lite与FLUX.1的异同</h2>
-
-
-<h2 id="12.什么是flow-matching？">12.什么是flow matching？</h2
-
-## 概览
-
-Flow Matching（流匹配）是一种基于连续可正规流（Continuous Normalizing Flows, CNFs）的模拟无关训练范式，它通过回归在预设概率路径上的向量场来学习生成模型，无需在训练时进行繁重的数值仿真 。在高斯路径（包括传统扩散模型路径）上应用 Flow Matching，不仅可获得与扩散模型相当的生成质量，还能实现更稳定的训练和更高效的采样 。
-
-### 原理简述
-
-#### 条件概率路径
-
-在 Flow Matching 中，我们预先指定一条从噪声分布 $$p_0$$ 到数据分布$$ p_1$$ 的连续概率路径
-$$
-p_t(x)\propto\exp\biggl(-\frac{||x-\mu(t)||^2}{2\sigma(t)^2}\biggr)\:,
-$$
-其中 $$\mu(t)$$ 和 $$\sigma(t) $$控制路径的均值与方差 。
-
-#### 向量场回归
-
-给定路径 $$p_t$$ 和其对应的真实流场$$u(x,t)$$，我们训练一个神经网络 $$v_\theta(x,t) $$来最小化
-$$
-\mathbb{E}_{t\sim U(0,1),\:x\sim p_t}\|v_\theta(x,t)-u(x,t)\|^2
-$$
-的均方误差，无需在训练迭代中求解 ODE/SDE 。
-
-#### 采样流程
-
-1. 从简单噪声 $$z_0\sim p_0 $$开始。
-
-2. 通过离散化 ODE：
-   $$
-   z_{t+\Delta t}=z_{t}+v_{\theta}(z_{t},t)\:\Delta t
-   $$
-   沿时间轴 $$t=0\to1$$ 迭代，最终得到 $$z_1 $$作为生成样本 
-
-### 优势与实践
-
-- **稳定高效**：与基于 SDE 的扩散模型相比，Flow Matching 训练过程无仿真步骤，更少误差累积，训练更稳定、收敛更快 ([mlg.eng.cam.ac.uk](https://mlg.eng.cam.ac.uk/blog/2024/01/20/flow-matching.html?utm_source=chatgpt.com))。
-- **灵活路径设计**：除扩散路径外，还可采用最优传输（Optimal Transport）等路径，实现更短、更平滑的生成轨迹，进一步加速采样 ([openreview.net](https://openreview.net/forum?id=PqvMRDCJT9t&utm_source=chatgpt.com))。
-- **潜在空间应用**：将 Flow Matching 应用于预训练自动编码器的潜在空间，可大幅降低计算资源需求，同时在高分辨率图像生成中保持高质量 ([github.com](https://github.com/VinAIResearch/LFM?utm_source=chatgpt.com))。
-- **开源资源**：可参考官方论文（arXiv:2210.02747）和最新的 Flow Matching Guide（arXiv:2412.06264）获取详尽理论与示例代码 ([arxiv.org](https://arxiv.org/abs/2412.06264?utm_source=chatgpt.com))。
-
-
-<h2 id="13.Flow-Matching和DDPM之间有什么区别？">13.Flow Matching和DDPM之间有什么区别？</h2>
-
-Flow Matching和去噪扩散概率模型（DDPM）都是生成模型，但它们在理论基础、训练目标和生成过程上都有显著区别。
-
-**核心区别**：  
-DDPM通过随机扩散和去噪过程生成数据，强调概率建模；Flow Matching通过确定性ODE路径直接匹配目标分布，追求高效的最优传输。前者生成质量高但速度慢，后者在速度上更具优势，同时理论更简洁。
-
-### **1. 理论基础**
-- **DDPM**：
-  - 基于**扩散过程**，属于概率模型，通过马尔可夫链的前向（加噪）和反向（去噪）过程建模。
-  - 前向过程逐步添加高斯噪声，将数据转化为纯噪声；反向过程通过神经网络学习逐步去噪。
-  - 数学上对应 **随机微分方程（SDE）** 的离散化。
-
-- **Flow Matching**：
-  - 基于 **连续归一化流（CNF）** 或 **最优传输（Optimal Transport, OT）** ，通过常微分方程（ODE）定义确定性路径。
-  - 目标是从噪声分布到数据分布构建一条平滑的概率路径，通常通过匹配向量场实现。
-  - 数学上对应 **确定性ODE** ，强调路径的直线性或最优性。
-
-### **2. 过程类型**
-- **DDPM**：
-  - **随机过程**：每一步添加或去除的噪声是随机的高斯噪声。
-  - 前向和反向过程均为马尔可夫链，依赖多步迭代。
-
-- **Flow Matching**：
-  - **确定性过程**：生成路径由ODE定义，通常为确定性映射（如Rectified Flow）。
-  - 可能通过最优传输直接规划最小能量路径，减少随机性。
-
-### **3. 训练目标**
-- **DDPM**：
-  - 优化**变分下界（ELBO）**，简化为预测每一步的噪声（均方误差损失）。
-  - 需要模拟所有时间步的噪声扰动，训练复杂但稳定。
-
-- **Flow Matching**：
-  - 直接匹配**条件概率路径**或**向量场**（如条件流匹配，CFM）。
-  - 损失函数设计为最小化预测路径与目标路径的差异（如Wasserstein距离），训练更高效。
-
-### **4. 采样过程**
-- **DDPM**：
-  - **多步迭代采样**：通常需要几十到几百步去噪，速度较慢。
-  - 依赖设计的噪声调度（Noise Schedule）控制加噪/去噪速度。
-
-- **Flow Matching**：
-  - **高效采样**：通过ODE求解器可加速，甚至实现少步或一步生成（如Rectified Flow的直线路径）。
-  - 路径设计更灵活（如直线化路径减少采样步数）。
-
-### **5. 数学形式对比**
-- **DDPM**：
-  - 前向过程： $q(x_t | x_{t-1}) = \mathcal{N}(x_t; \sqrt{1-\beta_t}x_{t-1}, \beta_t I)$
-  - 反向过程： $p_\theta(x_{t-1} | x_t) = \mathcal{N}(x_{t-1}; \mu_\theta(x_t, t), \Sigma_t)$
-
-- **Flow Matching**：
-  - 生成路径： $\frac{d}{dt}x(t) = v_\theta(x(t), t)$ ，其中 $v_\theta$ 是学习的向量场。
-  - 目标是最小化 $\mathbb{E}_{t, x(t)} \|v_\theta(x(t), t) - u_t(x(t))\|^2$ ， $u_t$ 为目标路径的瞬时速度。
-
-### **6. 优缺点对比**
-- **DDPM**：
-  - **优点**：生成质量高，训练稳定。
-  - **缺点**：采样速度慢，依赖大量时间步。
-
-- **Flow Matching**：
-  - **优点**：采样速度快，路径设计灵活（可直线化），理论更简洁。
-  - **缺点**：可能需要复杂ODE求解器，训练技巧要求高。
-
-### **7. 典型应用**
-- **DDPM**：图像生成（如Stable Diffusion）、音频合成。
-- **Flow Matching**：快速图像生成（如Rectified Flow）、3D形状生成、基于最优传输的任务。
-
-### **8. 总结**
-| 维度               | DDPM                          | Flow Matching                  |
-|--------------------|-------------------------------|--------------------------------|
-| **理论基础**       | 随机扩散（SDE）               | 确定性流（ODE/OT）             |
-| **训练目标**       | 变分下界（预测噪声）          | 条件流匹配（匹配向量场）        |
-| **采样速度**       | 慢（多步迭代）                | 快（少步或一步）               |
-| **路径性质**       | 随机噪声扰动                  | 确定性最优路径                 |
-| **数学复杂度**     | 中等（马尔可夫链）            | 高（ODE求解/最优传输）         |
-
-
-<h2 id="14.介绍一下FLUX.1-Krea的训练策略">14.介绍一下FLUX.1 Krea的训练策略</h2>
-
-
-
----
-
-# 第二章 FLUX.1 Kontext系列核心高频考点
-
-<h2 id="1.介绍一下FLUX.1-Kontext的原理">1.介绍一下FLUX.1 Kontext的原理</h2>
-
-
-<h2 id="2.FLUX.1-Kontext能够执行哪些AIGC任务？">2.FLUX.1 Kontext能够执行哪些AIGC任务？</h2>
-
-
-<h2 id="3.FLUX.1-Kontext和FLUX.1相比，有哪些核心优化？详细分析改进的意图">3.FLUX.1 Kontext和FLUX.1相比，有哪些核心优化？详细分析改进的意图</h2>
-
-
-<h2 id="4.介绍一下FLUX.1-Kontext的提示词构建技巧">4.介绍一下FLUX.1 Kontext的提示词构建技巧</h2>
-
-
-<h2 id="5.介绍一下FLUX.1-Krea中监督微调（SFT）的流程">5.介绍一下FLUX.1-Krea中监督微调（SFT）的流程</h2>
+<h2 id="9.介绍一下FLUX.1-Krea中监督微调（SFT）的流程">9.介绍一下FLUX.1-Krea中监督微调（SFT）的流程</h2>
 
 FLUX.1 Krea模型中的监督微调（SFT）是其摆脱“AI感”，生成具有照片级真实感和独特美学图像的关键步骤。
 
@@ -306,7 +144,7 @@ SFT微调并非孤立的环节，它为后续的RLHF阶段打下了坚实的基�
 | **RLHF** | **对齐人类偏好**与**风格强化** | 小规模、带有明确艺术导向的人类偏好数据 | 进一步校准输出，使风格更鲜明，更稳健地符合人类审美 |
 
 
-<h2 id="6.FLUX.1-Krea的后训练过程中有哪些关键要点？">6.FLUX.1 Krea的后训练过程中有哪些关键要点？</h2>
+<h2 id="10.FLUX.1-Krea的后训练过程中有哪些关键要点？">10.FLUX.1 Krea的后训练过程中有哪些关键要点？</h2>
 
 在监督微调阶段，FLUX.1 Krea精心筛选构建了一个符合官方审美标准的、最高质量的图像数据集。同时在训练FLUX.1 Krea大模型的过程中，还加入了来自Krea-1模型的高质量合成图像数据，这些图像被用于增强 SFT 阶段的模型训练效果。
 
@@ -322,7 +160,7 @@ SFT微调并非孤立的环节，它为后续的RLHF阶段打下了坚实的基�
 Krea官方认为，在”全局”用户偏好上微调训练的模型在审美质量上并非最优。对于像文本渲染、解剖结构、物体结构和提示词遵循度这样有客观事实依据的目标，数据的多样性和规模确实是很有帮助的。然而，对于像美学质量这样主观的目标，将不同的审美品味混合在一起几乎是相互抵触的。
 
 
-<h2 id="7.介绍一下FLUX.1-Krea的后训练过程中使用的Tuned-Preference-Optimization技术">7.介绍一下FLUX.1 Krea的后训练过程中使用的Tuned Preference Optimization技术</h2>
+<h2 id="11.介绍一下FLUX.1-Krea的后训练过程中使用的Tuned-Preference-Optimization技术">11.介绍一下FLUX.1 Krea的后训练过程中使用的Tuned Preference Optimization技术</h2>
 
 在SFT阶段之后，FLUX.1 Krea模型的**图像质量**已经很高了，但**美学风格和鲁棒性**还未达到理想状态。团队发现，使用现有的开源偏好数据集进行优化会导致模型出现“审美中庸”、风格倒退（回归“AI感”）等问题。
 
@@ -399,10 +237,10 @@ flowchart TD
 ---
 
 
-# 第三章 FLUX.2系列核心高频考点
+# 第二章 FLUX.2系列核心高频考点
 
 
-<h2 id="1.与FLUX.1相比，FLUX.2有哪些新特性与优化亮点？">1.与FLUX.1相比，FLUX.2有哪些新特性与优化亮点？</h2>
+<h2 id="1.与FLUX.1相比，FLUX.2有哪些新特性与优化亮点？与FLUX.1相比，FLUX.2有哪些新特性与优化亮点？详细分析改进的意图（VAE、Backbone、Text-Encoder）">1.与FLUX.1相比，FLUX.2有哪些新特性与优化亮点？与FLUX.1相比，FLUX.2有哪些新特性与优化亮点？详细分析改进的意图（VAE、Backbone、Text Encoder）</h2>
 
 FLUX.2系列更新的新特性与核心优化亮点，具体如下：
 1. **支持参考图生成**：最多可输入 10 张参考图像，在角色、产品及风格一致性上达到当前最佳水平。支持显式图像索引，用户可在提示词中通过编号引用特定图像，例如“将图 2 中的衣服穿在图 1 的角色身上”。
@@ -414,12 +252,12 @@ FLUX.2系列更新的新特性与核心优化亮点，具体如下：
 7. **支持十六进制颜色描述**：可通过如 #DDC57A 的十六进制代码精准描述对象颜色，在色彩控制方面表现优异。
 
 
-<h2 id="2.与FLUX.1相比，FLUX.2的Text-Encoder部分有哪些优化？">2.与FLUX.1相比，FLUX.2的Text Encoder部分有哪些优化？</h2>
+### FLUX.2的Text Encoder部分的优化
 
 在Text Encoder部分，FLUX.2的文本编码器不再使用T5和CLIP，而是改用了**Mistral-3-24B视觉语言大模型**（VLM大模型，Mistral-Small-3.2-24B-Instruct-2506），视觉语言大模型提供真实世界知识和上下文理解，增强了对世界、材质、空间关系和构图的建模能力。同时使用单个文本编码器极大地简化了Prompt Embeddings的计算过程。
 
 
-<h2 id="3.与FLUX.1相比，FLUX.2的DiT-Backbone部分有哪些优化？">3.与FLUX.1相比，FLUX.2的DiT Backbone部分有哪些优化？</h2>
+### FLUX.2的DiT Backbone部分的优化
 
 在DiT Backbone部分，**FLUX.2沿用了与FLUX.1相同的MM-DiT + 并行DiT相结合的整体架构**。简言之，MM-DiT模块首先在独立处理图像潜变量和条件文本，仅在注意力计算环节将二者融合，因此被称为“双流”块。随后的并行DiT模块则对拼接后的图像与文本流进行操作，可视为“单流”块。
 
@@ -441,7 +279,7 @@ FLUX.2 中单流模块的比例显著提高（双流块与单流块的数量比�
 FLUX.2 则升级为 4D RoPE 编码：第一维为 t，用于区分目标图像与条件图像——目标图像（对应噪声潜变量 token）的 t 设为 0，而条件图像的 t 则以 10 为间隔依次递增（如 10、20……）；第二维和第三维仍分别对应图像宽高（w 和 h）；第四维为 l，专门用于编码文本 token 的序列位置，对于图像潜变量则固定为 0。因此，新增的第四维主要作用是为文本 token 赋予位置信息，而此前 FLUX.1 中所有文本 token 的位置编码均固定为 0，并未区分其顺序。
 
 
-<h2 id="4.与FLUX.1相比，FLUX.2的VAE部分有哪些优化？">4.与FLUX.1相比，FLUX.2的VAE部分有哪些优化？</h2>
+### FLUX.2的VAE部分的优化
 
 在VAE部分，FLUX.2也进行了重要升级。**新版VAE在可学习性、重建质量与压缩率三者间实现了更优的平衡**。
 
