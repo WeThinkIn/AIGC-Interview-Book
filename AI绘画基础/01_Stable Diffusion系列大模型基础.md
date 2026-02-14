@@ -41,6 +41,7 @@
 - [20.cfg参数的介绍](#20.cfg参数的介绍)
 - [21.介绍一下PAG（Perturbed-Attention Guidance）](#21.介绍一下PAG（Perturbed-Attention-Guidance）)
 - [22.介绍一下图像生成领域的重参数技巧](#22.介绍一下图像生成领域的重参数技巧)
+- [23.介绍一下Rectified Flow的原理，Rectified Flow相比于DDPM、DDIM有哪些异同？](#23.介绍一下Rectified-Flow的原理，Rectified-Flow相比于DDPM、DDIM有哪些异同？)
 
 
 ## 第二章 Stable Diffusion 1.5系列核心高频考点
@@ -117,12 +118,8 @@
 
 ## 第四章 Stable Diffusion 3系列核心高频考点
 
-- [1.介绍一下Stable Diffusion 3的整体架构](#1.介绍一下Stable-Diffusion-3的整体架构)
-- [2.与Stable Diffusion XL相比，Stable Diffusion 3的核心优化有哪些？](#2.与Stable-Diffusion-XL相比，Stable-Diffusion-3的核心优化有哪些？)
-- [3.Stable Diffusion 3的VAE部分有哪些创新？详细分析改进意图](#3.Stable-Diffusion-3的VAE部分有哪些创新？详细分析改进意图)
+- [1.介绍一下Stable Diffusion 3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text Encoder）](#1.介绍一下Stable-Diffusion-3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text-Encoder）)
 - [4.Stable Diffusion 3中使用的训练方法有哪些创新点？](#4.Stable-Diffusion-3中使用的训练方法有哪些创新点？)
-- [5.Stable Diffusion 3的Backbone部分有哪些创新？详细分析改进意图](#5.Stable-Diffusion-3的Backbone部分有哪些创新？详细分析改进意图)
-- [6.Stable Diffusion 3的Text Encoder部分有哪些创新？详细分析改进意图](#6.Stable-Diffusion-3的Text-Encoder部分有哪些创新？详细分析改进意图)
 - [7.训练Stable Diffusion过程中官方使用了哪些训练技巧？](#7.训练Stable-Diffusion过程中官方使用了哪些训练技巧？)
 - [8.介绍一下Stable Diffusion 3.5系列的原理](#8.介绍一下Stable-Diffusion-3.5系列的原理)
 - [9.为什么Stable Diffusion 3使用三个文本编码器?](#9.为什么Stable-Diffusion-3使用三个文本编码器?)
@@ -566,6 +563,126 @@ g ~ Gumbel(0,1)
 3. 赋能复杂生成模型的端到端训练
 
 正是这一技巧的突破，才使得VAE、扩散模型等现代生成架构能够稳定训练并产生高质量图像，推动了AIGC领域的快速发展。
+
+
+<h2 id="23.介绍一下Rectified-Flow的原理，Rectified-Flow相比于DDPM、DDIM有哪些异同？">23.介绍一下Rectified Flow的原理，Rectified Flow相比于DDPM、DDIM有哪些异同？</h2>
+
+Flow Matching（流匹配）是一种基于连续可正规流（Continuous Normalizing Flows, CNFs）的模拟无关训练范式，它通过回归在预设概率路径上的向量场来学习生成模型，无需在训练时进行繁重的数值仿真 。在高斯路径（包括传统扩散模型路径）上应用 Flow Matching，不仅可获得与扩散模型相当的生成质量，还能实现更稳定的训练和更高效的采样 。
+
+### 原理简述
+
+#### 条件概率路径
+
+在 Flow Matching 中，我们预先指定一条从噪声分布 $$p_0$$ 到数据分布$$ p_1$$ 的连续概率路径
+
+$$
+p_t(x)\propto\exp\biggl(-\frac{||x-\mu(t)||^2}{2\sigma(t)^2}\biggr)\:,
+$$
+
+其中 $$\mu(t)$$ 和 $$\sigma(t) $$控制路径的均值与方差 。
+
+#### 向量场回归
+
+给定路径 $$p_t$$ 和其对应的真实流场$$u(x,t)$$，我们训练一个神经网络 $$v_\theta(x,t) $$ 来最小化
+
+$$
+\mathbb{E}_{t\sim U(0,1),\:x\sim p_t}\|v_\theta(x,t)-u(x,t)\|^2
+$$
+
+的均方误差，无需在训练迭代中求解 ODE/SDE 。
+
+#### 采样流程
+
+1. 从简单噪声 $$z_0\sim p_0 $$ 开始。
+
+2. 通过离散化 ODE：
+
+   $$
+   z_{t+\Delta t}=z_{t}+v_{\theta}(z_{t},t)\:\Delta t
+   $$
+   
+   沿时间轴 $$t=0\to1$$ 迭代，最终得到 $$z_1 $$ 作为生成样本 
+
+### 优势与实践
+
+- **稳定高效**：与基于 SDE 的扩散模型相比，Flow Matching 训练过程无仿真步骤，更少误差累积，训练更稳定、收敛更快 ([mlg.eng.cam.ac.uk](https://mlg.eng.cam.ac.uk/blog/2024/01/20/flow-matching.html?utm_source=chatgpt.com))。
+- **灵活路径设计**：除扩散路径外，还可采用最优传输（Optimal Transport）等路径，实现更短、更平滑的生成轨迹，进一步加速采样 ([openreview.net](https://openreview.net/forum?id=PqvMRDCJT9t&utm_source=chatgpt.com))。
+- **潜在空间应用**：将 Flow Matching 应用于预训练自动编码器的潜在空间，可大幅降低计算资源需求，同时在高分辨率图像生成中保持高质量 ([github.com](https://github.com/VinAIResearch/LFM?utm_source=chatgpt.com))。
+- **开源资源**：可参考官方论文（arXiv:2210.02747）和最新的 Flow Matching Guide（arXiv:2412.06264）获取详尽理论与示例代码 ([arxiv.org](https://arxiv.org/abs/2412.06264?utm_source=chatgpt.com))。
+
+Flow Matching和去噪扩散概率模型（DDPM）都是生成模型，但它们在理论基础、训练目标和生成过程上都有显著区别。
+
+**核心区别**：  
+DDPM通过随机扩散和去噪过程生成数据，强调概率建模；Flow Matching通过确定性ODE路径直接匹配目标分布，追求高效的最优传输。前者生成质量高但速度慢，后者在速度上更具优势，同时理论更简洁。
+
+### **1. 理论基础**
+- **DDPM**：
+  - 基于**扩散过程**，属于概率模型，通过马尔可夫链的前向（加噪）和反向（去噪）过程建模。
+  - 前向过程逐步添加高斯噪声，将数据转化为纯噪声；反向过程通过神经网络学习逐步去噪。
+  - 数学上对应 **随机微分方程（SDE）** 的离散化。
+
+- **Flow Matching**：
+  - 基于 **连续归一化流（CNF）** 或 **最优传输（Optimal Transport, OT）** ，通过常微分方程（ODE）定义确定性路径。
+  - 目标是从噪声分布到数据分布构建一条平滑的概率路径，通常通过匹配向量场实现。
+  - 数学上对应 **确定性ODE** ，强调路径的直线性或最优性。
+
+### **2. 过程类型**
+- **DDPM**：
+  - **随机过程**：每一步添加或去除的噪声是随机的高斯噪声。
+  - 前向和反向过程均为马尔可夫链，依赖多步迭代。
+
+- **Flow Matching**：
+  - **确定性过程**：生成路径由ODE定义，通常为确定性映射（如Rectified Flow）。
+  - 可能通过最优传输直接规划最小能量路径，减少随机性。
+
+### **3. 训练目标**
+- **DDPM**：
+  - 优化**变分下界（ELBO）**，简化为预测每一步的噪声（均方误差损失）。
+  - 需要模拟所有时间步的噪声扰动，训练复杂但稳定。
+
+- **Flow Matching**：
+  - 直接匹配**条件概率路径**或**向量场**（如条件流匹配，CFM）。
+  - 损失函数设计为最小化预测路径与目标路径的差异（如Wasserstein距离），训练更高效。
+
+### **4. 采样过程**
+- **DDPM**：
+  - **多步迭代采样**：通常需要几十到几百步去噪，速度较慢。
+  - 依赖设计的噪声调度（Noise Schedule）控制加噪/去噪速度。
+
+- **Flow Matching**：
+  - **高效采样**：通过ODE求解器可加速，甚至实现少步或一步生成（如Rectified Flow的直线路径）。
+  - 路径设计更灵活（如直线化路径减少采样步数）。
+
+### **5. 数学形式对比**
+- **DDPM**：
+  - 前向过程： $q(x_t | x_{t-1}) = \mathcal{N}(x_t; \sqrt{1-\beta_t}x_{t-1}, \beta_t I)$
+  - 反向过程： $p_\theta(x_{t-1} | x_t) = \mathcal{N}(x_{t-1}; \mu_\theta(x_t, t), \Sigma_t)$
+
+- **Flow Matching**：
+  - 生成路径： $\frac{d}{dt}x(t) = v_\theta(x(t), t)$ ，其中 $v_\theta$ 是学习的向量场。
+  - 目标是最小化 $\mathbb{E}_{t, x(t)} \|v_\theta(x(t), t) - u_t(x(t))\|^2$ ， $u_t$ 为目标路径的瞬时速度。
+
+### **6. 优缺点对比**
+- **DDPM**：
+  - **优点**：生成质量高，训练稳定。
+  - **缺点**：采样速度慢，依赖大量时间步。
+
+- **Flow Matching**：
+  - **优点**：采样速度快，路径设计灵活（可直线化），理论更简洁。
+  - **缺点**：可能需要复杂ODE求解器，训练技巧要求高。
+
+### **7. 典型应用**
+- **DDPM**：图像生成（如Stable Diffusion）、音频合成。
+- **Flow Matching**：快速图像生成（如Rectified Flow）、3D形状生成、基于最优传输的任务。
+
+### **8. 总结**
+| 维度               | DDPM                          | Flow Matching                  |
+|--------------------|-------------------------------|--------------------------------|
+| **理论基础**       | 随机扩散（SDE）               | 确定性流（ODE/OT）             |
+| **训练目标**       | 变分下界（预测噪声）          | 条件流匹配（匹配向量场）        |
+| **采样速度**       | 慢（多步迭代）                | 快（少步或一步）               |
+| **路径性质**       | 随机噪声扰动                  | 确定性最优路径                 |
+| **数学复杂度**     | 中等（马尔可夫链）            | 高（ODE求解/最优传输）         |
 
 
 ---
@@ -1250,10 +1367,7 @@ SDXL Refiner是Stability AI推出的图像精细化模型，作为SDXL生态系�
 
 # 第四章 Stable Diffusion 3系列核心高频考点
 
-<h2 id="1.介绍一下Stable-Diffusion-3的整体架构">1.介绍一下Stable Diffusion 3的整体架构 </h2>
-
-
-<h2 id="2.与Stable-Diffusion-XL相比，Stable-Diffusion-3的核心优化有哪些？">2.与Stable Diffusion XL相比，Stable Diffusion 3的核心优化有哪些？ </h2>
+<h2 id="1.介绍一下Stable-Diffusion-3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text-Encoder）">1.介绍一下Stable Diffusion 3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text Encoder） </h2>
 
 Rocky认为Stable Diffusion 3的价值和传统深度学习时代的“YOLOv4”一样，在AIGC时代的工业界、应用界、竞赛界以及学术界，都有非常大的学习借鉴价值，以下是SD 3相比之前系列的改进点汇总：
 
@@ -1268,7 +1382,7 @@ Rocky认为Stable Diffusion 3的价值和传统深度学习时代的“YOLOv4”
 9. 训练细节：数据预处理（去除离群点数据、去除低质量数据、去除NSFW数据）、图像Caption精细化、预计算图像和文本特征、Classifier-Free Guidance技术、DPO（Direct Preference Optimization）技术
 
 
-<h2 id="3.Stable-Diffusion-3的VAE部分有哪些创新？详细分析改进意图">3.Stable Diffusion 3的VAE部分有哪些创新？详细分析改进意图 </h2>
+### Stable Diffusion 3的VAE部分的创新
 
 **VAE（变分自编码器，Variational Auto-Encoder）模型在Stable Diffusion 3（SD 3）中依旧是不可或缺的组成部分**，Rocky相信不仅在SD 3模型中，在AIGC时代的未来发展中VAE模型也会持续发挥价值。
 
@@ -1300,14 +1414,7 @@ Rocky认为Stable Diffusion 3的价值和传统深度学习时代的“YOLOv4”
 
 ![Stable Diffusion 3 VAE完整结构图](./imgs/Stable-Diffusion-3-VAE完整结构图.png)
 
-
-<h2 id="4.Stable-Diffusion-3中使用的训练方法有哪些创新点？">4.Stable Diffusion 3中使用的训练方法有哪些创新点？ </h2>
-
-
-<h2 id="5.Stable-Diffusion-3的Backbone部分有哪些创新？详细分析改进意图">5.Stable Diffusion 3的Backbone部分有哪些创新？详细分析改进意图 </h2>
-
-
-<h2 id="6.Stable-Diffusion-3的Text-Encoder部分有哪些创新？详细分析改进意图">6.Stable Diffusion 3的Text Encoder部分有哪些创新？详细分析改进意图 </h2>
+### Stable Diffusion 3的Text Encoder部分的创新
 
 作为当前最强的AI绘画大模型之一，Stable Diffusion 3模型都是AIGC算法岗面试中的必考内容。接下来，Rocky将带着大家深入浅出讲解Stable Diffusion 3模型的Text Encoder部分是如何改进的。
 
@@ -1334,6 +1441,9 @@ Stable Diffusion 3的文字渲染能力很强，同时遵循文本Prompts的图�
 虽然SD 3采用CLIP ViT-L + OpenCLIP ViT-bigG + T5-XXL Encoder的组合带来了文字渲染和文本一致性等方面的效果增益，但是也限制了T5-XXL Encoder的能力。因为CLIP ViT-L和OpenCLIP ViT-bigG都只能默认编码77 tokens长度的文本，这让原本能够编码512 tokens的T5-XXL Encoder在SD 3中也只能处理77 tokens长度的文本。而SD系列的“友商”模型DALL-E 3由于只使用了T5-XXL Encoder一个语言模型作为Text Encoder模块，所以可以输入512 tokens的文本，从而发挥T5-XXL Encoder的全部能力。
 
 更多详细内容，大家可以查阅：[深入浅出完整解析Stable Diffusion 3（SD 3）和FLUX.1系列核心基础知识](https://zhuanlan.zhihu.com/p/684068402)
+
+
+<h2 id="4.Stable-Diffusion-3中使用的训练方法有哪些创新点？">4.Stable Diffusion 3中使用的训练方法有哪些创新点？ </h2>
 
 
 <h2 id="7.训练Stable-Diffusion过程中官方使用了哪些训练技巧？">7.训练Stable Diffusion过程中官方使用了哪些训练技巧？ </h2>
