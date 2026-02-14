@@ -118,7 +118,7 @@
 
 ## 第四章 Stable Diffusion 3系列核心高频考点
 
-- [1.介绍一下Stable Diffusion 3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text Encoder）](#1.介绍一下Stable-Diffusion-3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text-Encoder）)
+- [1.介绍一下Stable Diffusion 3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text Encoder）](#1.介绍一下Stable-Diffusion-3的整体架构。与Stable-Diffusion-XL相比，Stable-Diffusion-3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text-Encoder）)
 - [4.Stable Diffusion 3中使用的训练方法有哪些创新点？](#4.Stable-Diffusion-3中使用的训练方法有哪些创新点？)
 - [7.训练Stable Diffusion过程中官方使用了哪些训练技巧？](#7.训练Stable-Diffusion过程中官方使用了哪些训练技巧？)
 - [8.介绍一下Stable Diffusion 3.5系列的原理](#8.介绍一下Stable-Diffusion-3.5系列的原理)
@@ -1367,7 +1367,7 @@ SDXL Refiner是Stability AI推出的图像精细化模型，作为SDXL生态系�
 
 # 第四章 Stable Diffusion 3系列核心高频考点
 
-<h2 id="1.介绍一下Stable-Diffusion-3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text-Encoder）">1.介绍一下Stable Diffusion 3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text Encoder） </h2>
+<h2 id="1.介绍一下Stable-Diffusion-3的整体架构。与Stable-Diffusion-XL相比，Stable-Diffusion-3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text-Encoder）">1.介绍一下Stable Diffusion 3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text Encoder） </h2>
 
 Rocky认为Stable Diffusion 3的价值和传统深度学习时代的“YOLOv4”一样，在AIGC时代的工业界、应用界、竞赛界以及学术界，都有非常大的学习借鉴价值，以下是SD 3相比之前系列的改进点汇总：
 
