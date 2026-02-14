@@ -8,12 +8,12 @@
 - [6.在AIGC图像生成领域中，LoRA模型的离线融合和提取方式有哪些？](#6.在AIGC图像生成领域中，LoRA模型的离线融合和提取方式有哪些？)
 - [7.在AIGC图像生成领域中，LoRA模型的微调训练流程一般包含哪几部分核心内容？](#7.在AIGC图像生成领域中，LoRA模型的微调训练流程一般包含哪几部分核心内容？)
 - [8.在AIGC图像生成领域中，LoRA模型的微调训练流程中有哪些关键参数？](#8.在AIGC图像生成领域中，LoRA模型的微调训练流程中有哪些关键参数？)
+- [9.在AIGC图像生成领域中，LoRA有哪些主流的变体模型？介绍一下这些变体模型（LoCon、LoHa、B-LoRA、LCM_LoRA等）的特点](#9.在AIGC图像生成领域中，LoRA有哪些主流的变体模型？介绍一下这些变体模型（LoCon、LoHa、B-LoRA、LCM_LoRA等）的特点)
+- [10.如何训练得到差异化LoRA？差异化LoRA的作用是什么？](#10.如何训练得到差异化LoRA？差异化LoRA的作用是什么？)
 - [8.介绍一下Textual Inversion技术的原理](#8.介绍一下Textual-Inversion技术的原理)
 - [9.什么是DreamBooth技术？LoRA和DreamBooth对比有什么区别？DreamBooth LoRA的原理是什么样的？](#9.什么是DreamBooth技术？LoRA和DreamBooth对比有什么区别？DreamBooth-LoRA的原理是什么样的？)
 - [23.LoRA和Dreambooth/Textual Inversion之间的差异有哪些？](#23.LoRA和Dreambooth/Textual-Inversion之间的差异有哪些？)
-- [24.在AIGC图像生成领域中，LoRA有哪些主流的变体模型？介绍一下这些变体模型（LoCon、LoHa、B-LoRA、LCM_LoRA等）的特点](#24.在AIGC图像生成领域中，LoRA有哪些主流的变体模型？介绍一下这些变体模型（LoCon、LoHa、B-LoRA、LCM_LoRA等）的特点)
 - [29.介绍一下Parameter-Efficient Fine-Tuning(PEFT)技术的概念，其在AIGC图像生成领域的应用场景有哪些？](#29.介绍一下Parameter-Efficient-Fine-Tuning(PEFT)技术的概念，其在AIGC图像生成领域的应用场景有哪些？)
-- [30.如何训练得到差异化LoRA？差异化LoRA的作用是什么？](#30.如何训练得到差异化LoRA？差异化LoRA的作用是什么？)
 
 
 <h2 id="1.介绍一下AIGC图像生成领域的LoRA技术原理">1.介绍一下AIGC图像生成领域的LoRA技术原理</h2>
@@ -762,6 +762,190 @@ Textual Inversion 通过优化特定概念对应的嵌入向量，精准地将�
 使用扩散损失作为优化指标，可以确保学习到的嵌入既准确捕捉新概念的视觉特征，又保持与原模型良好的兼容性。
 
 
+<h2 id="9.LoRA有哪些主流的变体模型？介绍一下这些变体模型（LoCon、LoHa、B-LoRA、LCM_LoRA等）的特点">9.LoRA有哪些主流的变体模型？介绍一下这些变体模型（LoCon、LoHa、B-LoRA、LCM_LoRA等）的特点</h2>
+
+### LoCon核心基础知识深入浅出完整讲解
+
+LoCon（LoRA for Convolution Network）模型是LoRA 技术在卷积神经网络（CNN）中的扩展与适配，核心是将低秩分解思想从Transformer的线性层（如 Attention 的 QKV 变换、全连接层）迁移到卷积层，实现卷积模型的参数高效微调（PEFT）。理论上能够实现更细粒度的生成内容的控制。
+
+下图中红色框部分代表LoCon模型在LoRA模型基础上额外增加的训练部分：
+
+![LoCon模型与SD系列模型部分训练示意图](./imgs/LoCon模型与SD系列模型部分训练示意图.jpg)
+LoRA模型对卷积层是使用1x1卷积进行降维，而LoCon模型将1x1卷积切换成正常尺寸的卷积进行降维，降维到预设的Rank（lora_dim）。
+
+我们先来回顾一下传统深度学习领域中卷积的计算过程：
+![卷积计算过程的完整图示](./imgs/卷积计算过程的完整图示.jpg)
+接下来我们看看使用LoCon技术后，SD系列模型的卷积层权重的变化：
+
+$$
+\begin{aligned}
+& Conv(in, out, ksize, padding, stride) \\
+\rightarrow & \ Conv(rank, out, 1) \circ Conv(in, rank, ksize, padding, stride)
+\end{aligned}
+$$
+
+使用了LoCon技术后，SD系列模型+LoCon模型的FLOPS变化如下所示：
+
+$$
+before = out\_ch \times in\_ch \times size^2 \times out\_h \times out\_w
+$$
+
+$$
+after = (out\_ch \times \text{LoRA\_rank} + \text{LoRA\_rank} \times in\_ch \times size^2) \times out\_h \times out\_w
+$$
+
+同时训练时的参数数量也发生了变化：
+
+$$
+before = out\_ch \times in\_ch \times size^2
+$$
+
+$$
+after = \text{LoRA\_rank} \times in\_ch \times size^2 + \text{LoRA\_rank} \times out\_ch
+$$
+
+LoCon在实验中得出可以比LoRA模型在训练中更快地拟合（例如，**LoCon模型在训练600步可以达到LoRA模型训练800步的生成性能**）。这表明LoCon模型可能在训练角色或特定特征上更为高效。另外，将LoCon模型应用于人物角色的风格化上也表现不错。
+![LoCon和LoRA效果对比](./imgs/LoCon和LoRA效果对比.jpg)
+**LoCon推荐训练参数设置：dim <= 64，alpha = 1 (或者更小，比如说0.3)**
+
+下面我们看看LoCon模型和LoRA模型在处理卷积层的具体区别：
+
+LoRA模型处理卷积层的代码：
+
+```python
+if org_module.__class__.__name__ == 'Conv2d':
+      in_dim = org_module.in_channels
+      out_dim = org_module.out_channels
+      self.lora_down = torch.nn.Conv2d(in_dim, lora_dim, (1, 1), bias=False)
+      self.lora_up = torch.nn.Conv2d(lora_dim, out_dim, (1, 1), bias=False)
+else:
+      in_dim = org_module.in_features
+      out_dim = org_module.out_features
+      self.lora_down = torch.nn.Linear(in_dim, lora_dim, bias=False)
+      self.lora_up = torch.nn.Linear(lora_dim, out_dim, bias=False)
+```
+
+LoCon模型处理卷积层的代码：
+
+```python
+if org_module.__class__.__name__ == 'Conv2d':
+            # For general LoCon
+            in_dim = org_module.in_channels
+            k_size = org_module.kernel_size
+            stride = org_module.stride
+            padding = org_module.padding
+            out_dim = org_module.out_channels
+            self.lora_down = nn.Conv2d(in_dim, lora_dim, k_size, stride, padding, bias=False)
+            self.lora_up = nn.Conv2d(lora_dim, out_dim, (1, 1), bias=False)
+else:
+            in_dim = org_module.in_features
+            out_dim = org_module.out_features
+            self.lora_down = nn.Linear(in_dim, lora_dim, bias=False)
+            self.lora_up = nn.Linear(lora_dim, out_dim, bias=False)
+```
+
+### LoHa核心基础知识深入浅出完整讲解
+
+上面讲到的LoCon主要是对LoRA进行工程应用层面的改造优化（将LoRA的应用扩展到SD/FLUX系列模型的卷积层），接下来我们要讲的**LoHa模型主要是针对LoRA的低秩矩阵分解理论层面进行优化**。
+
+LoHa (LoRA with Hadamard Product)是在LoRA的基础上，使用了哈达玛积（Hadamard Product）代替原生LoRA中的矩阵点乘，将秩的维度从2R扩展到 $R^{2}$，让LoHa理论上在相同的参数配置下能学习到更多的数据分布信息。
+![左图是原生LoRA模型示意图，右图是LoHa模型示意图](./imgs/左图是原生LoRA模型示意图，右图是LoHa模型示意图.jpg)
+读者朋友可能对哈达玛积不太熟悉，Don't Worry。我们先来了解一下什么是哈达玛积：**哈达玛积（Hadamard Product），又称逐元素乘积（element-wise product），是线性代数中的一种矩阵运算。它与标准矩阵乘法不同，哈达玛积是对两个相同大小的矩阵的对应元素进行乘积运算。**
+
+给定两个相同大小的矩阵 $A$ 和 $B$ ，它们的哈达玛积 $C$ 定义如下：
+
+$$C = A \circ B$$
+
+其中 $C$ 的每个元素 $c_{ij}$ 计算为：
+
+$$c_{ij} = a_{ij} \times b_{ij}$$
+
+例如，假设有以下两个矩阵 $A$ 和 $B$：
+
+$$A = \begin{bmatrix}
+1 & 2 \\
+3 & 4
+\end{bmatrix}, \quad
+B = \begin{bmatrix}
+5 & 6 \\
+7 & 8
+\end{bmatrix}$$
+
+它们的哈达玛积 $C$ 为：
+
+
+$$C = A \circ B = \begin{bmatrix}
+1 \times 5 & 2 \times 6 \\
+3 \times 7 & 4 \times 8
+\end{bmatrix}
+= \begin{bmatrix}
+5 & 12 \\
+21 & 32
+\end{bmatrix}$$
+
+秩的维度小于2R从上面的公式中可以看到，**哈达玛积通过对两个矩阵的逐元素乘积，能够有效地对矩阵进行特征组合、权重计算和信息传播，增强AI模型的表达能力和计算效率**。
+
+在LoHa模型中，应用了哈达玛积后，低秩分解后的形式就转变成如下所示的公式：
+
+$$
+\Delta W = (X_1 Y_1^T) \odot (X_2 Y_2^T)
+$$
+
+其中需要满足条件：
+
+$$
+rank(\Delta W) \leq R^2
+$$
+
+可以看到比起原生LoRA的秩的维度小于 $2R$，LoHa将秩的维度扩展到 $R^2$，**解决了原生LoRA受到低秩的限制**。这个思路不仅仅能够用在AIGC图像生成/AI绘画领域，在AIGC其他领域中都可以借鉴与迁移。
+
+**LoHa训练经验分享：**
+
+1. **LoHa推荐训练参数设置：dim <= 32，alpha = 1 (or lower)**
+2. LoHa不适合训练特征不太明确的画风，同时也比较难收敛，**LoHa通常需要比LoRA和LoCon更多的训练步数才能达到较好的效果**。
+
+### LCM_LORA模型深入浅出完整解析
+
+在讲LCM_LoRA之前，Rocky先简单介绍一下LCM模型。
+
+**LCM模型的全称是Latent Consistency Models（潜在一致性模型）**，由清华大学交叉信息研究院发布。在这个模型发布之前，以Stable Diffusion/FLUX等为主的潜在扩散模型（LDM）由于迭代采样过程计算量大，生成速度较慢。而LCM模型通过将原始LDM模型进行一致性蒸馏技术训练，最后得到一个只用少数的几步推理就能生成高分辨率图像的AIGC图像生成大模型。一般来说，**LCM模型能将主流文生图模型的效率提高5-10倍，所以能呈现出实时生成的效果**。
+
+关于LCM等扩散模型的核心理论知识，大家可以研读Rocky一直在撰写完善的文章：
+[深入浅出完整解析扩散模型DDPM、DDIM、SDE、Classifier/Classifier-Free Guidance、Rectified Flow核心基础知识](https://zhuanlan.zhihu.com/p/1964029619658261252)
+
+**在AIGC图像生成/AI绘画领域中，如果使用原始LCM进行蒸馏训练，那么每个SD/FLUX模型都需要单独蒸馏，这无疑增加了AI绘画开源社区SD/FLUX模型迭代更新的成本。**
+
+这时候，就该LCM_LoRA模型登场了，**LCM_LoRA 是LCM与LoRA技术的创新性结合，LCM_LoRA模型的核心思想是将LCM的蒸馏目标浓缩到LoRA模型的少量参数上，而不用对完整SD/FLUX模型进行完整的微调训练**，解决了传统LCM 蒸馏成本高、通用性差的核心痛点。在前向推理时，可将训练好的LCM_LoRA模型用于任何一个微调后的SD/FLUX模型，无需再对SD/FLUX模型重新进行蒸馏训练。
+
+**通过将LCM_LoRA模型加载到SD/FLUX模型中，可以将SD/FLUX模型的推理步数减少到仅2至8步，而不是常规的25至50步**。在使用LCM_LoRA模型的情况下，SDXL模型在3090显卡上运行只需要大约1秒钟。除了文生图任务外，LCM_LoRA模型还支持图生图任务、图像重绘（inpainting）以及其他SD模型与LoRA模型结合使用的任务场景。
+
+
+<h2 id="10.如何训练得到差异化LoRA？差异化LoRA的作用是什么？">10.如何训练得到差异化LoRA？差异化LoRA的作用是什么？</h2>
+
+**残差/差异化LoRA模型可以说是一种巧妙优雅的LoRA训练思想。**
+
+残差/差异化LoRA模型最早在AIGC开源社区被提出，展现了开源社区的集体智慧。这种LoRA模型的特殊性源自于其训练思想，**旨在让LoRA模型学习两类图像之间的差异**。因此，在LoRA、LoCon、LoHa等架构以及SD、FLUX等不同的AIGC大模型上都能运用这个训练思想，训练对应配套的残差/差异化LoRA模型。
+
+**训练得到的残差/差异化LoRA模型一般用于优化生成图像的整体质量（Low-Level功能），比如美颜美白、美肤、祛痘、磨皮、精修、细节增强、质感加强、光影增强等。**
+
+那么，残差/差异化LoRA模型是如何训练的呢？首先我们需要构建两张内容相似的图像：图 A 和图 B。例如下图所示，左图AI感更强，右图质感更强，整体更自然。
+
+![差异化LoRA素材图](./imgs/差异化LoRA素材图.jpg)
+
+在残差/差异化LoRA的训练中，我们分两步进行训练：
+
+1. 以图 A 为训练数据，由于训练数据仅有一张图，过拟合训练得到LoRA A。
+2. 以图 B 为训练数据，由于训练数据同样仅有一张图，再次过拟合训练得到LoRA B。
+
+接着我们将两个训练好的LoRA B和LoRA A做差：LoRA B - LoRA A，就最终得到了残差/差异化LoRA C模型。
+
+一张训练数据可以保证LoRA模型能够过拟合到训练数据上，但稳定性不足。为了提高稳定性，我们可以用多个图像对（image pairs）进行训练，从而得到效果更稳定的残差/差异化LoRA模型。
+
+到此为止，我们已经了解了残差/差异化LoRA模型的训练过程。我们可以举一反三，比如使用丑陋的和漂亮的图像对，训练提升图像美感的 LoRA；或者使用细节少的和细节丰富的图像对，训练增加图像细节的LoRA。
+
+**一般来说，使用残差/差异化LoRA模型时不需要提示词，对生成图像的构图几乎没有影响，可以说是一种“万金油”的LoRA模型系列。**
+
+
 <h2 id="9.什么是DreamBooth技术？LoRA和DreamBooth对比有什么区别？DreamBooth-LoRA的原理是什么样的？">9.什么是DreamBooth技术？LoRA和DreamBooth对比有什么区别？DreamBooth LoRA的原理是什么样的？ </h2>
 
 ### 1. DreamBooth技术基本原理
@@ -823,9 +1007,6 @@ DreamBooth技术的应用非常广泛，包括但不限于：
 <h2 id="23.LoRA和Dreambooth/Textual-Inversion之间的差异有哪些？">23.LoRA和Dreambooth/Textual Inversion之间的差异有哪些？</h2>
 
 
-<h2 id="24.LoRA有哪些主流的变体模型？介绍一下这些变体模型（LoCon、LoHa、B-LoRA、LCM_LoRA等）的特点">24.LoRA有哪些主流的变体模型？介绍一下这些变体模型（LoCon、LoHa、B-LoRA、LCM_LoRA等）的特点</h2>
-
-
 <h2 id="29.介绍一下Parameter-Efficient-Fine-Tuning(PEFT)技术的概念，其在AIGC图像生成领域的应用场景有哪些？">29.介绍一下Parameter-Efficient Fine-Tuning(PEFT)技术的概念，其在AIGC图像生成领域的应用场景有哪些？</h2>
 
 Parameter-Efficient Fine-Tuning（PEFT，参数高效微调）是一种通过在微调时**冻结预训练模型的绝大部分参数，仅训练少量新增或指定的参数**，来高效适配下游任务的技术。它让大模型应用的门槛和成本显著降低。
@@ -865,30 +1046,4 @@ PEFT主要通过三类策略实现高效微调：
 
 ### 💎 总结
 总的来说，PEFT通过“技能插件”的模式，让大模型轻量化定制成为可能。在AIGC图像生成领域，它正推动个性化创作向高效、普惠方向发展。未来，**如何将多个概念或风格适配器进行可控的组合与叠加**，实现更复杂的创意表达，是值得关注的方向。
-
-
-<h2 id="30.如何训练得到差异化LoRA？差异化LoRA的作用是什么？">30.如何训练得到差异化LoRA？差异化LoRA的作用是什么？</h2>
-
-**残差/差异化LoRA模型可以说是一种巧妙优雅的LoRA训练思想。**
-
-残差/差异化LoRA模型最早在AIGC开源社区被提出，展现了开源社区的集体智慧。这种LoRA模型的特殊性源自于其训练思想，**旨在让LoRA模型学习两类图像之间的差异**。因此，在LoRA、LoCon、LoHa等架构以及SD、FLUX等不同的AIGC大模型上都能运用这个训练思想，训练对应配套的残差/差异化LoRA模型。
-
-**训练得到的残差/差异化LoRA模型一般用于优化生成图像的整体质量（Low-Level功能），比如美颜美白、美肤、祛痘、磨皮、精修、细节增强、质感加强、光影增强等。**
-
-那么，残差/差异化LoRA模型是如何训练的呢？首先我们需要构建两张内容相似的图像：图 A 和图 B。例如下图所示，左图AI感更强，右图质感更强，整体更自然。
-
-![差异化LoRA素材图](./imgs/差异化LoRA素材图.jpg)
-
-在残差/差异化LoRA的训练中，我们分两步进行训练：
-
-1. 以图 A 为训练数据，由于训练数据仅有一张图，过拟合训练得到LoRA A。
-2. 以图 B 为训练数据，由于训练数据同样仅有一张图，再次过拟合训练得到LoRA B。
-
-接着我们将两个训练好的LoRA B和LoRA A做差：LoRA B - LoRA A，就最终得到了残差/差异化LoRA C模型。
-
-一张训练数据可以保证LoRA模型能够过拟合到训练数据上，但稳定性不足。为了提高稳定性，我们可以用多个图像对（image pairs）进行训练，从而得到效果更稳定的残差/差异化LoRA模型。
-
-到此为止，我们已经了解了残差/差异化LoRA模型的训练过程。我们可以举一反三，比如使用丑陋的和漂亮的图像对，训练提升图像美感的 LoRA；或者使用细节少的和细节丰富的图像对，训练增加图像细节的LoRA。
-
-**一般来说，使用残差/差异化LoRA模型时不需要提示词，对生成图像的构图几乎没有影响，可以说是一种“万金油”的LoRA模型系列。**
 
