@@ -1,7 +1,7 @@
 # 《三年面试五年模拟》之AIGC图像生成/AI绘画基础知识高频考点
 
 - :star: [01_Stable Diffusion系列大模型基础](01_Stable%20Diffusion系列大模型基础.md)
-- :blue_book: [02_FLUX.1系列大模型基础](02_FLUX.1系列大模型基础.md)
+- :blue_book: [02_FLUX系列大模型基础](02_FLUX系列大模型基础.md)
 - :green_book: [03_类LoRA技术基础](03_类LoRA技术基础.md)
 - :orange_book: [04_ControlNet技术基础](04_ControlNet技术基础.md)
 - :eyes: [05_GAN系列模型基础](05_GAN系列模型基础.md)
