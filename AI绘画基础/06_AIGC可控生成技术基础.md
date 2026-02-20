@@ -1,31 +1,17 @@
 # 目录
 
-## 第一章 AI写真（人脸一致性）核心基础知识高频考点
-
 - [1.介绍一下PULID系列技术的核心原理](#1.介绍一下PULID系列技术的核心原理)
 - [2.介绍一下EcomID技术的核心原理](#2.介绍一下EcomID技术的核心原理)
 - [3.介绍一下FaceChain技术的核心原理，训练和推理过程是什么样的？](#3.介绍一下FaceChain技术的核心原理，训练和推理过程是什么样的？)
 - [4.介绍一下InstantID技术的核心原理](#4.介绍一下InstantID技术的核心原理)
 - [5.介绍一下Easyphoto技术的核心原理，训练和推理过程是什么样的？](#5.介绍一下Easyphoto技术的核心原理，训练和推理过程是什么样的？)
+- [6.介绍一下LayerDiffusion技术的核心原理](#6.介绍一下LayerDiffusion技术的核心原理)
+- [7.介绍一下IP-Adapter技术的核心原理](#7.介绍一下IP-Adapter技术的核心原理)
+- [8.介绍一下SUPIR超分技术的核心原理](#8.介绍一下SUPIR超分技术的核心原理)
+- [9.介绍一下AnyText技术的核心原理](#9.介绍一下AnyText技术的核心原理)
+- [10.介绍一下IDM_VTON虚拟试衣（try-on）技术的核心原理](#10.介绍一下IDM_VTON虚拟试衣（try-on）技术的核心原理)
 
-## 第二章 图像特征参考&编辑核心基础知识高频考点
-
-- [1.介绍一下LayerDiffusion技术的核心原理](#1.介绍一下LayerDiffusion技术的核心原理)
-- [2.介绍一下LuminaBrush技术的核心原理](#2.介绍一下LuminaBrush技术的核心原理)
-- [3.介绍一下IC-Light技术的核心原理](#3.介绍一下IC-Light技术的核心原理)
-- [4.介绍一下IP-Adapter技术的核心原理](#4.介绍一下IP-Adapter技术的核心原理)
-- [5.介绍一下Concept Sliders技术的核心原理](#5.介绍一下Concept-Sliders技术的核心原理)
-- [6.介绍一下SUPIR技术的核心原理](#6.介绍一下SUPIR技术的核心原理)
-- [7.介绍一下AnyText技术的核心原理](#7.介绍一下AnyText技术的核心原理)
-
-## 第三章 虚拟试衣（try-on）核心基础知识高频考点
-
-- [1.介绍一下IDM_VTON技术的核心原理](#1.介绍一下IDM_VTON技术的核心原理)
-- [2.介绍一下OOTDiffusion技术的核心原理](#2.介绍一下OOTDiffusion技术的核心原理)
-- [3.介绍一下AnyDoor技术的核心原理](#3.介绍一下AnyDoor技术的核心原理)
-
-
-## 第一章 AI写真（人脸一致性）核心基础知识高频考点正文
+---
 
 <h2 id="1.介绍一下PULID系列技术的核心原理">1.介绍一下PULID系列技术的核心原理</h2>
 
@@ -208,21 +194,10 @@ EasyPhoto作为一款基于Stable Diffusion的AI写真生成工具，深度融�
 > 纵观其技术体系，EasyPhoto的核心竞争力在于将学术界前沿算法（如CurricularFace、GPEN）工程化为端到端流程，推动AI写真从“专家可用”迈向“大众可玩”。其开源生态（GitHub Star超9k）亦加速了工业级AI视觉应用的普惠化进程。
 
 
-
----
-
-## 第二章 图像特征参考&编辑核心基础知识高频考点
-
-<h2 id="1.介绍一下LayerDiffusion技术的核心原理">1.介绍一下LayerDiffusion技术的核心原理</h2>
+<h2 id="6.介绍一下LayerDiffusion技术的核心原理">6.介绍一下LayerDiffusion技术的核心原理</h2>
 
 
-<h2 id="2.介绍一下LuminaBrush技术的核心原理">2.介绍一下LuminaBrush技术的核心原理</h2>
-
-
-<h2 id="3.介绍一下IC-Light技术的核心原理">3.介绍一下IC-Light技术的核心原理</h2>
-
-
-<h2 id="4.介绍一下IP-Adapter技术的核心原理">4.介绍一下IP-Adapter技术的核心原理</h2>
+<h2 id="7.介绍一下IP-Adapter技术的核心原理">7.介绍一下IP-Adapter技术的核心原理</h2>
 
 IP-Adapter 采用了一种解耦的交叉注意力机制，将文本特征和图像特征分开处理，从而使得生成的图像能够更好地继承和保留输入图像的特征。
 
@@ -234,24 +209,13 @@ IP-Adapter 采用了一种解耦的交叉注意力机制，将文本特征和图
 适配模块：IP-Adapter 包含一个图像编码器和包含解耦交叉注意力机制的适配器。这个适配器允许模型在生成图像时，同时考虑文本提示和图像提示，生成与文本描述相匹配的图像。
 
 
-<h2 id="5.介绍一下Concept-Sliders技术的核心原理">5.介绍一下Concept Sliders技术的核心原理</h2>
+<h2 id="8.介绍一下SUPIR超分技术的核心原理">8.介绍一下SUPIR超分技术的核心原理</h2>
 
 
-<h2 id="6.介绍一下SUPIR技术的核心原理">6.介绍一下SUPIR技术的核心原理</h2>
+<h2 id="9.介绍一下AnyText技术的核心原理">9.介绍一下AnyText技术的核心原理</h2>
 
 
-<h2 id="7.介绍一下AnyText技术的核心原理">7.介绍一下AnyText技术的核心原理</h2>
+<h2 id="10.介绍一下IDM_VTON虚拟试衣（try-on）技术的核心原理">10.介绍一下IDM_VTON虚拟试衣（try-on）技术的核心原理</h2>
 
----
-
-## 第三章 虚拟试衣（try-on）核心基础知识高频考点
-
-<h2 id="1.介绍一下IDM_VTON技术的核心原理">1.介绍一下IDM_VTON技术的核心原理</h2>
-
-
-<h2 id="2.介绍一下OOTDiffusion技术的核心原理">2.介绍一下OOTDiffusion技术的核心原理</h2>
-
-
-<h2 id="3.介绍一下AnyDoor技术的核心原理">3.介绍一下AnyDoor技术的核心原理</h2>
 
 ---
