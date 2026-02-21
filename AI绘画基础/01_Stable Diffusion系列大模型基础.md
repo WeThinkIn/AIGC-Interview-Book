@@ -18,45 +18,10 @@
 - [1.介绍一下Stable Diffusion的原理](#1.介绍一下Stable-Diffusion的原理)
 - [2.介绍一下VAE在Stable Diffusiuon中的原理和作用](#2.介绍一下VAE在Stable-Diffusiuon中的原理和作用)
 - [3.介绍一下Stable Diffusiuon中Backbone的架构、原理和作用](#3.介绍一下Stable-Diffusiuon中Backbone的架构、原理和作用)
-- [19.AI绘画大模型的数据预处理都包含哪些步骤？](#19.AI绘画大模型的数据预处理都包含哪些步骤？)
-- [20.AI绘画大模型的训练流程都包含哪些步骤？](#20.AI绘画大模型的训练流程都包含哪些步骤？)
-- [22.AIGC面试中必考的AI绘画技术框架脉络是什么样的？](#22.AIGC面试中必考的AI绘画技术框架脉络是什么样的？)
-
-
-### 【四】Stable Diffusion Text Encoder高频考点
-
-- [1.举例介绍一下Stable Diffusion模型进行文本编码的全过程](#1.举例介绍一下Stable-Diffusion模型进行文本编码的全过程)
-- [2.Stable Diffusion如何通过文本来实现对图像生成内容的控制?Stable Diffusion中是如何注入文本信息的?](#2.Stable-Diffusion如何通过文本来实现对图像生成内容的控制?Stable-Diffusion中是如何注入文本信息的?)
-- [3.Negative Prompt实现的原理是什么?](#3.Negative-Prompt实现的原理是什么?)
-- [4.如何处理Prompt和生成的图像不对齐的问题？](#4.如何处理Prompt和生成的图像不对齐的问题？)
-- [5.文本编码器和扩散模型，哪一个模型容量变化对生成的结果影响更大？](#5.文本编码器和扩散模型，哪一个模型容量变化对生成的结果影响更大？)
-- [6.扩散模型是如何引入控制条件的？](#6.扩散模型是如何引入控制条件的？)
-
-
-## 第三章 Stable Diffusion XL核心高频考点
-
-- [1.与Stable Diffusion相比，Stable Diffusion XL的核心优化有哪些？](#1.与Stable-Diffusion相比，Stable-Diffusion-XL的核心优化有哪些？)
-- [2.Stable Diffusion XL的VAE部分有哪些创新？详细分析改进意图](#2.Stable-Diffusion-XL的VAE部分有哪些创新？详细分析改进意图)
-- [3.Stable Diffusion XL的Backbone部分有哪些创新？详细分析改进意图](#3.Stable-Diffusion-XL的Backbone部分有哪些创新？详细分析改进意图)
-- [4.Stable Diffusion XL的Text Encoder部分有哪些创新？详细分析改进意图](#4.Stable-Diffusion-XL的Text-Encoder部分有哪些创新？详细分析改进意图)
-- [5.Stable Diffusion XL中使用的训练方法有哪些创新点？](#5.Stable-Diffusion-XL中使用的训练方法有哪些创新点？)
-- [6.训练Stable Diffusion XL时为什么要使用offset Noise？](#6.训练Stable-Diffusion-XL时为什么要使用offset-Noise？)
-- [7.介绍一下Stable Diffusion XL Turbo的原理](#7.介绍一下Stable-Diffusion-XL-Turbo的原理)
-- [8.SDXL-Turbo用的蒸馏方法是什么？](#8.SDXL-Turbo用的蒸馏方法是什么？)
-- [9.什么是SDXL Refiner？](#9.什么是SDXL-Refiner？)
-
-
-## 第四章 Stable Diffusion 3系列核心高频考点
-
-- [1.介绍一下Stable Diffusion 3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text Encoder）](#1.介绍一下Stable-Diffusion-3的整体架构。与Stable-Diffusion-XL相比，Stable-Diffusion-3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text-Encoder）)
-- [4.Stable Diffusion 3中使用的训练方法有哪些创新点？](#4.Stable-Diffusion-3中使用的训练方法有哪些创新点？)
-- [7.训练Stable Diffusion过程中官方使用了哪些训练技巧？](#7.训练Stable-Diffusion过程中官方使用了哪些训练技巧？)
-- [8.介绍一下Stable Diffusion 3.5系列的原理](#8.介绍一下Stable-Diffusion-3.5系列的原理)
-- [9.为什么Stable Diffusion 3使用三个文本编码器?](#9.为什么Stable-Diffusion-3使用三个文本编码器?)
-- [10.Stable Diffusion 3中数据标签工程的具体流程是什么样的？](#10.Stable-Diffusion-3中数据标签工程的具体流程是什么样的？)
-- [11.SD3-Turbo用的蒸馏方法是什么？](#11.SD3-Turbo用的蒸馏方法是什么？)
-- [12.Stable Diffusion 3的图像特征和文本特征在训练前缓存策略有哪些优缺点？](#12.Stable-Diffusion-3的图像特征和文本特征在训练前缓存策略有哪些优缺点？)
-- [13.Stable Diffusion 3.5的改进在哪里？](#13.Stable-Diffusion-3.5的改进在哪里?)
+- [4.介绍一下Stable Diffusiuon中文本编码器的架构、原理和作用](#4.介绍一下Stable-Diffusiuon中文本编码器的架构、原理和作用)
+- [5.Stable Diffusiuon XL有哪些创新点？](#5.Stable-Diffusiuon-XL有哪些创新点？)
+- [6.Stable Diffusiuon 3有哪些创新点？](#6.Stable-Diffusiuon-3有哪些创新点？)
+- [7.面试中必考的AIGC图像生成/AI绘画技术框架脉络是什么样的？](#7.面试中必考的AIGC图像生成/AI绘画技术框架脉络是什么样的？)
 
 ---
 
@@ -820,7 +785,7 @@ U-Net
 
 <h2 id="2.介绍一下VAE在Stable-Diffusiuon中的原理和作用">2.介绍一下VAE在Stable Diffusiuon中的原理和作用</h2>
 
-VAE为什么会导致图像变模糊？
+## VAE为什么会导致图像变模糊？
 
 
 ## 为什么VAE的图像生成效果不好，但是VAE+Diffusion的图像生成效果就很好？
@@ -884,81 +849,21 @@ Cross-Attention可以用于将图像与文本之间的关联建立，在stable-d
 ![image-20240611200630350](./imgs/LDMs.png)
 
 
-<h2 id="19.AI绘画大模型的数据预处理都包含哪些步骤？">19.AI绘画大模型的数据预处理都包含哪些步骤？</h2>
+<h2 id="4.介绍一下Stable-Diffusiuon中文本编码器的架构、原理和作用">4.介绍一下Stable Diffusiuon中文本编码器的架构、原理和作用</h2>
 
-我们都知道，在AIGC时代，训练数据质量决定了AI绘画大模型的性能上限，所以Rocky也帮大家总结归纳了一套完整的数据预处理流程，希望能给大家带来帮助：
-
-1. 数据采集：针对特定领域，采集获取相应的数据集。
-2. 数据质量评估：对采集的数据进行质量评估，确保数据集分布与AI项目要求一致。
-3. 行业标签梳理：针对AI项目所处的领域，设计对应的特殊标签。
-4. 数据清洗：删除质量不合格的数据、对分辨率较小的数据进行超分、对数据中的水印进行去除等。
-5. 数据标注：使用人工标注、模型自动标注（img2tag、img2caption）等方式，生成数据标签。
-6. 标签清洗：对数据标签中的错误、描述不一致等问题，进行修改优化。
-7. 数据增强：使用数据增强技术，扩增数据集规模。
+## 举例介绍一下Stable Diffusion模型进行文本编码的全过程
 
 
-<h2 id="20.AI绘画大模型的训练流程都包含哪些步骤？">20.AI绘画大模型的训练流程都包含哪些步骤？</h2>
-
-Rocky为大家总结了AI绘画大模型的主要训练流程，其中包括：
-
-1. 训练数据预处理：数据采集、数据质量评估、行业标签梳理、数据清洗、数据标注、标签清洗、数据增强等。
-2. 训练资源配置：底模型选择、算力资源配置、训练环境搭建、训练参数设置等。
-3. 模型微调训练：运行AI绘画大模型训练脚本，使用TensorBoard等技术监控模型训练过程，阶段性验证模型的训练效果。
-4. 模型测试与优化：将训练好的AI绘画大模型用于效果评估与消融实验，根据bad case和实际需求进行迭代优化。
+## Stable Diffusion如何通过文本来实现对图像生成内容的控制?Stable Diffusion中是如何注入文本信息的?
 
 
-<h2 id="22.AIGC面试中必考的AI绘画技术框架脉络是什么样的？">22.AIGC面试中必考的AI绘画技术框架脉络是什么样的？</h2>
-
-在进入AIGC时代后，大家在面试AIGC算法工程师时，面试官对于AI绘画技术的考察是面试的重中之重，因此Rocky总结梳理了AI绘画技术在工业界、投资界、学术界、竞赛界以及应用界的核心框架脉络，让大家能够有目标的进行技术学习与面试准备：
-
-1. AI绘画核心大模型：以FLUX.1系列和Stable Diffusion系列模型的知识为主，再加上DaLL-E、Imagen、Playgrond等主流AI绘画大模型的考察。
-2. AI绘画中的LoRA模型：LoRA模型相关知识的考察，包括SD LoRA模型、FLUX.1 LoRA、Dreambooth LoRA、Textual Inversion等。
-3. AI绘画生成可控模型：ControlNet系列模型、IP-Adapter模型等。
-4. AI绘画框架：ComfyUI、Stable Diffusion WebUI等。
-5. AI绘画辅助模型：GAN、U-Net、SAM、Dino等。
-
-Rcoky也在撰写与沉淀AI绘画技术框架脉络的相关干货文章，力求给大家全网最详细的讲解与分析：
-
-[深入浅出完整解析Stable Diffusion 3（SD 3）和FLUX.1系列核心基础知识](https://zhuanlan.zhihu.com/p/684068402)
-
-[深入浅出完整解析Stable Diffusion XL（SDXL）核心基础知识](https://zhuanlan.zhihu.com/p/643420260)
-
-[深入浅出完整解析Stable Diffusion（SD）核心基础知识](https://zhuanlan.zhihu.com/p/632809634)
-
-[深入浅出完整解析Stable Diffusion中U-Net的前世今生与核心知识](https://zhuanlan.zhihu.com/p/642354007)
-
-[深入浅出完整解析LoRA（Low-Rank Adaptation）模型核心基础知识](https://zhuanlan.zhihu.com/p/639229126)
-
-[深入浅出完整解析ControlNet核心基础知识](https://zhuanlan.zhihu.com/p/660924126)
-
-[深入浅出完整解析主流AI绘画框架（Stable Diffusion WebUI、ComfyUI、Fooocus）核心基础知识](https://zhuanlan.zhihu.com/p/673439761)
-
-[深入浅出完整解析AIGC时代中GAN（Generative Adversarial Network）系列模型核心基础知识](https://zhuanlan.zhihu.com/p/663157306)
+## Negative Prompt实现的原理是什么?
 
 
----
-
-## 【四】Stable Diffusion Text Encoder高频考点
-
-<h2 id="1.举例介绍一下Stable-Diffusion模型进行文本编码的全过程">1.举例介绍一下Stable Diffusion模型进行文本编码的全过程</h2>
+## 如何处理Prompt和生成的图像不对齐的问题？
 
 
-<h2 id="2.Stable-Diffusion如何通过文本来实现对图像生成内容的控制?Stable-Diffusion中是如何注入文本信息的?">2.Stable Diffusion如何通过文本来实现对图像生成内容的控制?Stable Diffusion中是如何注入文本信息的?</h2>
-
-
-<h2 id="3.Negative-Prompt实现的原理是什么?">3.Negative Prompt实现的原理是什么?</h2>
-
-
-<h2 id="4.如何处理Prompt和生成的图像不对齐的问题？">4.如何处理Prompt和生成的图像不对齐的问题？</h2>
-
-
-<h2 id="4.如何处理Prompt和生成的图像不对齐的问题？">4.如何处理Prompt和生成的图像不对齐的问题？</h2>
-
-
-<h2 id="5.文本编码器和扩散模型，哪一个模型容量变化对生成的结果影响更大？">5.文本编码器和扩散模型，哪一个模型容量变化对生成的结果影响更大？</h2>
-
-
-<h2 id="6.扩散模型是如何引入控制条件的？">6.扩散模型是如何引入控制条件的？</h2>
+## 扩散模型是如何引入控制条件的？
 
 在现代扩散模型中，引入控制条件的方式主要分为两大类：**采样阶段的引导（Guidance）与网络结构级的条件融合（Architectural Conditioning）**。前者通过调整去噪过程中的梯度方向，在不改动模型参数的前提下实现条件控制；后者则在模型内部直接注入额外信息，包括跨注意力（Cross‐Attention）和时间嵌入（Time Embedding）的多路拼接。下面我们将从这两大类出发，详细介绍包括交叉注意力注入、时间步嵌入拼接、类别嵌入拼接以及 ControlNet 等多种常见的条件引入技术。
 
@@ -1006,11 +911,10 @@ Rcoky也在撰写与沉淀AI绘画技术框架脉络的相关干货文章，力�
 - **Cross‐Attention Score 调整**：在生成时对跨注意力分数进行训练无关的修改，以强化局部概念在图像中的表现，同时避免语义混合（concept bleeding）。
 - **CFG++等高级引导**：在无分类器引导基础上优化 off-manifold 轨迹，提升高引导尺度下的可逆性与样本质量。
 
----
 
-# 第三章 Stable Diffusion XL核心高频考点
+<h2 id="5.Stable-Diffusiuon-XL有哪些创新点？">5.Stable Diffusiuon XL有哪些创新点？</h2>
 
-<h2 id="1.与Stable-Diffusion相比，Stable-Diffusion-XL的核心优化有哪些？">1.与Stable Diffusion相比，Stable Diffusion XL的核心优化有哪些？ </h2>
+## 与Stable Diffusion相比，Stable Diffusion XL的核心优化有哪些？
 
 1、模型参数更大。SDXL 基础模型所使用的 Unet 包含了2.6B（26亿）的参数，对比 SD1.5的 860M（8600万），相差超过三倍。因此从模型参数来看，SDXL 相比 SD 有显著优势。
 
@@ -1020,26 +924,25 @@ Rcoky也在撰写与沉淀AI绘画技术框架脉络的相关干货文章，力�
 
 4、生图流程改进。SDXL 采用的是两阶段生图，第一阶段使用 base model（基础模型）生成，第二阶段则使用 refiner model（细化模型）进一步提升画面的细节表现。当然只使用 SDXL 基础模型进行绘图也是可以的。
 
-
-<h2 id="2.Stable-Diffusion-XL的VAE部分有哪些创新？详细分析改进意图">2.Stable Diffusion XL的VAE部分有哪些创新？详细分析改进意图 </h2>
-
-
-<h2 id="3.Stable-Diffusion-XL的Backbone部分有哪些创新？详细分析改进意图">3.Stable Diffusion XL的Backbone部分有哪些创新？详细分析改进意图 </h2>
+## Stable Diffusion XL的VAE部分有哪些创新？详细分析改进意图
 
 
-<h2 id="4.Stable-Diffusion-XL的Text-Encoder部分有哪些创新？详细分析改进意图">4.Stable Diffusion XL的Text Encoder部分有哪些创新？详细分析改进意图 </h2>
+## Stable Diffusion XL的Backbone部分有哪些创新？详细分析改进意图
 
 
-<h2 id="5.Stable-Diffusion-XL中使用的训练方法有哪些创新点？">5.Stable Diffusion XL中使用的训练方法有哪些创新点？ </h2>
+## Stable Diffusion XL的Text Encoder部分有哪些创新？详细分析改进意图
 
 
-<h2 id="6.训练Stable-Diffusion-XL时为什么要使用offset-Noise？">6.训练Stable Diffusion XL时为什么要使用offset Noise？ </h2>
+## Stable Diffusion XL中使用的训练方法有哪些创新点？
 
 
-<h2 id="7.介绍一下Stable-Diffusion-XL-Turbo的原理">7.介绍一下Stable Diffusion XL Turbo的原理 </h2>
+## 训练Stable Diffusion XL时为什么要使用offset Noise？
 
 
-<h2 id="8.SDXL-Turbo用的蒸馏方法是什么？">8.SDXL-Turbo用的蒸馏方法是什么？</h2>
+## 介绍一下Stable Diffusion XL Turbo的原理
+
+
+## SDXL-Turbo用的蒸馏方法是什么？
 
 论文链接：[adversarial_diffusion_distillation.pdf](https://static1.squarespace.com/static/6213c340453c3f502425776e/t/65663480a92fba51d0e1023f/1701197769659/adversarial_diffusion_distillation.pdf)
 
@@ -1067,7 +970,7 @@ ADD 模型具有以下优势：
 - **灵活性**：支持进一步的多步采样，从而在单步生成的基础上通过迭代增强图像细节。
 
 
-<h2 id="9.什么是SDXL-Refiner？">9.什么是SDXL Refiner？</h2>
+## 什么是SDXL Refiner？
 
 SDXL Refiner是Stability AI推出的图像精细化模型，作为SDXL生态系统的第二阶段，专门负责提升图像细节质量。它采用了"专家集成"的设计理念：Base模型生成基础结构，Refiner模型优化细节表现。
 
@@ -1096,15 +999,12 @@ SDXL Refiner是Stability AI推出的图像精细化模型，作为SDXL生态系�
 
 - 整体图像质量显著改善
 
-- 
+- SDXL Refiner通过专门的精细化设计，成功解决了AI图像生成中的细节问题。它与Base模型的配合使用，让SDXL成为目前最优秀的开源图像生成方案之一。对于追求高质量图像输出的用户，Refiner是不可或缺的工具。
 
-  SDXL Refiner通过专门的精细化设计，成功解决了AI图像生成中的细节问题。它与Base模型的配合使用，让SDXL成为目前最优秀的开源图像生成方案之一。对于追求高质量图像输出的用户，Refiner是不可或缺的工具。
 
----
+<h2 id="6.Stable-Diffusiuon-3有哪些创新点？">6.Stable Diffusiuon 3有哪些创新点？</h2>
 
-# 第四章 Stable Diffusion 3系列核心高频考点
-
-<h2 id="1.介绍一下Stable-Diffusion-3的整体架构。与Stable-Diffusion-XL相比，Stable-Diffusion-3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text-Encoder）">1.介绍一下Stable Diffusion 3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text Encoder） </h2>
+## 介绍一下Stable Diffusion 3的整体架构。与Stable Diffusion XL相比，Stable Diffusion 3的核心架构优化有哪些？详细分析改进意图（VAE、Backbone、Text Encoder）
 
 Rocky认为Stable Diffusion 3的价值和传统深度学习时代的“YOLOv4”一样，在AIGC时代的工业界、应用界、竞赛界以及学术界，都有非常大的学习借鉴价值，以下是SD 3相比之前系列的改进点汇总：
 
@@ -1180,16 +1080,16 @@ Stable Diffusion 3的文字渲染能力很强，同时遵循文本Prompts的图�
 更多详细内容，大家可以查阅：[深入浅出完整解析Stable Diffusion 3（SD 3）和FLUX.1系列核心基础知识](https://zhuanlan.zhihu.com/p/684068402)
 
 
-<h2 id="4.Stable-Diffusion-3中使用的训练方法有哪些创新点？">4.Stable Diffusion 3中使用的训练方法有哪些创新点？ </h2>
+## Stable Diffusion 3中使用的训练方法有哪些创新点？
 
 
-<h2 id="7.训练Stable-Diffusion过程中官方使用了哪些训练技巧？">7.训练Stable Diffusion过程中官方使用了哪些训练技巧？ </h2>
+## 训练Stable Diffusion过程中官方使用了哪些训练技巧？
 
 
-<h2 id="8.介绍一下Stable-Diffusion-3.5系列的原理">8.介绍一下Stable Diffusion 3.5系列的原理 </h2>
+## 介绍一下Stable Diffusion 3.5系列的原理
 
 
-<h2 id="9.为什么Stable-Diffusion-3使用三个文本编码器?">9.为什么Stable Diffusion 3使用三个文本编码器?</h2>
+## 为什么Stable Diffusion 3使用三个文本编码器?
 
 Stable Diffusion 3作为一款先进的文本到图像模型,采用了三重文本编码器的方法。这一设计选择显著提升了模型的性能和灵活性。
 
@@ -1246,7 +1146,7 @@ Stable Diffusion 3使用以下三个文本编码器:
 3. **可扩展性**: 多编码器方法允许在模型的未来迭代中轻松集成新的或改进的文本编码器。
 
 
-<h2 id="10.Stable-Diffusion-3中数据标签工程的具体流程是什么样的？">10.Stable Diffusion 3中数据标签工程的具体流程是什么样的？</h2>
+## Stable Diffusion 3中数据标签工程的具体流程是什么样的？
 
 **目前AI绘画大模型存在一个很大的问题是模型的文本理解能力不强**，主要是指AI绘画大模型生成的图像和输入文本Prompt的一致性不高。举个例子，如果说输入的文本Prompt非常精细复杂，那么生成的图像内容可能会缺失这些精细的信息，导致图像与文本的内容不一致。这也是AI绘画大模型Prompt Following能力的体现。
 
@@ -1267,7 +1167,7 @@ SD 3借鉴了DALL-E 3的数据标注方法，使用**多模态大模型CogVLM**�
 ![SD 3数据标注工程](./imgs/SD3数据标注工程.png)
 
 
-<h2 id="11.SD3-Turbo用的蒸馏方法是什么？">11.SD3-Turbo用的蒸馏方法是什么？</h2>
+## SD3-Turbo用的蒸馏方法是什么？
 
 论文链接:[2403.12015](https://arxiv.org/pdf/2403.12015)
 
@@ -1289,7 +1189,7 @@ LADD（潜在对抗扩散蒸馏）与ADD（对抗扩散蒸馏）有几个关键�
 4. **多长宽比支持**：LADD能够直接支持多长宽比的训练，而ADD由于解码和判别过程的限制，不易实现这一点。因此，LADD生成的图像在各种长宽比下具有较好的适应性。
 
 
-<h2 id="12.Stable-Diffusion-3的图像特征和文本特征在训练前缓存策略有哪些优缺点？">12.Stable Diffusion 3的图像特征和文本特征在训练前缓存策略有哪些优缺点？</h2>
+## Stable Diffusion 3的图像特征和文本特征在训练前缓存策略有哪些优缺点？
 
 SD 3与之前的版本相比，整体的参数量级大幅增加，这无疑也增加了训练成本，所以官方的技术报告中也**对SD 3训练时冻结（frozen）部分进行了分析**，主要评估了VAE、CLIP-L、CLIP-G以及T5-XXL的显存占用（Mem）、推理耗时（FP）、存储成本（Storage）、训练成本（Delta），如下图所示，T5-XXL的整体成本是最大的：
 
@@ -1302,12 +1202,42 @@ SD 3与之前的版本相比，整体的参数量级大幅增加，这无疑也�
 整体上看，**其实SD 3的预计算策略是一个空间换时间的技术**。
 
 
-<h2 id="13.Stable-Diffusion-3.5的改进在哪里?">13.Stable Diffusion 3.5的改进在哪里？</h2>
+## Stable Diffusion 3.5的改进在哪里？
 
 1、**引入 Query-Key 归一化（QK normalization）**：在训练大型 Transformer 模型时，QK 归一化已成为标准实践。SD3.5 也采用了这一技术，以增强模型训练的稳定性并简化后续的微调和开发。
 
 **2、双注意力层设计**：在 MMDiT 结构中，文本和图像两个模态通常共享同一个注意力层。然而，SD3.5 采用了两个独立的注意力层，以更好地处理多模态信息（MMDiT-X）。
 
 ![mmdit-x](./imgs/mmdit-x.png)
+
+
+<h2 id="7.面试中必考的AIGC图像生成/AI绘画技术框架脉络是什么样的？">7.面试中必考的AIGC图像生成/AI绘画技术框架脉络是什么样的？</h2>
+
+在进入AIGC时代后，大家在面试AIGC算法工程师时，面试官对于AI绘画技术的考察是面试的重中之重，因此Rocky总结梳理了AI绘画技术在工业界、投资界、学术界、竞赛界以及应用界的核心框架脉络，让大家能够有目标的进行技术学习与面试准备：
+
+1. AIGC图像生成核心大模型：以Z-Image系列、FLUX.2系列、GLM-Image、FLUX.1系列和Stable Diffusion系列模型的知识为主，再加上GPT-4o、Nano Banana、Seedream等主流AIGC图像生成大模型的考察。
+2. AIGC图像生成领域中的LoRA模型：LoRA模型相关知识的考察，包括SD LoRA模型、FLUX.1 LoRA、Dreambooth LoRA、Textual Inversion等。
+3. AIGC图像生成可控模型：ControlNet系列模型、IP-Adapter模型、PULID模型等。
+4. AI绘画框架：ComfyUI、Stable Diffusion WebUI等。
+5. AI绘画辅助模型：GAN、U-Net、SAM、Dino等。
+
+Rcoky也在撰写与沉淀AI绘画技术框架脉络的相关干货文章，力求给大家全网最详细的讲解与分析：
+
+[深入浅出完整解析Stable Diffusion 3（SD 3）和FLUX.1系列核心基础知识](https://zhuanlan.zhihu.com/p/684068402)
+
+[深入浅出完整解析Stable Diffusion XL（SDXL）核心基础知识](https://zhuanlan.zhihu.com/p/643420260)
+
+[深入浅出完整解析Stable Diffusion（SD）核心基础知识](https://zhuanlan.zhihu.com/p/632809634)
+
+[深入浅出完整解析Stable Diffusion中U-Net的前世今生与核心知识](https://zhuanlan.zhihu.com/p/642354007)
+
+[深入浅出完整解析LoRA（Low-Rank Adaptation）模型核心基础知识](https://zhuanlan.zhihu.com/p/639229126)
+
+[深入浅出完整解析ControlNet核心基础知识](https://zhuanlan.zhihu.com/p/660924126)
+
+[深入浅出完整解析主流AI绘画框架（Stable Diffusion WebUI、ComfyUI）核心基础知识](https://zhuanlan.zhihu.com/p/673439761)
+
+[深入浅出完整解析AIGC时代中GAN（Generative Adversarial Network）系列模型核心基础知识](https://zhuanlan.zhihu.com/p/663157306)
+
 
 ---
