@@ -3,7 +3,7 @@
 - :star: [01_Stable Diffusion系列大模型基础](01_Stable%20Diffusion系列大模型基础.md)
 - :blue_book: [02_FLUX系列大模型基础](02_FLUX系列大模型基础.md)
 - :green_book: [03_类LoRA技术基础](03_类LoRA技术基础.md)
-- :orange_book: [04_ControlNet技术基础](04_ControlNet技术基础.md)
+- :orange_book: [04_ControlNet以及AIGC主流可控生成技术基础](04_ControlNet以及AIGC主流可控生成技术基础.md)
 - :rocket:[05_主流AIGC图像生成编辑大模型汇总系列](05_主流AIGC图像生成编辑大模型汇总系列.md)
 - :eyes: [06_GAN系列模型基础](06_GAN系列模型基础.md)
 - :bulb: [07_AIGC图像生成领域的训练&性能优化技术](07_AIGC图像生成领域的训练&性能优化技术.md)
