@@ -6,7 +6,7 @@
 - [4.在AIGC图像生成领域中，LoRA有哪些主流的变体模型？介绍一下这些变体模型（LoCon、LoHa、B-LoRA、LCM_LoRA等）的特点](#4.在AIGC图像生成领域中，LoRA有哪些主流的变体模型？介绍一下这些变体模型（LoCon、LoHa、B-LoRA、LCM_LoRA等）的特点)
 - [5.如何训练得到差异化LoRA？差异化LoRA的作用是什么？](#5.如何训练得到差异化LoRA？差异化LoRA的作用是什么？)
 - [6.在AIGC图像生成领域中，介绍一下MoE-LoRA的核心原理](#6.在AIGC图像生成领域中，介绍一下MoE-LoRA的核心原理)
-- [7.介绍一下Parameter-Efficient Fine-Tuning(PEFT)技术的概念，其在AIGC图像生成领域的应用场景有哪些？](#7.介绍一下Parameter-Efficient-Fine-Tuning(PEFT)技术的概念，其在AIGC图像生成领域的应用场景有哪些？)
+- [7.介绍一下Parameter-Efficient Fine-Tuning(PEFT)技术在AIGC图像生成领域的应用场景有哪些？](#7.介绍一下Parameter-Efficient-Fine-Tuning(PEFT)技术在AIGC图像生成领域的应用场景有哪些？)
 
 ---
 
@@ -912,7 +912,7 @@ $$
 同时，**稠密模型和稀疏模型在过拟合的表现上存在显著差异**。MoE稀疏模型更易于出现过拟合现象，因此在构建MoE-LoRA模型时，我们可以尝试使用更强的内部正则化策略，比如使用更高比例的dropout。具体来说，**我们可以为大模型中的稠密层设定一个较低的dropout率，而为稀疏层设置一个更高的dropout率，以此来优化模型整体性能**。并且像MoE-LoRA这样的稀疏模型往往更适合使用较小的Batch-Size和较高的学习率，这样可以获得更好的训练效果。
 
 
-<h2 id="7.介绍一下Parameter-Efficient-Fine-Tuning(PEFT)技术的概念，其在AIGC图像生成领域的应用场景有哪些？">7.介绍一下Parameter-Efficient Fine-Tuning(PEFT)技术的概念，其在AIGC图像生成领域的应用场景有哪些？</h2>
+<h2 id="7.介绍一下Parameter-Efficient-Fine-Tuning(PEFT)技术在AIGC图像生成领域的应用场景有哪些？">7.介绍一下Parameter-Efficient Fine-Tuning(PEFT)技术在AIGC图像生成领域的应用场景有哪些？</h2>
 
 ### 面试问题：介绍一下Parameter-Efficient-Fine-Tuning(PEFT)技术的概念
 
