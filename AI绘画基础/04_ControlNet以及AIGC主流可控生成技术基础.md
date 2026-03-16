@@ -365,6 +365,244 @@ Rocky也总结了PULID的整体流程图，方便大家学习理解：
 |ControlNet|	必须（姿态关键点）|	不需要，只靠 attention patch|
 |输出|	MODEL + positive + negative|	只有 MODEL|
 
+### 面试问题：介绍一下PULID中的三种正交投影模式的原理
+
+**一、基础背景**
+
+在每步去噪中，U-Net 的 cross-attention 层会输出两个结果：
+
+| 变量 | 含义 | 来源 |
+|---|---|---|
+| `out` | **文本方向**的 attention 输出 | 原始文字 prompt 的 K/V |
+| `out_ip` | **身份方向**的 attention 输出 | PuLID 身份 token 的 K/V |
+
+最终写回 U-Net 的增量是：
+
+```python
+# 函数返回的是增量，调用处：out_final = out_text + pulid_attention(...)
+return out_ip.to(dtype=dtype)
+```
+
+**核心问题**：`out_ip` 里可能有很多成分与 `out`（文本方向）高度重叠，如果直接叠加，身份信号会"抢占"文本 prompt 已经在做的事，造成过度强化或风格冲突。三种模式本质上是对"如何处理 `out_ip` 与 `out` 之间的重叠"给出三种不同答案。
+
+**二、模式 1：neutral（直接叠加，无正交化）**
+
+#### 源码
+
+```python
+# neutral 模式
+else:
+    out_ip = out_ip * weight
+```
+
+#### 数学表达
+
+$$\text{增量} = w \cdot \vec{v}_{ip}$$
+
+#### 几何图示
+
+```
+         out（文本方向）
+          ↑
+          │
+          │         out_ip（身份方向）
+          │        ↗
+          │      ↗
+          │    ↗
+          │  ↗
+──────────┼──────────→
+          │
+```
+
+`out_ip` 直接乘以权重后叠加到 `out`，无任何过滤。
+
+#### 行为特点
+
+- **最强的身份约束**：身份信号中包含的所有分量，包括与文本方向重叠的部分，全部被叠加进去
+- **最可能干扰文本 prompt**：如果 prompt 说"微笑"，而参考人脸是严肃表情，neutral 模式会更倾向于保留严肃表情
+- **适用场景**：参考图与 prompt 风格一致，追求绝对的身份相似度
+
+**三、模式 2：style（纯正交投影，最彻底的去重叠）**
+
+#### 源码
+
+```python
+if ortho:
+    out = out.to(dtype=torch.float32)
+    out_ip = out_ip.to(dtype=torch.float32)
+    
+    # 计算 out_ip 在 out 方向上的投影分量
+    projection = (torch.sum((out * out_ip), dim=-2, keepdim=True) 
+                / torch.sum((out * out),    dim=-2, keepdim=True) * out)
+    
+    # 从 out_ip 中减去该投影，得到纯正交分量
+    orthogonal = out_ip - projection
+    
+    out_ip = weight * orthogonal
+```
+
+#### 数学原理（Gram-Schmidt 正交化）
+
+投影公式来自线性代数中的向量投影：
+
+$$\text{proj}_{\vec{u}}(\vec{v}) = \frac{\vec{v} \cdot \vec{u}}{|\vec{u}|^2} \cdot \vec{u}$$
+
+代码中：
+- `out`（文本方向）= $\vec{u}$
+- `out_ip`（身份方向）= $\vec{v}$
+
+```python
+projection = (sum(out * out_ip) / sum(out * out)) * out
+#              ↑ 分子：内积 v·u     ↑ 分母：|u|²       ↑ 方向 u
+```
+
+去掉投影后剩下的就是**与 `out` 完全正交的分量**：
+
+$$\vec{v}_{\perp} = \vec{v} - \text{proj}_{\vec{u}}(\vec{v})$$
+
+#### 几何图示
+
+```
+                 out_ip
+                /
+               /
+              /  
+projection   /     ←── 投影到 out 方向（被删除的部分）
+────────────/──────────────→ out 方向
+           /
+          /  ← orthogonal（正交分量，被保留的部分）
+         ↙
+```
+
+**16 个零 token 的额外作用**：在 softmax 注意力中，16 个零 token 会稀释约 16/26 ≈ 61% 的注意力权重，使身份 token 总体接收的注意力减少，即使在进行正交化之前，`out_ip` 本身的幅度就已经被压低了。
+
+#### 行为特点
+
+- **与文本 prompt 完全解耦**：删除了所有与文本方向重叠的身份信号，文本 prompt 的控制权最强
+- **身份影响最弱但最"干净"**：只有文本 prompt 里没有的、独属于身份的那部分特征才会被注入
+- **适用场景**：prompt 内容重要，需要身份仅作"风格参考"，不能干扰构图/表情/姿势等
+
+**四、模式 3：fidelity（动态正交投影，注意力感知的智能混合）**
+
+#### 源码（逐行拆解）
+
+```python
+elif ortho_v2:
+    out = out.to(dtype=torch.float32)
+    out_ip = out_ip.to(dtype=torch.float32)
+    
+    # 第一步：计算 q 对 ip_k 的原始注意力分数（未缩放）
+    attn_map = q @ ip_k.transpose(-2, -1)
+    # shape: [batch, seq_len, num_ip_tokens]
+    
+    # 第二步：softmax + 沿 seq_len 维度取均值
+    attn_mean = attn_map.softmax(dim=-1).mean(dim=1, keepdim=True)
+    # shape: [batch, 1, num_ip_tokens]
+    # 含义：对每个身份 token，所有空间位置平均分配给它的注意力权重
+    
+    # 第三步：只取前 5 个身份 token 的注意力权重之和
+    attn_mean = attn_mean[:, :, :5].sum(dim=-1, keepdim=True)
+    # shape: [batch, 1, 1]
+    # 含义：空间位置对核心身份 token（IDEncoder.body 输出的5个token）的总关注度
+    
+    # 第四步：计算同 style 模式一样的投影
+    projection = (torch.sum((out * out_ip), dim=-2, keepdim=True)
+                / torch.sum((out * out),    dim=-2, keepdim=True) * out)
+    
+    # 第五步：用注意力权重动态控制去投影的程度
+    orthogonal = out_ip + (attn_mean - 1) * projection
+    
+    out_ip = weight * orthogonal
+```
+
+#### 第五步的数学含义（关键）
+
+展开第五步：
+
+$$\vec{v}_{final} = \vec{v}_{ip} + (a - 1) \cdot \text{proj} = \underbrace{(\vec{v}_{ip} - \text{proj})}_{\text{纯正交分量}} + a \cdot \underbrace{\text{proj}}_{\text{投影分量}}$$
+
+其中 $a = \text{attn\_mean} \in [0, 1]$，这是一个**动态插值**：
+
+| attn_mean (a) 的值 | 等价公式 | 实际效果 |
+|---|---|---|
+| $a = 1$ | $\vec{v}_{ip} + 0 = \vec{v}_{ip}$ | = neutral：保留全部身份（不正交化） |
+| $a = 0$ | $\vec{v}_{ip} - \text{proj}$ | = style：去除全部重叠，纯正交分量 |
+| $a = 0.5$ | $\vec{v}_{ip} - 0.5 \cdot \text{proj}$ | 介于两者之间 |
+
+#### 为什么用前 5 个 token？
+
+回顾 `IDEncoder` 的输出结构：
+
+```python
+# encoders.py
+return torch.cat([x, hidden_states], dim=1)
+# x:             IDEncoder.body 处理 InsightFace+EVA全局向量后输出的 5 个 token ← 前 5 个
+# hidden_states: EVA 5个中间层隐藏状态映射的 5 个 token                         ← 后 5 个
+```
+
+前 5 个 token 是融合了 InsightFace 512维身份向量的**核心身份 token**，它们的注意力权重最能反映当前空间位置"是否在关注身份信息"。
+
+#### 动态效果的直觉理解
+
+```
+图像空间中不同区域，attn_mean 的典型值：
+
+┌─────────────────────────────────┐
+│ 背景区域（天空/墙壁）            │ attn_mean ≈ 0.05  → 几乎完全正交化
+│                                 │   身份信号不应影响背景
+├─────────────────────────────────┤
+│ 颈部/耳廓过渡区                  │ attn_mean ≈ 0.3   → 部分正交化
+│                                 │   中等程度保留身份
+├─────────────────────────────────┤
+│ 核心人脸区（眼睛/鼻子/嘴巴）     │ attn_mean ≈ 0.8   → 几乎不正交化
+│                                 │   高度保留身份特征
+└─────────────────────────────────┘
+```
+
+**五、三种模式的完整对比**
+
+#### 公式总结
+
+```
+设 a = attn_mean（注意力感知的动态系数）
+   p = proj_{out}(out_ip)（out_ip 在文本方向的投影）
+   v⊥ = out_ip - p（纯正交分量）
+
+neutral：  增量 = w × out_ip           = w × (v⊥ + p)          → 保留全部
+style：    增量 = w × v⊥               = w × (out_ip - p)       → 只保留正交部分
+fidelity： 增量 = w × (v⊥ + a × p)    = w × (out_ip - (1-a)×p) → 动态插值
+```
+
+#### 几何统一视图
+
+```
+         out（文本方向）
+          ↑
+          │
+          │
+     proj ├──────────────────→  out_ip（原始身份方向）
+          │          ↗
+          │      ↗ ←── fidelity（根据 a 值在这条线上动态选取位置）
+          │  ↗
+          │↗ ← style（纯正交，投影到文本方向的 ⊥）
+          └──────────────────
+```
+
+#### 效果对照表
+
+| 维度 | neutral | fidelity | style |
+|---|---|---|---|
+| **正交化程度** | 无 | 动态（按注意力） | 100% 静态 |
+| **num_zero** | 0 | 8 | 16 |
+| **attn_mean 参与** | 否 | 是（核心） | 否 |
+| **身份相似度** | 最高 | 高（自适应） | 最低 |
+| **文本服从度** | 最低 | 高（自适应） | 最高 |
+| **面部区域** | 强制身份 | 智能保留 | 减弱身份 |
+| **背景区域** | 可能污染 | 几乎无影响 | 几乎无影响 |
+| **适用场景** | 极端换脸 | 通用换脸 | 风格参考 |
+
+**结论**：`fidelity` 在身份和文本信号方向接近时，根据该区域对身份的关注度保留合适比例，既保证了眼睛区域的高保真，又不会完全覆盖文本 prompt 的控制（如"微笑"效果）。这就是它被称为"高保真"同时又优于 `neutral` 的原因。
+
 
 <h2 id="2.介绍一下EcomID人像一致性技术的核心原理">2.介绍一下EcomID人像一致性技术的核心原理</h2>
 
@@ -590,6 +828,36 @@ IP-Adapter 采用了一种解耦的交叉注意力机制，将文本特征和图
 
 <h2 id="8.介绍一下SUPIR超分技术的核心原理">8.介绍一下SUPIR超分技术的核心原理</h2>
 
+### 面试问题：介绍一下SUPIR超分技术的整体功能
+
+SUPIR（Scaling Up to Excellence: Practicing Model Scaling for Photo-Realistic Image Restoration） 本质是将 SDXL 的强大生成能力改造成超分辨率/图像修复引擎。核心思路是让 SDXL 的扩散过程不再是"从噪声生成"，而是"以降质图像为控制条件，生成高质量版本"。
+
+其包含了超分辨率（低分辨率图像放大到高分辨率，比如4×）、图像修复（去除压缩噪声、模糊、JPEG artifact）、细节补全（结合文字描述captions/prompt，生成合理细节）、颜色校正（AdaIn 或 Wavelet 方法修正色偏）。
+
+### 面试问题：介绍一下SUPIR超分技术的原理
+
+SUPIR技术框架中的依赖模型及其作用：
+1. SDXL 基础模型：SUPIR 的核心是在 SDXL 的基础上叠加控制能力。
+2. SUPIR 专有模型（SUPIR-v0F.ckpt 或 SUPIR-v0Q.ckpt）：SUPIR 模型的权重叠加在 SDXL 之上，包含：GLVControl（控制模型，ControlNet 架构的变体）和LightGLVUNet（修改后的主扩散 UNet，在原 SDXL UNet 基础上插入 ZeroSFT 适配层）。
+
+Rocky也总结了SUPIR的整体流程图，方便大家学习理解：
+
+```python
+SDXL底座 ──→ [SUPIR Model Loader v2] ──────────────────────────────────────────┐
+SDXL CLIP ─┘                                                                   │
+SDXL VAE  ─┘        ↓ SUPIRMODEL              ↓ SUPIRVAE                       │
+SUPIR ckpt ─┘                                                                   │
+                                                                                │
+原始低质图像 ──→ [SUPIR First Stage] ──→ 去噪后latent ──→ [SUPIR Conditioner] ─→│
+                     ↓                                          ↓               │
+              去噪预览图（可选）              SUPIR_cond_pos/neg ──→ [SUPIR Sampler]
+                                                                        ↓
+                                                                   采样结果 latent
+                                                                        ↓
+                                                               [SUPIR Decode]
+                                                                        ↓
+                                                                  高质量超分图像
+```
 
 <h2 id="9.介绍一下AnyText文字渲染技术的核心原理">9.介绍一下AnyText文字渲染技术的核心原理</h2>
 
