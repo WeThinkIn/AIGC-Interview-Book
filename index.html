@@ -58,6 +58,7 @@
           <nav class="site-nav" id="site-nav">
             <a href="#overview">项目定位</a>
             <a href="#knowledge">知识地图</a>
+            <a href="#highlights">前沿精选</a>
             <a href="#value">面试价值</a>
             <a href="#authors">作者团队</a>
             <a href="#community">社区共建</a>
@@ -83,6 +84,26 @@
               <a class="button secondary" href="https://github.com/WeThinkIn/AIGC-Interview-Book" target="_blank" rel="noreferrer">查看 GitHub</a>
               <a class="button ghost" href="#community">进入社区</a>
               <a class="button ghost" href="#authors">作者介绍</a>
+            </div>
+
+            <div class="hero-support reveal">
+              <div class="hero-support-copy">
+                <span class="meta-label">Support The Project</span>
+                <strong>觉得这个项目有帮助，可以直接在主页点个 Star</strong>
+                <p>静态站点无法代替用户完成 GitHub 授权操作，这里嵌入的是可直接跳转 / 触发 Star 的 GitHub 按钮。</p>
+              </div>
+              <div class="github-star-card">
+                <iframe
+                  title="GitHub Star Button"
+                  src="https://ghbtns.com/github-btn.html?user=WeThinkIn&amp;repo=AIGC-Interview-Book&amp;type=star&amp;count=true&amp;size=large"
+                  width="170"
+                  height="30"
+                  loading="lazy"
+                ></iframe>
+                <noscript>
+                  <a class="button secondary" href="https://github.com/WeThinkIn/AIGC-Interview-Book" target="_blank" rel="noreferrer">去 GitHub 点 Star</a>
+                </noscript>
+              </div>
             </div>
 
             <div class="hero-meta">
@@ -290,6 +311,17 @@
           </div>
         </section>
 
+        <section class="section" id="highlights">
+          <div id="highlights-root"></div>
+          <noscript>
+            <div class="section-heading">
+              <p class="eyebrow">Frontier Highlights</p>
+              <h2>知识星球精选内容需要启用 JavaScript 才能展示</h2>
+              <p>如需查看和维护这块内容，请启用浏览器脚本，或直接编辑 <code>assets/highlights-data.js</code>。</p>
+            </div>
+          </noscript>
+        </section>
+
         <section class="section" id="value">
           <div class="section-heading reveal">
             <p class="eyebrow">Interview Value</p>
@@ -486,6 +518,7 @@
       </footer>
     </div>
 
+    <script src="assets/highlights-data.js"></script>
     <script src="assets/site.js"></script>
   </body>
 </html>

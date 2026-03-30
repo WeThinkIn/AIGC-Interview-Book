@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识星球 · AI 前沿精选 2026</title>
+<style>
+  :root {
+    --bg:          #f0f4f8;
+    --surface:     #ffffff;
+    --surface-2:   #f8fafc;
+    --border:      #e2e8f0;
+    --border-deep: #cbd5e1;
+
+    --green:       #16a34a;
+    --green-light: #dcfce7;
+    --green-mid:   #bbf7d0;
+
+    --blue:        #2563eb;
+    --blue-light:  #dbeafe;
+    --blue-mid:    #bfdbfe;
+
+    --orange:      #ea580c;
+    --orange-light:#ffedd5;
+    --orange-mid:  #fed7aa;
+
+    --purple:      #7c3aed;
+    --purple-light:#ede9fe;
+    --purple-mid:  #ddd6fe;
+
+    --amber:       #b45309;
+    --amber-light: #fef3c7;
+
+    --text:        #1e293b;
+    --text-2:      #475569;
+    --muted:       #94a3b8;
+    --radius:      10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* ─── HEADER ───────────────────────────────────────── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--green) 0%, var(--blue) 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 900; color: #fff;
+    box-shadow: 0 2px 8px rgba(37,99,235,.25);
+  }
+  .title-block h1 {
+    font-size: 17px; font-weight: 700;
+    color: var(--text); letter-spacing: -.3px;
+  }
+  .title-block p { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  .header-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+  .stat-pill {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; gap: 5px;
+    border: 1px solid transparent;
+  }
+  .stat-pill.green  { background: var(--green-light);  color: var(--green);  border-color: var(--green-mid); }
+  .stat-pill.blue   { background: var(--blue-light);   color: var(--blue);   border-color: var(--blue-mid); }
+  .stat-pill.orange { background: var(--orange-light); color: var(--orange); border-color: var(--orange-mid); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* ─── INTRO BANNER ──────────────────────────────────── */
+  .intro {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 50%, #fdf4ff 100%);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--blue);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 14px;
+    font-size: 12.5px;
+    color: var(--text-2);
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .intro strong { color: var(--amber); font-weight: 700; }
+  .intro .tag-row { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    border: 1px solid transparent;
+  }
+  .tag.g { background: var(--green-light);  color: var(--green);  border-color: var(--green-mid); }
+  .tag.b { background: var(--blue-light);   color: var(--blue);   border-color: var(--blue-mid); }
+  .tag.o { background: var(--orange-light); color: var(--orange); border-color: var(--orange-mid); }
+  .tag.r { background: var(--purple-light); color: var(--purple); border-color: var(--purple-mid); }
+
+  /* ─── GRID ──────────────────────────────────────────── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* ─── TOPIC CARD ────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    transition: box-shadow .2s;
+  }
+  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.10); }
+
+  .card-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-header.green  { background: linear-gradient(90deg, var(--green-light) 0%, #fff 100%); }
+  .card-header.blue   { background: linear-gradient(90deg, var(--blue-light)  0%, #fff 100%); }
+  .card-header.orange { background: linear-gradient(90deg, var(--orange-light)0%, #fff 100%); }
+  .card-header.red    { background: linear-gradient(90deg, var(--purple-light)0%, #fff 100%); }
+
+  .card-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+  .card-icon.green  { background: var(--green-mid); }
+  .card-icon.blue   { background: var(--blue-mid); }
+  .card-icon.orange { background: var(--orange-mid); }
+  .card-icon.red    { background: var(--purple-mid); }
+
+  .card-title { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; }
+  .card-count {
+    font-size: 10px; font-weight: 700; padding: 2px 7px;
+    border-radius: 10px; background: var(--surface-2);
+    color: var(--muted); border: 1px solid var(--border);
+  }
+
+  .card-desc {
+    padding: 8px 14px 10px;
+    font-size: 11.5px; color: var(--text-2);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .items { padding: 6px 0; }
+
+  .item {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    gap: 6px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+  }
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: var(--surface-2); }
+
+  .item-num {
+    font-size: 10px; font-weight: 700; color: var(--muted);
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; flex-shrink: 0;
+  }
+
+  .item-body { min-width: 0; }
+  .item-name {
+    font-size: 12px; font-weight: 600; color: var(--text);
+    line-height: 1.4; margin-bottom: 2px;
+  }
+  .item-desc { font-size: 11px; color: var(--text-2); line-height: 1.5; }
+  .item-desc strong { color: var(--amber); font-weight: 600; }
+
+  .item-link {
+    flex-shrink: 0;
+    font-size: 10px; font-weight: 600;
+    padding: 3px 7px; border-radius: 5px;
+    text-decoration: none;
+    white-space: nowrap;
+    margin-top: 1px;
+    border: 1px solid transparent;
+    transition: filter .15s;
+  }
+  .item-link:hover { filter: brightness(.92); }
+  .item-link.green  { background: var(--green-light);  color: var(--green);  border-color: var(--green-mid); }
+  .item-link.blue   { background: var(--blue-light);   color: var(--blue);   border-color: var(--blue-mid); }
+  .item-link.orange { background: var(--orange-light); color: var(--orange); border-color: var(--orange-mid); }
+  .item-link.red    { background: var(--purple-light); color: var(--purple); border-color: var(--purple-mid); }
+
+  /* sub resources */
+  .res-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+  .res-link {
+    font-size: 10px; padding: 2px 7px; border-radius: 4px;
+    text-decoration: none; font-weight: 500;
+    background: var(--surface-2); color: var(--text-2);
+    border: 1px solid var(--border);
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .res-link:hover { color: var(--blue); border-color: var(--blue-mid); background: var(--blue-light); }
+
+  /* ─── BOTTOM: VALUE + CTA ───────────────────────────── */
+  .bottom { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: start; }
+
+  .value-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .value-card h3 {
+    font-size: 13px; font-weight: 700; color: var(--text);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+  }
+  .value-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .value-item {
+    display: flex; gap: 8px; align-items: flex-start;
+    padding: 9px 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface-2);
+    transition: box-shadow .15s;
+  }
+  .value-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .v-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .v-label { font-size: 11.5px; font-weight: 700; }
+  .v-desc  { font-size: 10.5px; color: var(--text-2); line-height: 1.4; margin-top: 1px; }
+
+  .cta-card {
+    background: linear-gradient(160deg, var(--green-light) 0%, #e0f2fe 100%);
+    border: 1px solid var(--green-mid);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    width: 200px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; gap: 10px;
+    box-shadow: 0 2px 10px rgba(22,163,74,.12);
+  }
+  .cta-card .big-icon { font-size: 36px; }
+  .cta-card h3 { font-size: 14px; font-weight: 800; color: var(--green); line-height: 1.3; }
+  .cta-card p { font-size: 11px; color: var(--text-2); line-height: 1.5; }
+  .cta-btn {
+    display: block; width: 100%;
+    padding: 9px 0; border-radius: 7px;
+    background: var(--green); color: #fff;
+    font-weight: 800; font-size: 12px;
+    text-align: center; text-decoration: none;
+    letter-spacing: .3px;
+    box-shadow: 0 2px 8px rgba(22,163,74,.35);
+    transition: filter .15s, transform .1s;
+  }
+  .cta-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+  /* ─── FOOTER ────────────────────────────────────────── */
+  .footer {
+    margin-top: 14px; padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 6px;
+  }
+  .footer span { font-size: 10.5px; color: var(--muted); }
+  .footer .pulse {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10.5px; color: var(--green); font-weight: 600;
+  }
+  .pulse-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: .4; transform: scale(.7); }
+  }
+
+  /* ─── RESPONSIVE ────────────────────────────────────── */
+  @media (max-width: 700px) {
+    .grid { grid-template-columns: 1fr; }
+    .bottom { grid-template-columns: 1fr; }
+    .cta-card { width: 100%; }
+    .value-list { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo">星</div>
+    <div class="title-block">
+      <h1>AI 前沿精选 · 知识星球</h1>
+      <p>2026 年 Q1 · 内容精华汇总</p>
+    </div>
+  </div>
+  <div class="header-stats">
+    <div class="stat-pill green"><span class="dot"></span>精选内容 10 条</div>
+    <div class="stat-pill blue"><span class="dot"></span>覆盖 4 大主题</div>
+    <div class="stat-pill orange"><span class="dot"></span>生成 2026-03-30</div>
+  </div>
+</header>
+
+<!-- ═══════════════ INTRO ═══════════════ -->
+<div class="intro">
+  汇聚全球最前沿的 AI 技术动态、深度行业研报及实战落地指南 —— 筛选近期最具价值的核心内容，<strong>助您抢占技术高地，把握未来机遇。</strong>
+  <div class="tag-row">
+    <span class="tag g">AI Agent 演进</span>
+    <span class="tag b">多模态实战</span>
+    <span class="tag o">学术前沿</span>
+    <span class="tag r">大模型应用</span>
+  </div>
+</div>
+
+<!-- ═══════════════ 4-TOPIC GRID ═══════════════ -->
+<div class="grid">
+
+  <!-- CARD 1 · AI Agent -->
+  <div class="card">
+    <div class="card-header green">
+      <div class="card-icon green">🤖</div>
+      <div class="card-title">AI Agent 进化论</div>
+      <span class="card-count">3 篇</span>
+    </div>
+    <div class="card-desc">聚焦 AI Agent 核心技术突破与宏观产业趋势，解读"操作系统交互方式"变革背后的商业逻辑。</div>
+    <div class="items">
+
+      <div class="item">
+        <div class="item-num">1</div>
+        <div class="item-body">
+          <div class="item-name">LLM/Agent 模型跨过临界点的迷茫期</div>
+          <div class="item-desc"><strong>核心：</strong>剖析行业割裂（大厂裁员 vs Agent 提效），厘清模型能力边界，给出职业与技术判断方向。</div>
+        </div>
+        <a class="item-link green" href="https://wx.zsxq.com/group/48884124114188/topic/45811251281585418" target="_blank">原文 ↗</a>
+      </div>
+
+      <div class="item">
+        <div class="item-num">2</div>
+        <div class="item-body">
+          <div class="item-name">一文彻底搞懂 OpenClaw：原理·架构·Skills·部署</div>
+          <div class="item-desc"><strong>核心：</strong>深度解析将自然语言变为"新操作系统"的开源项目，涵盖底层原理与本地化部署方案。</div>
+        </div>
+        <a class="item-link green" href="https://wx.zsxq.com/group/48884124114188/topic/22811421281248111" target="_blank">原文 ↗</a>
+      </div>
+
+      <div class="item">
+        <div class="item-num">3</div>
+        <div class="item-body">
+          <div class="item-name">《OpenClaw：吹响 AI Agent 时代号角》行业研报</div>
+          <div class="item-desc"><strong>核心：</strong>预测 Agent 规模 2031 年破 <strong style="color:var(--green);font-weight:700">3.5 亿</strong>，提供算力需求、Token 消耗及国产化大模型投资建议。</div>
+        </div>
+        <a class="item-link green" href="https://wx.zsxq.com/group/48884124114188/topic/45811251585128458" target="_blank">原文 ↗</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CARD 2 · 多模态 -->
+  <div class="card">
+    <div class="card-header blue">
+      <div class="card-icon blue">🎨</div>
+      <div class="card-title">多模态实战指南</div>
+      <span class="card-count">4 篇</span>
+    </div>
+    <div class="card-desc">整合最新多模态模型工具与应用教程，帮助团队实现从原型设计到生产环境的无缝衔接。</div>
+    <div class="items">
+
+      <div class="item">
+        <div class="item-num">4</div>
+        <div class="item-body">
+          <div class="item-name">Google Gemini 3.1 Flash Live · 实时多模态智能体</div>
+          <div class="item-desc"><strong>核心：</strong>低延迟语音-语音模型，通过官方 API 构建实时交互智能体，含定价及代码示例。</div>
+          <div class="res-row">
+            <a class="res-link" href="https://deepmind.google/models/model-cards/gemini-3-1-flash-live/" target="_blank">模型卡</a>
+            <a class="res-link" href="https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-live-preview" target="_blank">开发者文档</a>
+            <a class="res-link" href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-1-flash-live/" target="_blank">产品博客</a>
+          </div>
+        </div>
+        <a class="item-link blue" href="https://wx.zsxq.com/group/48884124114188/topic/55188458514411214" target="_blank">原文 ↗</a>
+      </div>
+
+      <div class="item">
+        <div class="item-num">5</div>
+        <div class="item-body">
+          <div class="item-name">2026 多模态提示工程 & 设计工作流（Google Stitch）</div>
+          <div class="item-desc"><strong>核心：</strong>5 分钟内通过自然语言生成界面原型与交互流程，适用于多模态 UX/MX 产品设计人员。</div>
+        </div>
+        <a class="item-link blue" href="https://wx.zsxq.com/group/48884124114188/topic/55188458514452554" target="_blank">原文 ↗</a>
+      </div>
+
+      <div class="item">
+        <div class="item-num">6</div>
+        <div class="item-body">
+          <div class="item-name">Multimodal AI in 2026 · 如何改变 Prompt 写法</div>
+          <div class="item-desc"><strong>核心：</strong>基于 GPT-4o、Gemini，总结多模态 Prompt 设计框架（MIRO），提供图像/音频/视频写法对比。</div>
+        </div>
+        <a class="item-link blue" href="https://wx.zsxq.com/group/48884124114188/topic/55188458514415514" target="_blank">原文 ↗</a>
+      </div>
+
+      <div class="item">
+        <div class="item-num">7</div>
+        <div class="item-body">
+          <div class="item-name">企业级多模态落地指南 · Digital Transformation</div>
+          <div class="item-desc"><strong>核心：</strong>解决"实验室 Demo → 生产环境"痛点，涵盖数据治理、模型选型及典型落地步骤。</div>
+        </div>
+        <a class="item-link blue" href="https://wx.zsxq.com/group/48884124114188/topic/14588148451158812" target="_blank">原文 ↗</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CARD 3 · 学术 -->
+  <div class="card">
+    <div class="card-header orange">
+      <div class="card-icon orange">🔬</div>
+      <div class="card-title">硬核学术资源</div>
+      <span class="card-count">2 篇</span>
+    </div>
+    <div class="card-desc">分享顶尖高校课程与前沿论文综述，深入理解生成式 AI 与具身智能的世界模型机制。</div>
+    <div class="items">
+
+      <div class="item">
+        <div class="item-num">8</div>
+        <div class="item-body">
+          <div class="item-name">德克萨斯大学奥斯汀分校 · 扩散模型全体系教学</div>
+          <div class="item-desc"><strong>核心：</strong>讲解扩散模型核心原理（前向加噪/反向去噪）、DDIM/蒸馏采样加速及 LoRA/ControlNet 可控生成，覆盖图像/视频/3D 应用。</div>
+        </div>
+        <a class="item-link orange" href="https://wx.zsxq.com/group/48884124114188/topic/55188458518221184" target="_blank">原文 ↗</a>
+      </div>
+
+      <div class="item">
+        <div class="item-num">9</div>
+        <div class="item-body">
+          <div class="item-name">面向通用具身智能的 VLA 代理世界模型综述</div>
+          <div class="item-desc"><strong>核心：</strong>梳理世界模型与 VLA（视觉-语言-动作）代理结合范式，解决物理常识缺失与安全性挑战。</div>
+          <div class="res-row">
+            <a class="res-link" href="https://www.techrxiv.org/users/1019104/articles/1379248-towards-generalist-embodied-ai-a-survey-on-world-models-for-vla-agents" target="_blank">论文地址 ↗</a>
+          </div>
+        </div>
+        <a class="item-link orange" href="https://wx.zsxq.com/group/48884124114188/topic/55188458515854414" target="_blank">原文 ↗</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CARD 4 · GPT-5.4 -->
+  <div class="card">
+    <div class="card-header red">
+      <div class="card-icon red">⚡</div>
+      <div class="card-title">前沿模型应用</div>
+      <span class="card-count">1 篇</span>
+    </div>
+    <div class="card-desc">最新一代大模型的实战应用手册，覆盖从企业管理到个人提升的七大用户群体场景。</div>
+    <div class="items">
+
+      <div class="item">
+        <div class="item-num">10</div>
+        <div class="item-body">
+          <div class="item-name">《GPT-5.4 实战应用完全指南（2026 年）》</div>
+          <div class="item-desc">
+            <strong>核心：</strong>详解 GPT-5.4 在<strong style="color:var(--purple)">企业财务、专家咨询、电商运营</strong>等场景的应用，展示提升效率、创造价值的强大能力。
+          </div>
+          <div class="res-row">
+            <a class="res-link" href="https://wx.zsxq.com/mweb/views/weread/search.html?keyword=GPT-5.4实战应用完全指南" target="_blank">电子书预览 ↗</a>
+          </div>
+        </div>
+        <a class="item-link red" href="https://wx.zsxq.com/group/48884124114188/topic/14588148454885452" target="_blank">原文 ↗</a>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /grid -->
+
+<!-- ═══════════════ BOTTOM ═══════════════ -->
+<div class="bottom">
+
+  <div class="value-card">
+    <h3><span>💡</span> 加入星球，您将收获</h3>
+    <div class="value-list">
+      <div class="value-item">
+        <div class="v-icon">📡</div>
+        <div>
+          <div class="v-label" style="color:var(--green);">一手资讯</div>
+          <div class="v-desc">第一时间获取 2026 年最新模型发布、技术架构更新及行业研报，拒绝信息滞后。</div>
+        </div>
+      </div>
+      <div class="value-item">
+        <div class="v-icon">🔍</div>
+        <div>
+          <div class="v-label" style="color:var(--blue)">深度解析</div>
+          <div class="v-desc">不仅是新闻转发，更有技术原理、落地难点及商业逻辑的深度拆解。</div>
+        </div>
+      </div>
+      <div class="value-item">
+        <div class="v-icon">🛠</div>
+        <div>
+          <div class="v-label" style="color:var(--orange)">实战工具</div>
+          <div class="v-desc">直接获取可复用的 Prompt 框架、部署方案、代码库及企业级转型指南。</div>
+        </div>
+      </div>
+      <div class="value-item">
+        <div class="v-icon">🌐</div>
+        <div>
+          <div class="v-label" style="color:var(--purple)">社群价值</div>
+          <div class="v-desc">与同行者交流，共同应对技术变革带来的挑战与机遇。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-card">
+    <div class="big-icon">🚀</div>
+    <h3>立即加入<br>知识星球</h3>
+    <p>让 AI 成为您最强大的<br>生产力引擎</p>
+    <a class="cta-btn" href="https://wx.zsxq.com/group/48884124114188" target="_blank">
+      立即加入 →
+    </a>
+  </div>
+
+</div>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="footer">
+  <span>知识星球 · ID 48884124114188 · 内容精选报告 · 2026-03-30 15:41</span>
+  <div class="pulse">
+    <div class="pulse-dot"></div>
+    实时更新中
+  </div>
+</footer>
+
+</body>
+</html>
