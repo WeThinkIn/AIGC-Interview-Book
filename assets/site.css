@@ -307,6 +307,52 @@ img {
   margin-top: 30px;
 }
 
+.hero-support {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-top: 18px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(248, 242, 164, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+    rgba(10, 16, 34, 0.72);
+  box-shadow: var(--shadow-soft);
+}
+
+.hero-support-copy strong {
+  display: block;
+  margin: 12px 0 8px;
+  font-size: 1.04rem;
+}
+
+.hero-support-copy p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.github-star-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 198px;
+  min-height: 72px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(248, 242, 164, 0.14);
+  background: rgba(7, 12, 27, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.github-star-card iframe {
+  display: block;
+  border: 0;
+  overflow: hidden;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -361,6 +407,10 @@ img {
 .knowledge-card,
 .value-card,
 .author-card,
+.frontier-card,
+.frontier-benefits,
+.frontier-cta,
+.frontier-benefit-item,
 .author-lead,
 .community-item,
 .image-card,
@@ -382,6 +432,10 @@ img {
 .knowledge-card::before,
 .value-card::before,
 .author-card::before,
+.frontier-card::before,
+.frontier-benefits::before,
+.frontier-cta::before,
+.frontier-benefit-item::before,
 .author-lead::before,
 .community-item::before,
 .image-card::before,
@@ -401,6 +455,10 @@ img {
 .knowledge-card:hover::before,
 .value-card:hover::before,
 .author-card:hover::before,
+.frontier-card:hover::before,
+.frontier-benefits:hover::before,
+.frontier-cta:hover::before,
+.frontier-benefit-item:hover::before,
 .author-lead:hover::before,
 .community-item:hover::before,
 .image-card:hover::before,
@@ -620,7 +678,9 @@ img {
 .knowledge-card,
 .value-card,
 .author-card,
-.community-item {
+.community-item,
+.frontier-card,
+.frontier-benefit-item {
   padding: 24px;
   transition:
     transform 220ms ease,
@@ -632,7 +692,9 @@ img {
 .knowledge-card:hover,
 .value-card:hover,
 .author-card:hover,
-.community-item:hover {
+.community-item:hover,
+.frontier-card:hover,
+.frontier-benefit-item:hover {
   transform: translateY(-4px);
   border-color: rgba(108, 168, 255, 0.3);
   background: var(--surface-hover);
@@ -660,6 +722,412 @@ img {
 
 .value-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.frontier-hero,
+.frontier-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 18px;
+}
+
+.frontier-hero,
+.frontier-benefits,
+.frontier-cta {
+  padding: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(34, 211, 238, 0.14), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(108, 168, 255, 0.14), transparent 32%),
+    var(--surface-strong);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  position: relative;
+  overflow: hidden;
+}
+
+.frontier-hero {
+  margin-bottom: 18px;
+}
+
+.frontier-hero::before,
+.frontier-benefits::before,
+.frontier-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  background:
+    linear-gradient(125deg, rgba(108, 168, 255, 0.14), transparent 32%),
+    linear-gradient(305deg, rgba(140, 125, 255, 0.14), transparent 28%);
+  pointer-events: none;
+}
+
+.frontier-hero-copy,
+.frontier-summary,
+.frontier-benefits,
+.frontier-cta {
+  position: relative;
+  z-index: 1;
+}
+
+.frontier-hero-copy h3,
+.frontier-benefits h3,
+.frontier-cta h3 {
+  margin: 16px 0 12px;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  line-height: 1.15;
+}
+
+.frontier-hero-copy p,
+.frontier-card-copy,
+.frontier-item p,
+.frontier-benefit-item p,
+.frontier-cta p,
+.frontier-summary-card span {
+  color: var(--muted);
+}
+
+.frontier-word {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.frontier-word-agent {
+  color: #84f5bb;
+  text-shadow: 0 0 22px rgba(105, 240, 174, 0.24);
+}
+
+.frontier-word-multimodal {
+  color: #7de8ff;
+  text-shadow: 0 0 22px rgba(34, 211, 238, 0.24);
+}
+
+.frontier-word-research {
+  color: #ffc877;
+  text-shadow: 0 0 22px rgba(255, 183, 77, 0.22);
+}
+
+.frontier-word-model {
+  color: #b8abff;
+  text-shadow: 0 0 22px rgba(140, 125, 255, 0.24);
+}
+
+.frontier-word-signal {
+  color: #f8f2a4;
+  text-shadow: 0 0 22px rgba(248, 242, 164, 0.18);
+}
+
+.frontier-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.frontier-card-tag,
+.frontier-card-count,
+.frontier-summary-card strong,
+.frontier-link,
+.frontier-sub-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(132, 156, 255, 0.16);
+  background: rgba(8, 14, 32, 0.78);
+  color: #d7e4ff;
+}
+
+.frontier-pill,
+.frontier-keyword {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(132, 156, 255, 0.16);
+  background: rgba(8, 14, 32, 0.78);
+  color: #d7e4ff;
+  font-size: 0.86rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.frontier-pill.is-agent,
+.frontier-keyword.is-agent {
+  color: #84f5bb;
+  border-color: rgba(105, 240, 174, 0.3);
+  background: rgba(12, 28, 24, 0.78);
+}
+
+.frontier-pill.is-multimodal,
+.frontier-keyword.is-multimodal {
+  color: #7de8ff;
+  border-color: rgba(34, 211, 238, 0.3);
+  background: rgba(8, 24, 30, 0.78);
+}
+
+.frontier-pill.is-research,
+.frontier-keyword.is-research {
+  color: #ffc877;
+  border-color: rgba(255, 183, 77, 0.32);
+  background: rgba(28, 20, 8, 0.8);
+}
+
+.frontier-pill.is-model,
+.frontier-keyword.is-model {
+  color: #b8abff;
+  border-color: rgba(140, 125, 255, 0.32);
+  background: rgba(18, 14, 34, 0.8);
+}
+
+.frontier-pill.is-signal,
+.frontier-keyword.is-signal {
+  color: #f8f2a4;
+  border-color: rgba(248, 242, 164, 0.28);
+  background: rgba(30, 28, 10, 0.8);
+}
+
+.frontier-pill.is-neutral,
+.frontier-keyword.is-neutral {
+  color: #d7e4ff;
+}
+
+.frontier-summary {
+  display: grid;
+  gap: 14px;
+}
+
+.frontier-summary-card {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(6, 12, 28, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.frontier-summary-card span,
+.frontier-card-head {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.frontier-summary-card strong {
+  margin-top: 10px;
+  min-height: auto;
+  padding: 10px 12px;
+  border-radius: 16px;
+  color: #e9f0ff;
+  line-height: 1.5;
+}
+
+.frontier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.frontier-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 24px 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  opacity: 0.55;
+}
+
+.frontier-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.frontier-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.frontier-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.frontier-card-slash,
+.frontier-item-overline,
+.frontier-footnote {
+  font-family: "IBM Plex Mono", monospace;
+  letter-spacing: 0.04em;
+}
+
+.frontier-card-slash {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.frontier-card-tag,
+.frontier-card-count {
+  min-height: 30px;
+  color: #d7e4ff;
+  font-size: 0.74rem;
+}
+
+.frontier-card h3 {
+  margin: 18px 0 10px;
+  font-size: 1.22rem;
+}
+
+.frontier-card-copy {
+  margin: 0 0 18px;
+}
+
+.frontier-keywords,
+.frontier-cta-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.frontier-keywords {
+  margin-bottom: 18px;
+}
+
+.frontier-card-agent {
+  background:
+    linear-gradient(180deg, rgba(105, 240, 174, 0.1), rgba(255, 255, 255, 0)),
+    var(--surface);
+}
+
+.frontier-card-multimodal {
+  background:
+    linear-gradient(180deg, rgba(34, 211, 238, 0.1), rgba(255, 255, 255, 0)),
+    var(--surface);
+}
+
+.frontier-card-research {
+  background:
+    linear-gradient(180deg, rgba(255, 183, 77, 0.1), rgba(255, 255, 255, 0)),
+    var(--surface);
+}
+
+.frontier-card-model {
+  background:
+    linear-gradient(180deg, rgba(140, 125, 255, 0.1), rgba(255, 255, 255, 0)),
+    var(--surface);
+}
+
+.frontier-list {
+  display: grid;
+  gap: 12px;
+}
+
+.frontier-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 16px 0 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.frontier-item-index {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  color: var(--accent);
+  background: rgba(12, 20, 44, 0.72);
+  border: 1px solid rgba(132, 156, 255, 0.18);
+}
+
+.frontier-item-overline {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 0.72rem;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.frontier-item-body h4 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.frontier-item p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.frontier-link,
+.frontier-sub-links a {
+  min-height: 30px;
+  color: #e8f1ff;
+  font-size: 0.8rem;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.frontier-link:hover,
+.frontier-sub-links a:hover {
+  transform: translateY(-1px);
+  border-color: rgba(108, 168, 255, 0.32);
+  background: rgba(18, 27, 56, 0.96);
+}
+
+.frontier-sub-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.frontier-bottom {
+  margin-top: 18px;
+}
+
+.frontier-benefit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.frontier-benefit-item strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.frontier-benefit-item p {
+  margin: 0;
+}
+
+.frontier-cta {
+  background:
+    radial-gradient(circle at top right, rgba(105, 240, 174, 0.12), transparent 26%),
+    linear-gradient(180deg, rgba(108, 168, 255, 0.08), rgba(255, 255, 255, 0)),
+    var(--surface-strong);
+}
+
+.frontier-cta-pills {
+  margin-top: 18px;
+}
+
+.frontier-cta .button {
+  margin-top: 16px;
+}
+
+.frontier-footnote {
+  margin: 14px 0 0;
+  font-size: 0.76rem;
+  color: #93a0d2;
 }
 
 .author-lead {
@@ -815,17 +1283,21 @@ img {
 
 @media (max-width: 1080px) {
   .hero,
+  .frontier-hero,
+  .frontier-bottom,
   .community-layout,
   .overview-grid,
   .knowledge-grid,
   .value-grid,
   .author-grid,
+  .frontier-grid,
   .site-footer {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .positioning-band,
-  .social-grid {
+  .social-grid,
+  .frontier-benefit-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -871,11 +1343,15 @@ img {
   .hero-meta,
   .overview-grid,
   .knowledge-grid,
+  .frontier-hero,
+  .frontier-grid,
+  .frontier-bottom,
   .value-grid,
   .author-grid,
   .community-layout,
   .positioning-band,
   .social-grid,
+  .frontier-benefit-grid,
   .site-footer {
     grid-template-columns: 1fr;
   }
@@ -893,6 +1369,17 @@ img {
     max-width: none;
   }
 
+  .hero-support {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .github-star-card {
+    min-width: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .hero-actions {
     gap: 12px;
   }
@@ -907,6 +1394,21 @@ img {
 
   .author-lead-header {
     align-items: flex-start;
+  }
+
+  .frontier-hero,
+  .frontier-benefits,
+  .frontier-cta {
+    padding: 22px;
+  }
+
+  .frontier-item {
+    grid-template-columns: auto 1fr;
+  }
+
+  .frontier-link {
+    grid-column: 2;
+    justify-self: flex-start;
   }
 
   .footer-bottom {
