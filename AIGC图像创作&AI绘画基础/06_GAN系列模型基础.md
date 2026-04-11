@@ -127,7 +127,13 @@ V(G, D) & =\int_{x} p_{data}(x) \log (D(x)) d x+\int_{z} p_{z}(z) \log (1-D(G(z)
 \end{aligned}
 $$
 
-对第二项做变量替换：令 $x=G(z)$ ，根据随机变量函数的期望变换法则，生成样本的分布 $p_g(x)$ 满足 $\mathbb{E}_{z\sim p_z} [f(G(z))] = \mathbb{E}_{x\sim p_g} [f(x)]$ ，因此第二项可改写为 $\int_{x} p_{g}(x) \log (1-D(x)) d x$ 。
+对第二项做变量替换：令 $x=G(z)$ ，根据随机变量函数的期望变换法则，生成样本的分布 $p_g(x)$ 满足
+
+$$
+\mathbb{E}_{z\sim p_z}\bigl[f(G(z))\bigr] = \mathbb{E}_{x\sim p_g}\bigl[f(x)\bigr]
+$$
+
+因此第二项可改写为 $\displaystyle \int_{x} p_{g}(x)\log\bigl(1-D(x)\bigr)\,\mathrm{d}x$ 。
 
 由此，目标函数可合并为对 $x$ 的单积分形式：
 
@@ -179,15 +185,21 @@ $$
 
 GAN的训练目标是找到G，最小化 $C(G)$ 。
 
-将最优判别器 $D_G^*(x)$代入$C(G)$ ，可得：
+将最优判别器 $D_G^*(x)$代入 $C(G)$ ，可得：
 
 $$
 \begin{aligned}
-C(G) & =\mathbb{E}_{x \sim p_{data}}\left[\log D_{G}^{*}(x)\right]+\mathbb{E}_{x \sim p_{g}}\left[\log \left(1-D_{G}^{*}(x)\right)\right]
+C(G) &=\mathbb{E}_{x \sim p_{data}}\left[\log D_{G}^{*}(x)\right]+\mathbb{E}_{x \sim p_{g}}\left[\log \left(1-D_{G}^{*}(x)\right)\right]
 \end{aligned}
 $$
 
-将 $D_G^*(x)=\frac{p_{data}(x)}{p_{data}(x)+p_g(x)}$ 代入，同时 $1-D_G^*(x)=\frac{p_g(x)}{p_{data}(x)+p_g(x)}$ ，因此：
+将
+
+$$
+D_G^*(x)=\frac{p_{data}(x)}{p_{data}(x)+p_g(x)},\qquad 1-D_G^*(x)=\frac{p_g(x)}{p_{data}(x)+p_g(x)}
+$$
+
+代入，因此：
 
 $$
 C(G) = \int_{x} p_{data}(x) \log\left( \frac{p_{data}(x)}{p_{data}(x)+p_g(x)} \right) dx + \int_{x} p_{g}(x) \log\left( \frac{p_{g}(x)}{p_{data}(x)+p_g(x)} \right) dx
@@ -223,19 +235,23 @@ $$
 
 由于JS散度恒非负，即 $JSD(p_{data}\|p_g) \geq 0$ ，因此 $C(G) \geq -\log4$ 。
 
-当且仅当 $p_g = p_{data}$ 时， $JSD(p_{data}\|p_g)=0$ ，此时 $C(G)$取得全局最小值$-\log4$ ，同时最优判别器 $D_G^*(x)=\frac{p_{data}(x)}{p_{data}(x)+p_{data}(x)}=\frac{1}{2}$ ，定理1得证。
+当且仅当 $p_g = p_{data}$ 时， $JSD(p_{data}\|p_g)=0$ ，此时 $C(G)$取得全局最小值 $-\log4$ ，同时最优判别器 $D_G^*(x)=\frac{p_{data}(x)}{p_{data}(x)+p_{data}(x)}=\frac{1}{2}$ ，定理1得证。
 
 ### 3. GAN的算法收敛性证明
 
-**命题2**：若G和D具有足够的容量，且在GAN训练的每一步中，给定G时D都能达到最优解，同时 $p_g$ 按照目标函数 $\mathbb{E}_{x\sim p_{data}}[\log D_{G}^{*}(x)]+\mathbb{E}_{x\sim p_{g}}[\log (1-D_{G}^{*}(x))]$ 进行更新，则 $p_g$ 会收敛到 $p_{data}$ 。
+**命题2**：若G和D具有足够的容量，且在GAN训练的每一步中，给定G时D都能达到最优解，同时 $p_g$ 按照目标函数
+
+$$
+\mathbb{E}_{x\sim p_{data}}\bigl[\log D_{G}^{*}(x)\bigr]+\mathbb{E}_{x\sim p_{g}}\bigl[\log \bigl(1-D_{G}^{*}(x)\bigr)\bigr]
+$$
+
+进行更新，则 $p_g$ 会收敛到 $p_{data}$ 。
 
 **完整推导**：
 
 1. 首先，将 $V(G,D)$ 视为关于分布 $p_g$ 的函数 $U(p_g, D)$ 。对于任意固定的D， $U(p_g, D)$ 是关于 $p_g$ 的凸函数：
 
-    $$
-    U(p_g, D) = \int_x p_{data}(x)\log D(x) dx + \int_x p_g(x)\log(1-D(x)) dx
-    $$
+    $$U(p_g, D) = \int_x p_{data}(x)\log D(x) dx + \int_x p_g(x)\log(1-D(x)) dx$$
 
     该式对 $p_g$ 是线性的，而线性函数是凸函数，因此 $U(p_g, D)$ 关于 $p_g$ 凸。
 
