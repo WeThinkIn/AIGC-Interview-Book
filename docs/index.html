@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>三年面试五年模拟 | AIGC算法岗 / 开发岗的面试求职秘籍</title>
+    <meta
+      name="description"
+      content="AIGCmagic 社区出品的 AI 求职与面试知识体系平台，覆盖 AIGC、LLM、AI Agent、深度学习、部署、编程基础与面试经验沉淀。"
+    />
+    <meta
+      name="keywords"
+      content="AIGC, 大模型, AI Agent, 面试, 求职, 算法岗, 开发岗, GitHub Pages, Rocky Ding, AIGCmagic"
+    />
+    <meta name="theme-color" content="#060816" />
+    <meta name="color-scheme" content="dark" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="三年面试五年模拟 | AIGC算法岗 / 开发岗的面试求职秘籍" />
+    <meta
+      property="og:description"
+      content="面向 AIGC 算法岗 / 开发岗求职者的系统化知识库与社区主页，聚焦面试、笔试、知识体系与职业成长。"
+    />
+    <meta property="og:image" content="imgs/AIGCmagic主页.png" />
+    <meta property="og:url" content="https://wethinkin.github.io/AIGC-Interview-Book/" />
+    <link rel="canonical" href="https://wethinkin.github.io/AIGC-Interview-Book/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Noto+Sans+SC:wght@400;500;700;800&amp;family=Space+Grotesk:wght@500;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-left"></div>
+      <div class="ambient ambient-right"></div>
+      <div class="grid-overlay" aria-hidden="true"></div>
+      <div class="particle-field" id="particle-field" aria-hidden="true"></div>
+
+      <header class="site-header" id="top">
+        <div class="header-inner">
+          <a class="brand" href="#top" aria-label="返回首页">
+            <span class="brand-logo-wrap">
+              <img class="brand-logo" src="logo.png" alt="AIGCmagic 社区 Logo" />
+            </span>
+            <span class="brand-copy">
+              <strong>AIGCmagic</strong>
+              <span>三年面试五年模拟</span>
+            </span>
+          </a>
+
+          <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-label="打开导航">
+            <span></span>
+            <span></span>
+          </button>
+
+          <nav class="site-nav" id="site-nav">
+            <a href="#overview">项目定位</a>
+            <a href="#knowledge">知识地图</a>
+            <a href="#highlights">前沿精选</a>
+            <a href="#value">面试价值</a>
+            <a href="#authors">作者团队</a>
+            <a href="#community">社区共建</a>
+          </nav>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero section">
+          <div class="hero-copy reveal">
+            <p class="eyebrow">AIGCmagic Community / AI Career Knowledge System</p>
+            <h1>三年面试五年模拟</h1>
+            <p class="hero-subtitle">AIGC算法岗 / 开发岗的面试求职秘籍</p>
+            <p class="hero-description">
+              这是一个面向 AI 求职、面试、笔试与成长进阶的系统化内容平台，依托
+              <strong>AIGCmagic 社区</strong>
+              持续沉淀一线行业经验、岗位知识地图与高频面试方法论，服务校招生、社招工程师、算法工程师、大模型应用开发者、AI
+              研究员与转行学习者。
+            </p>
+
+            <div class="hero-actions">
+              <a class="button primary" href="https://github.com/WeThinkIn/AIGC-Interview-Book/blob/main/README.md" target="_blank" rel="noreferrer">立即阅读</a>
+              <a class="button secondary" href="https://github.com/WeThinkIn/AIGC-Interview-Book" target="_blank" rel="noreferrer">查看 GitHub</a>
+              <a class="button ghost" href="#community">进入社区</a>
+              <a class="button ghost" href="#authors">作者介绍</a>
+            </div>
+
+            <div class="hero-support reveal">
+              <div class="hero-support-copy">
+                <span class="meta-label">Support The Project</span>
+                <strong>觉得这个项目有帮助，可以直接在主页点个 Star</strong>
+                <p>静态站点无法代替用户完成 GitHub 授权操作，这里嵌入的是可直接跳转 / 触发 Star 的 GitHub 按钮。</p>
+              </div>
+              <div class="github-star-card">
+                <iframe
+                  title="GitHub Star Button"
+                  src="https://ghbtns.com/github-btn.html?user=WeThinkIn&amp;repo=AIGC-Interview-Book&amp;type=star&amp;count=true&amp;size=large"
+                  width="170"
+                  height="30"
+                  loading="lazy"
+                ></iframe>
+                <noscript>
+                  <a class="button secondary" href="https://github.com/WeThinkIn/AIGC-Interview-Book" target="_blank" rel="noreferrer">去 GitHub 点 Star</a>
+                </noscript>
+              </div>
+            </div>
+
+            <div class="hero-meta">
+              <div class="meta-card">
+                <span class="meta-label">主编</span>
+                <strong>Rocky Ding</strong>
+                <p>AIGCmagic 社区创始人，资深 AIGC 算法专家。</p>
+              </div>
+              <div class="meta-card">
+                <span class="meta-label">联合作者</span>
+                <strong>猫先生、张一凡、徐晨轩、刘一手、玉箫然、Elliot Qi、初街夜话 等</strong>
+                <p>来自产业一线、研究机构、互联网大厂与交叉学科研究场景。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-panel reveal">
+            <div class="dashboard-card hero-dashboard">
+              <div class="dashboard-topline">
+                <span class="status-dot"></span>
+                <span>AI 求职知识库持续迭代中</span>
+              </div>
+              <div class="hero-stats">
+                <div class="stat-card">
+                  <strong>17+</strong>
+                  <span>核心内容板块</span>
+                </div>
+                <div class="stat-card">
+                  <strong>算法 + 开发</strong>
+                  <span>双轨岗位覆盖</span>
+                </div>
+                <div class="stat-card">
+                  <strong>面试 / 笔试 / 内推</strong>
+                  <span>完整求职闭环</span>
+                </div>
+                <div class="stat-card">
+                  <strong>长期共建</strong>
+                  <span>社区驱动更新</span>
+                </div>
+              </div>
+              <div class="hero-visual-group">
+                <figure class="hero-visual hero-visual-primary">
+                  <img src="imgs/AIGCmagic主页.png" alt="AIGCmagic 社区主页预览" />
+                  <figcaption>品牌主视觉 / AIGCmagic 社区主页预览</figcaption>
+                </figure>
+                <figure class="hero-visual hero-visual-secondary">
+                  <img src="imgs/框架.png" alt="三年面试五年模拟内容框架图" />
+                  <figcaption>内容框架 / 系统化知识地图</figcaption>
+                </figure>
+              </div>
+              <div class="hero-pill-row">
+                <span>LLM</span>
+                <span>AIGC</span>
+                <span>Agent</span>
+                <span>CV / NLP</span>
+                <span>Deploy</span>
+                <span>Interview</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="overview">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Project Positioning</p>
+            <h2>一个服务 AI 求职与长期成长的系统化知识入口</h2>
+            <p>
+              项目以内容深度、岗位针对性与持续共建为核心，不只是零散题库或经验贴，而是把 AIGC
+              时代算法岗与开发岗所需的知识、方法、经验与社区资源连接成完整体系。
+            </p>
+          </div>
+
+          <div class="overview-grid">
+            <article class="info-card reveal">
+              <span class="card-index">01</span>
+              <h3>解决什么问题</h3>
+              <p>
+                帮助用户从“知道要学什么”走向“知道为什么学、如何学、如何在面试中讲清楚”，降低 AI
+                求职准备的碎片化与信息噪声。
+              </p>
+            </article>
+            <article class="info-card reveal">
+              <span class="card-index">02</span>
+              <h3>适合哪些人</h3>
+              <p>
+                面向校招生、社招工程师、算法工程师、大模型应用开发者、AI 研究员，以及希望转向 AI
+                领域的学习者与从业者。
+              </p>
+            </article>
+            <article class="info-card reveal">
+              <span class="card-index">03</span>
+              <h3>内容特色</h3>
+              <p>
+                以系统化、实战化、长期迭代为主线，覆盖知识体系梳理、岗位认知、面经总结、薪资与内推资讯、简历与职业规划。
+              </p>
+            </article>
+            <article class="info-card reveal">
+              <span class="card-index">04</span>
+              <h3>社区价值</h3>
+              <p>
+                源自 AIGCmagic 社区，多位一线专家联合编写与维护，强调开源共建、经验共享与行业长期陪伴。
+              </p>
+            </article>
+          </div>
+
+          <div class="positioning-band reveal">
+            <div>
+              <span class="band-label">内容属性</span>
+              <strong>内容型网站 + 开源项目主页</strong>
+            </div>
+            <div>
+              <span class="band-label">方法论</span>
+              <strong>从八股到实战，从知识到岗位表达</strong>
+            </div>
+            <div>
+              <span class="band-label">更新机制</span>
+              <strong>社区共创、长期迭代、持续沉淀</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="knowledge">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Knowledge Map</p>
+            <h2>覆盖 AI 岗位核心能力的知识地图</h2>
+            <p>
+              从基础理论到前沿方向，从算法理解到工程落地，从经典问题到 AIGC
+              时代新能力，构建一张既有知识广度、又有岗位针对性的内容地图。
+            </p>
+          </div>
+
+          <div class="knowledge-grid">
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/算法岗面试求职宝典" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">01</span>
+              <h3>面试求职宝典</h3>
+              <p>简历模版、求职攻略、面经整理、薪资与内推信息、高频答疑。</p>
+              <span class="chip-row"><span>Interview</span><span>Career</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/大模型基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">02</span>
+              <h3>LLM / 大模型</h3>
+              <p>基础知识、架构、训练微调、RAG、推理应用、安全性与评测。</p>
+              <span class="chip-row"><span>LLM</span><span>RAG</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI%20Agent基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">03</span>
+              <h3>AI Agent</h3>
+              <p>智能体工作流、规划模式、框架理解与 Agent 化应用能力。</p>
+              <span class="chip-row"><span>Agent</span><span>Workflow</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI多模态基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">04</span>
+              <h3>多模态</h3>
+              <p>模态编码器、输入输出映射器、核心模型范式与前沿方向。</p>
+              <span class="chip-row"><span>Multimodal</span><span>VL</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI视频基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">05</span>
+              <h3>AI 视频</h3>
+              <p>视频生成、编辑、理解、训练优化与统一视频大模型趋势。</p>
+              <span class="chip-row"><span>Video</span><span>Generation</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI绘画基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">06</span>
+              <h3>AIGC 图像生成</h3>
+              <p>扩散模型、LoRA、ControlNet、Flux、Stable Diffusion 与实操。</p>
+              <span class="chip-row"><span>Diffusion</span><span>Image</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/深度学习基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">07</span>
+              <h3>传统深度学习</h3>
+              <p>核心概念、网络结构、训练优化、注意力机制与工程实践。</p>
+              <span class="chip-row"><span>DL</span><span>Training</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/经典模型" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">08</span>
+              <h3>CV / NLP / RL 经典模型</h3>
+              <p>目标检测、分割、OCR、ReID、跟踪、自然语言处理与强化学习。</p>
+              <span class="chip-row"><span>CV</span><span>NLP</span><span>RL</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/机器学习基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">09</span>
+              <h3>机器学习</h3>
+              <p>经典算法、损失函数、模型评估与优化方法，高频基础完整覆盖。</p>
+              <span class="chip-row"><span>ML</span><span>Eval</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/模型部署基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">10</span>
+              <h3>模型部署</h3>
+              <p>vLLM、SGLang、调度优化、服务化部署与工业级推理系统认知。</p>
+              <span class="chip-row"><span>Deploy</span><span>Serving</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/编程基础：Python" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">11</span>
+              <h3>开发基础</h3>
+              <p>Python、C/C++、数据结构、算法题、计算机基础，夯实工程底座。</p>
+              <span class="chip-row"><span>Python</span><span>C++</span><span>CS</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/具身智能基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">12</span>
+              <h3>前沿方向</h3>
+              <p>自动驾驶、具身智能、元宇宙、AGI 等方向的岗位关联能力外延。</p>
+              <span class="chip-row"><span>Embodied AI</span><span>AGI</span></span>
+            </a>
+          </div>
+        </section>
+
+        <section class="section" id="highlights">
+          <div id="highlights-root"></div>
+          <noscript>
+            <div class="section-heading">
+              <p class="eyebrow">Frontier Highlights</p>
+              <h2>知识星球精选内容需要启用 JavaScript 才能展示</h2>
+              <p>如需查看和维护这块内容，请启用浏览器脚本，或直接编辑 <code>highlights-data.js</code>。</p>
+            </div>
+          </noscript>
+        </section>
+
+        <section class="section" id="value">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Interview Value</p>
+            <h2>它能为求职者带来的核心价值</h2>
+            <p>
+              网站不是简单地“告诉你有哪些题”，而是帮助你建立岗位认知、知识表达与真实竞争力，把准备工作做成可复用的长期资产。
+            </p>
+          </div>
+
+          <div class="value-grid">
+            <article class="value-card reveal">
+              <h3>系统梳理核心知识</h3>
+              <p>把 AIGC、LLM、Agent、CV、NLP、部署、编程基础串成结构化知识体系，便于搭建完整认知框架。</p>
+            </article>
+            <article class="value-card reveal">
+              <h3>覆盖算法岗与开发岗高频考点</h3>
+              <p>既覆盖模型原理、训练与评估，也覆盖工程实现、部署落地与研发链路中的高频问题。</p>
+            </article>
+            <article class="value-card reveal">
+              <h3>从八股到实战</h3>
+              <p>不仅有经典问答与基础概念，也有真实项目经验、岗位理解、部署实践和前沿技术判断。</p>
+            </article>
+            <article class="value-card reveal">
+              <h3>贴近大模型时代的新岗位能力</h3>
+              <p>聚焦 AIGC、RAG、智能体、多模态、视频生成与工业级推理系统等新型面试能力要求。</p>
+            </article>
+            <article class="value-card reveal">
+              <h3>提升表达与竞争力</h3>
+              <p>帮助用户把“会做”转化成“会讲”，更好地组织简历、项目介绍、技术方案与面试回答。</p>
+            </article>
+            <article class="value-card reveal">
+              <h3>沉淀长期职业资产</h3>
+              <p>项目持续更新，既适用于求职冲刺，也适合工作后复盘、带教、知识内化与方向切换。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="authors">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Contributors</p>
+            <h2>来自产业一线与研究场景的作者团队</h2>
+            <p>
+              作者区延续 README 的专业背书信息，强调这是由长期从事 AIGC、CV、部署与大模型应用的人共同维护的项目，而非单点经验输出。
+            </p>
+          </div>
+
+          <div class="author-lead reveal">
+            <div class="author-lead-badge">Lead Editor</div>
+            <div class="author-lead-header">
+              <div class="author-avatar">RD</div>
+              <div>
+                <h3>Rocky Ding</h3>
+                <p>AIGCmagic 社区创始人 / 主编 / 资深 AIGC 算法专家</p>
+              </div>
+            </div>
+            <p class="author-lead-copy">
+              知乎 AI 领域知名博主、公众号《WeThinkIn》主理人，全网文章阅读量 600 万+。在互联网大厂、AI
+              独角兽、传统科技公司与研究机构拥有丰富工作与创业经验，多次带队获得 CVPR、AAAI、Kaggle
+              等顶级竞赛冠军成绩，持续推动 AIGC 产品与算法解决方案的商业落地。
+            </p>
+            <div class="lead-metrics">
+              <span>600万+ 阅读量</span>
+              <span>CVPR / AAAI / Kaggle 冠军经历</span>
+              <span>论文 / 专利 / 商业化实战</span>
+            </div>
+            <div class="lead-links">
+              <a href="https://www.zhihu.com/people/bei-jing-de-wen-zhou-ren" target="_blank" rel="noreferrer">知乎主页</a>
+              <a href="https://rockyding.blog.csdn.net" target="_blank" rel="noreferrer">CSDN</a>
+              <a href="imgs/WeThinkIn公众号.jpg" target="_blank" rel="noreferrer">WeThinkIn 公众号</a>
+            </div>
+          </div>
+
+          <div class="author-grid">
+            <article class="author-card reveal">
+              <h3>猫先生</h3>
+              <p>副主编，公众号“魔方AI空间”主理人，资深 AIGC 算法专家，擅长模型部署、落地实践与商业案例应用。</p>
+            </article>
+            <article class="author-card reveal">
+              <h3>张一凡</h3>
+              <p>副主编，资深 AIGC 算法专家，曾就职于国内 top 安防公司，目前在研究所从事大模型相关研究。</p>
+            </article>
+            <article class="author-card reveal">
+              <h3>徐晨轩</h3>
+              <p>副主编，“AI+”跨界博士研究生，聚焦传统工科与人工智能的交叉创新与产业融合实践。</p>
+            </article>
+            <article class="author-card reveal">
+              <h3>刘一手</h3>
+              <p>副主编，资深高级算法工程师，专注计算机视觉与多模态大模型在教育和金融场景中的应用落地。</p>
+            </article>
+            <article class="author-card reveal">
+              <h3>玉箫然</h3>
+              <p>副主编，资深高级算法工程师，在 CV、AIGC 与大模型应用落地、性能优化等方向经验丰富。</p>
+            </article>
+            <article class="author-card reveal">
+              <h3>Elliot Qi</h3>
+              <p>副主编，互联网大厂 AIGC 算法工程师，研究方向覆盖扩散模型、可控图像生成与视频生成。</p>
+            </article>
+            <article class="author-card reveal">
+              <h3>初街夜话</h3>
+              <p>副主编，计算机视觉方向在读博士，主要研究目标检测，也持续关注与实践 AIGC 技术。</p>
+            </article>
+            <article class="author-card reveal">
+              <h3>更多联合作者</h3>
+              <p>项目持续欢迎来自产业一线、研究机构与社区生态的作者、面试官与从业者共同建设内容体系。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="community">
+          <div class="section-heading reveal">
+            <p class="eyebrow">Community &amp; Open Collaboration</p>
+            <h2>开源共建、持续更新、面向 AI 从业者与求职者</h2>
+            <p>
+              《三年面试五年模拟》源自 AIGCmagic 社区，不止服务一次求职冲刺，更希望成为 AI 从业者持续学习、交流、共建与职业成长的长期入口。
+            </p>
+          </div>
+
+          <div class="community-layout">
+            <div class="community-main reveal">
+              <div class="community-list">
+                <article class="community-item">
+                  <h3>开源项目入口</h3>
+                  <p>在 GitHub 查看完整仓库、目录结构、README、Issue 与后续共建动态。</p>
+                  <a href="https://github.com/WeThinkIn/AIGC-Interview-Book" target="_blank" rel="noreferrer">前往仓库</a>
+                </article>
+                <article class="community-item">
+                  <h3>社区入口</h3>
+                  <p>加入 AIGCmagic 社区，获取求职交流、招聘内推、面试答疑、干货资源与职业规划支持。</p>
+                  <a href="https://mp.weixin.qq.com/s/ssEJjHBoJDB4y5CfQIWYvw" target="_blank" rel="noreferrer">查看加入方式</a>
+                </article>
+                <article class="community-item">
+                  <h3>参与共建</h3>
+                  <p>欢迎通过 PR、Issue、经验分享与岗位发布参与建设，让内容更贴近真实面试与产业实践。</p>
+                  <a href="https://github.com/WeThinkIn/AIGC-Interview-Book/issues" target="_blank" rel="noreferrer">发起 Issue</a>
+                </article>
+                <article class="community-item">
+                  <h3>交流方式</h3>
+                  <p>README 中已提供知识星球与社群说明，可结合仓库内二维码素材与小助手信息进一步加入交流。</p>
+                  <a href="https://github.com/WeThinkIn/AIGC-Interview-Book/blob/main/README.md#加入2026年aigc算法岗开发岗求职招聘社群实习秋招春招校招社招" target="_blank" rel="noreferrer">查看 README</a>
+                </article>
+              </div>
+            </div>
+
+            <aside class="community-side reveal">
+              <div class="image-card">
+                <div class="image-card-header">
+                  <span class="image-tag">Community Pass</span>
+                  <h3>AIGCmagic 社区入口</h3>
+                </div>
+                <img src="imgs/星球优惠券.png" alt="AIGCmagic 社区加入二维码" />
+              </div>
+            </aside>
+          </div>
+
+          <div class="social-grid">
+            <div class="mini-image-card reveal">
+              <img src="imgs/AIGC-LLM交流群.jpg" alt="AIGC LLM 交流群二维码" />
+              <span>AIGC / LLM 交流群</span>
+            </div>
+            <div class="mini-image-card reveal">
+              <img src="imgs/传统深度学习交流群.jpg" alt="传统深度学习交流群二维码" />
+              <span>传统深度学习交流群</span>
+            </div>
+            <div class="mini-image-card reveal">
+              <img src="imgs/自动驾驶交流群.jpg" alt="自动驾驶交流群二维码" />
+              <span>自动驾驶交流群</span>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div>
+          <strong>三年面试五年模拟</strong>
+          <p>AIGC算法岗 / 开发岗的面试求职秘籍</p>
+        </div>
+        <div>
+          <strong>AIGCmagic</strong>
+          <p>开源共建的 AI 求职与成长社区</p>
+        </div>
+        <div>
+          <strong>Author</strong>
+          <p>Rocky Ding 与联合作者团队</p>
+        </div>
+        <div>
+          <strong>GitHub</strong>
+          <p><a href="https://github.com/WeThinkIn/AIGC-Interview-Book" target="_blank" rel="noreferrer">WeThinkIn/AIGC-Interview-Book</a></p>
+        </div>
+        <div class="footer-bottom">
+          <span id="footer-year"></span>
+          <span>MIT License</span>
+          <span>Build the knowledge. Win the interview. Grow with the community.</span>
+        </div>
+      </footer>
+    </div>
+
+    <script src="highlights-data.js"></script>
+    <script src="site.js"></script>
+  </body>
+</html>
