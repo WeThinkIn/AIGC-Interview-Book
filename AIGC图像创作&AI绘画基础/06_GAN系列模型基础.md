@@ -188,15 +188,13 @@ GAN的训练目标是找到G，最小化 $C(G)$ 。
 将最优判别器 $D_G^*(x)$代入 $C(G)$ ，可得：
 
 $$
-\begin{aligned}
-C(G) &=\mathbb{E}_{x \sim p_{data}}\left[\log D_{G}^{*}(x)\right]+\mathbb{E}_{x \sim p_{g}}\left[\log \left(1-D_{G}^{*}(x)\right)\right]
-\end{aligned}
+C(G) = \mathbb{E}_{x \sim p_{data}}\left[\log D_{G}^{*}(x)\right] + \mathbb{E}_{x \sim p_{g}}\left[\log \left(1 - D_{G}^{*}(x)\right)\right]
 $$
 
 将
 
 $$
-D_G^*(x)=\frac{p_{data}(x)}{p_{data}(x)+p_g(x)},\qquad 1-D_G^*(x)=\frac{p_g(x)}{p_{data}(x)+p_g(x)}
+D_{G}^{*}(x)=\frac{p_{data}(x)}{p_{data}(x)+p_g(x)},\qquad 1-D_{G}^{*}(x)=\frac{p_g(x)}{p_{data}(x)+p_g(x)}
 $$
 
 代入，因此：
@@ -242,7 +240,7 @@ $$
 **命题2**：若G和D具有足够的容量，且在GAN训练的每一步中，给定G时D都能达到最优解，同时 $p_g$ 按照目标函数
 
 $$
-\mathbb{E}_{x\sim p_{data}}\bigl[\log D_{G}^{*}(x)\bigr]+\mathbb{E}_{x\sim p_{g}}\bigl[\log \bigl(1-D_{G}^{*}(x)\bigr)\bigr]
+\mathbb{E}_{x\sim p_{data}}\left[\log D_{G}^{*}(x)\right] + \mathbb{E}_{x\sim p_{g}}\left[\log\left(1 - D_{G}^{*}(x)\right)\right]
 $$
 
 进行更新，则 $p_g$ 会收敛到 $p_{data}$ 。
