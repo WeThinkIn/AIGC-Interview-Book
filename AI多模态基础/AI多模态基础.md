@@ -116,7 +116,9 @@
 **训练数据不同。** LLM预训练靠的是海量纯文本——书、网页、论文，量级是万亿Token。多模态模型还需要大量**配对数据**，比如图文对、视频配字幕，LAION-5B那种数据集就有58亿组图文配对。同时还得混入纯文本数据，不然模型的语言能力会退化。
 
 **能干的事不同。** LLM擅长写文案、写代码、做摘要这些纯文本任务。多模态模型能做的事多得多——拿图片搜商品、看医学影像辅助诊断、审核短视频内容是否违规，这些都需要同时理解视觉和语言。
-<img width="4401" height="2456" alt="01 介绍一下多模态与语言大模型的区别_bw" src="https://github.com/user-attachments/assets/9bfda1ad-7ebd-44ec-b0bf-3ef08cfb20c5" />
+
+<img width="4401" height="2297" alt="image" src="https://github.com/user-attachments/assets/d622f2f1-36a1-4a4d-a139-e86d41e13679" />
+
 
 ---
 
