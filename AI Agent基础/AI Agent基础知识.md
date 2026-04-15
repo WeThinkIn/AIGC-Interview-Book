@@ -646,7 +646,7 @@ Function Calling能力微调训练的核心思想：
 
 <h2 id="18.当前AI-Agent有哪些主流的评价指标？">18.当前AI Agent有哪些主流的评价指标？</h2>
 
-1. 任务成攻率（Task Completion Rate）：层级化任务完成率，过程轨迹精确度，长周期策略稳定性等。
+1. 任务成功率（Task Completion Rate）：层级化任务完成率，过程轨迹精确度，长周期策略稳定性等。
 2. 工具调用准确率（Tool Usage Accuracy）
 3. 推理质量（Reasoning Quality）
 4. 用户满意度（User Satisfaction）
