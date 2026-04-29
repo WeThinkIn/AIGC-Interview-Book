@@ -36,6 +36,7 @@
       <div class="ambient ambient-left"></div>
       <div class="ambient ambient-right"></div>
       <div class="grid-overlay" aria-hidden="true"></div>
+      <div class="scanline-layer" aria-hidden="true"></div>
       <div class="particle-field" id="particle-field" aria-hidden="true"></div>
 
       <header class="site-header" id="top">
@@ -70,7 +71,7 @@
         <section class="hero section">
           <div class="hero-copy reveal">
             <p class="eyebrow">AIGCmagic Community / AI Career Knowledge System</p>
-            <h1>三年面试五年模拟</h1>
+            <h1 class="glitch-title" data-text="三年面试五年模拟">三年面试五年模拟</h1>
             <p class="hero-subtitle">AIGC算法岗 / 开发岗的面试求职秘籍</p>
             <p class="hero-description">
               这是一个面向 AI 求职、面试、笔试与成长进阶的系统化内容平台，依托
@@ -78,6 +79,18 @@
               持续沉淀一线行业经验、岗位知识地图与高频面试方法论，服务校招生、社招工程师、算法工程师、大模型应用开发者、AI
               研究员与转行学习者。
             </p>
+
+            <div class="hero-terminal" aria-label="项目能力概览">
+              <div class="terminal-bar">
+                <span></span>
+                <strong>career_os://aigc-interview-book</strong>
+              </div>
+              <div class="terminal-lines">
+                <span><b>INPUT</b> 面试高频考点 / 项目表达 / 前沿趋势</span>
+                <span><b>MODEL</b> LLM + Agent + 多模态 + 部署工程</span>
+                <span><b>OUTPUT</b> 系统化知识地图与可复用求职方法</span>
+              </div>
+            </div>
 
             <div class="hero-actions">
               <a class="button primary" href="https://github.com/WeThinkIn/AIGC-Interview-Book/blob/main/README.md" target="_blank" rel="noreferrer">立即阅读</a>
@@ -128,7 +141,7 @@
               </div>
               <div class="hero-stats">
                 <div class="stat-card">
-                  <strong>17+</strong>
+                  <strong>24</strong>
                   <span>核心内容板块</span>
                 </div>
                 <div class="stat-card">
@@ -228,85 +241,157 @@
         <section class="section" id="knowledge">
           <div class="section-heading reveal">
             <p class="eyebrow">Knowledge Map</p>
-            <h2>覆盖 AI 岗位核心能力的知识地图</h2>
+            <h2>同步 GitHub 最新目录的 AI 求职知识地图</h2>
             <p>
-              从基础理论到前沿方向，从算法理解到工程落地，从经典问题到 AIGC
-              时代新能力，构建一张既有知识广度、又有岗位针对性的内容地图。
+              当前主页按仓库 README 与 GitHub 主分支目录重新整理模块入口，从 AIGC 图像、视频、大模型、多模态、Agent
+              到部署、编程、数据结构、计算机基础与开放性问题，形成一张可直接跳转阅读的完整索引。
             </p>
           </div>
 
           <div class="knowledge-grid">
             <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/算法岗面试求职宝典" target="_blank" rel="noreferrer">
               <span class="knowledge-icon">01</span>
-              <h3>面试求职宝典</h3>
-              <p>简历模版、求职攻略、面经整理、薪资与内推信息、高频答疑。</p>
+              <h3>算法岗面试求职宝典</h3>
+              <p>简历模版、求职攻略、面经整理、招聘内推、公司清单与高频答疑。</p>
               <span class="chip-row"><span>Interview</span><span>Career</span></span>
             </a>
-            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/大模型基础" target="_blank" rel="noreferrer">
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AIGC图像创作%26AI绘画基础" target="_blank" rel="noreferrer">
               <span class="knowledge-icon">02</span>
-              <h3>LLM / 大模型</h3>
-              <p>基础知识、架构、训练微调、RAG、推理应用、安全性与评测。</p>
-              <span class="chip-row"><span>LLM</span><span>RAG</span></span>
-            </a>
-            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI%20Agent基础" target="_blank" rel="noreferrer">
-              <span class="knowledge-icon">03</span>
-              <h3>AI Agent</h3>
-              <p>智能体工作流、规划模式、框架理解与 Agent 化应用能力。</p>
-              <span class="chip-row"><span>Agent</span><span>Workflow</span></span>
-            </a>
-            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI多模态基础" target="_blank" rel="noreferrer">
-              <span class="knowledge-icon">04</span>
-              <h3>多模态</h3>
-              <p>模态编码器、输入输出映射器、核心模型范式与前沿方向。</p>
-              <span class="chip-row"><span>Multimodal</span><span>VL</span></span>
+              <h3>AIGC 图像创作 &amp; AI 绘画基础</h3>
+              <p>Stable Diffusion、FLUX、LoRA、ControlNet、可控生成、训练优化与图像生成框架。</p>
+              <span class="chip-row"><span>Diffusion</span><span>FLUX</span></span>
             </a>
             <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI视频基础" target="_blank" rel="noreferrer">
-              <span class="knowledge-icon">05</span>
-              <h3>AI 视频</h3>
-              <p>视频生成、编辑、理解、训练优化与统一视频大模型趋势。</p>
+              <span class="knowledge-icon">03</span>
+              <h3>AI 视频基础</h3>
+              <p>视频生成、视频理解、视频编辑、人体视频、虚拟试衣、训练微调与评测体系。</p>
               <span class="chip-row"><span>Video</span><span>Generation</span></span>
             </a>
-            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI绘画基础" target="_blank" rel="noreferrer">
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/大模型基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">04</span>
+              <h3>大模型基础</h3>
+              <p>基础知识、经典架构、训练微调、强化学习、RAG、推理应用、安全性与评测。</p>
+              <span class="chip-row"><span>LLM</span><span>RAG</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI多模态基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">05</span>
+              <h3>AI 多模态基础</h3>
+              <p>多模态理论、主干模型、核心组件、Qwen-VL、InternVL、GLM-V 与前沿技术。</p>
+              <span class="chip-row"><span>Multimodal</span><span>VL</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI%20Agent基础" target="_blank" rel="noreferrer">
               <span class="knowledge-icon">06</span>
-              <h3>AIGC 图像生成</h3>
-              <p>扩散模型、LoRA、ControlNet、Flux、Stable Diffusion 与实操。</p>
-              <span class="chip-row"><span>Diffusion</span><span>Image</span></span>
+              <h3>AI Agent 基础</h3>
+              <p>Agent 基础知识、设计模式、经典智能体范式与智能体应用开发能力。</p>
+              <span class="chip-row"><span>Agent</span><span>Workflow</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/数字人基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">07</span>
+              <h3>数字人基础</h3>
+              <p>2D/3D 数字人生成、3D 数据表示、渲染基础与数字人应用链路。</p>
+              <span class="chip-row"><span>Digital Human</span><span>3D</span></span>
             </a>
             <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/深度学习基础" target="_blank" rel="noreferrer">
-              <span class="knowledge-icon">07</span>
-              <h3>传统深度学习</h3>
-              <p>核心概念、网络结构、训练优化、注意力机制与工程实践。</p>
-              <span class="chip-row"><span>DL</span><span>Training</span></span>
-            </a>
-            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/经典模型" target="_blank" rel="noreferrer">
               <span class="knowledge-icon">08</span>
-              <h3>CV / NLP / RL 经典模型</h3>
-              <p>目标检测、分割、OCR、ReID、跟踪、自然语言处理与强化学习。</p>
-              <span class="chip-row"><span>CV</span><span>NLP</span><span>RL</span></span>
+              <h3>深度学习基础</h3>
+              <p>数学基础、核心概念、网络层、激活函数、深度网络架构、训练优化与框架工具。</p>
+              <span class="chip-row"><span>DL</span><span>Training</span></span>
             </a>
             <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/机器学习基础" target="_blank" rel="noreferrer">
               <span class="knowledge-icon">09</span>
-              <h3>机器学习</h3>
-              <p>经典算法、损失函数、模型评估与优化方法，高频基础完整覆盖。</p>
+              <h3>机器学习基础</h3>
+              <p>机器学习基础概念、经典算法、损失函数、模型评估与优化方法。</p>
               <span class="chip-row"><span>ML</span><span>Eval</span></span>
             </a>
             <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/模型部署基础" target="_blank" rel="noreferrer">
               <span class="knowledge-icon">10</span>
-              <h3>模型部署</h3>
-              <p>vLLM、SGLang、调度优化、服务化部署与工业级推理系统认知。</p>
+              <h3>模型部署基础</h3>
+              <p>模型部署概念、推理框架、数据处理、模型压缩、自定义算子、边云端与大模型部署。</p>
               <span class="chip-row"><span>Deploy</span><span>Serving</span></span>
             </a>
-            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/编程基础：Python" target="_blank" rel="noreferrer">
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/经典模型" target="_blank" rel="noreferrer">
               <span class="knowledge-icon">11</span>
-              <h3>开发基础</h3>
-              <p>Python、C/C++、数据结构、算法题、计算机基础，夯实工程底座。</p>
-              <span class="chip-row"><span>Python</span><span>C++</span><span>CS</span></span>
+              <h3>经典模型</h3>
+              <p>目标检测、图像分类、图像分割、OCR、ReID、人脸、跟踪、NLP 与强化学习高频考点。</p>
+              <span class="chip-row"><span>CV</span><span>NLP</span><span>RL</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/编程基础：Python" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">12</span>
+              <h3>编程基础：Python</h3>
+              <p>Python 基础、进阶知识与 AI 行业常用 Python 代码案例高频考点。</p>
+              <span class="chip-row"><span>Python</span><span>Code</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/编程基础：C和C%2B%2B" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">13</span>
+              <h3>编程基础：C 和 C++</h3>
+              <p>C/C++ 基础、进阶知识、实战经典考点与算法工程师常见手撕场景。</p>
+              <span class="chip-row"><span>C++</span><span>System</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/大厂高频算法题" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">14</span>
+              <h3>大厂高频算法题</h3>
+              <p>LeetCode Hot100、面试笔试算法题精华、大厂高频手撕算法题与公司真题。</p>
+              <span class="chip-row"><span>LeetCode</span><span>Algorithm</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/数据结构基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">15</span>
+              <h3>数据结构基础</h3>
+              <p>面试中常见的数据结构知识、复杂度表达与算法题底层能力补齐。</p>
+              <span class="chip-row"><span>DSA</span><span>Complexity</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/计算机基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">16</span>
+              <h3>计算机基础</h3>
+              <p>操作系统、计算机网络、数据库与计算机工程基础高频知识点。</p>
+              <span class="chip-row"><span>OS</span><span>Network</span><span>DB</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/开放性问题" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">17</span>
+              <h3>开放性问题</h3>
+              <p>AI 行业趋势、业务场景判断、算法工程师个人成长与面试表达题。</p>
+              <span class="chip-row"><span>Open-ended</span><span>Career</span></span>
             </a>
             <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/具身智能基础" target="_blank" rel="noreferrer">
-              <span class="knowledge-icon">12</span>
-              <h3>前沿方向</h3>
-              <p>自动驾驶、具身智能、元宇宙、AGI 等方向的岗位关联能力外延。</p>
-              <span class="chip-row"><span>Embodied AI</span><span>AGI</span></span>
+              <span class="knowledge-icon">18</span>
+              <h3>具身智能基础</h3>
+              <p>具身智能基础知识与视觉、语言、动作结合下的新一代智能体能力外延。</p>
+              <span class="chip-row"><span>Embodied AI</span><span>VLA</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/数学基础" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">19</span>
+              <h3>数学基础</h3>
+              <p>支撑机器学习、深度学习与大模型理解的核心数学基础入口。</p>
+              <span class="chip-row"><span>Math</span><span>Foundation</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/深度学习基础（精华版）" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">20</span>
+              <h3>深度学习基础（精华版）</h3>
+              <p>机器学习、深度学习基础、网络架构、训练优化与框架工具的高频精华版。</p>
+              <span class="chip-row"><span>DL</span><span>Essentials</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/大模型基础（精华版）" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">21</span>
+              <h3>大模型基础（精华版）</h3>
+              <p>面向大模型方向冲刺复习的精华版入口，用于快速建立 LLM 高频考点框架。</p>
+              <span class="chip-row"><span>LLM</span><span>Essentials</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI多模态基础（精华版）" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">22</span>
+              <h3>AI 多模态基础（精华版）</h3>
+              <p>多模态理论、核心组件、基石模型、主流模型、原生模型与下游应用高频考点。</p>
+              <span class="chip-row"><span>Multimodal</span><span>Essentials</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/AI视频基础（精华版）" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">23</span>
+              <h3>AI 视频基础（精华版）</h3>
+              <p>AI 视频核心知识、经典架构、可控视频生成、视频理解、视频编辑与性能优化。</p>
+              <span class="chip-row"><span>Video</span><span>Essentials</span></span>
+            </a>
+            <a class="knowledge-card reveal" href="https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/模型部署基础（精华版）" target="_blank" rel="noreferrer">
+              <span class="knowledge-icon">24</span>
+              <h3>模型部署基础（精华版）</h3>
+              <p>推理部署综述、ONNX、TensorRT、大模型部署技术、性能分析与调优工具。</p>
+              <span class="chip-row"><span>Deploy</span><span>Essentials</span></span>
             </a>
           </div>
         </section>
