@@ -4,6 +4,42 @@ const footerYear = document.getElementById("footer-year");
 const header = document.querySelector(".site-header");
 const particleField = document.getElementById("particle-field");
 const highlightsRoot = document.getElementById("highlights-root");
+const githubStars = document.getElementById("github-stars");
+
+const formatStarCount = (count) => {
+  if (!Number.isFinite(count)) {
+    return "Star";
+  }
+
+  if (count >= 1000) {
+    return `${(Math.round(count / 100) / 10).toFixed(1)}+k`;
+  }
+
+  return String(count);
+};
+
+const renderGithubStars = async () => {
+  if (!githubStars || !window.fetch) {
+    return;
+  }
+
+  try {
+    const response = await fetch("https://api.github.com/repos/WeThinkIn/AIGC-Interview-Book", {
+      headers: {
+        Accept: "application/vnd.github+json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("GitHub API unavailable");
+    }
+
+    const repo = await response.json();
+    githubStars.textContent = formatStarCount(repo.stargazers_count);
+  } catch {
+    githubStars.textContent = "Star";
+  }
+};
 
 const renderTagList = (items = [], className = "frontier-pill") =>
   items
@@ -142,6 +178,7 @@ const renderFrontierHighlights = () => {
 };
 
 renderFrontierHighlights();
+renderGithubStars();
 
 if (menuToggle && siteNav) {
   menuToggle.addEventListener("click", () => {
