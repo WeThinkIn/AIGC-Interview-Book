@@ -705,6 +705,10 @@ Harness 在灰度中负责：
 
    评估 handoff、A2A、协作成本和跨 Agent 状态一致性。
 
+9. **Trajectory-to-Training Loop**
+
+   将 Agent 执行轨迹、工具调用、环境状态和奖励信号转成 SFT / RL / 回归评测数据。自进化 Agent 中轨迹数据如何服务训练和知识维护，见 [09_自进化Agent与多平台运行时高频考点.md](09_自进化Agent与多平台运行时高频考点.md)。
+
 OpenAI 在 2026 年 Agents SDK 演进中也强调了面向文件、命令、代码编辑、长任务和受控沙箱的 model-native harness，这说明 Harness 正在从“评测脚本”升级为 Agent 运行时基础能力。
 
 <h2 id="q-023">面试问题：Model-native Harness 和传统脚本 Harness 有什么区别？</h2>
