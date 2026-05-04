@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="600" viewBox="0 0 1280 600">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+    </marker>
+    <style>
+      .title { font: 700 30px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif; fill: #0f172a; }
+      .sub { font: 500 16px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif; fill: #475569; }
+      .label { font: 700 18px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif; fill: #0f172a; }
+      .body { font: 500 15px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif; fill: #1f2937; }
+      .small { font: 500 13px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif; fill: #334155; }
+      .code { font: 600 14px "Menlo","Consolas","Courier New",monospace; fill: #0f172a; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="600" fill="#ffffff"/>
+  <text x="640" y="48" text-anchor="middle" class="title">DDIM 跳步采样如何加速</text>
+  <text x="640" y="78" text-anchor="middle" class="sub">从 T 个训练时间步中，选出更短的子序列 τ，只在这些步上做反向更新</text>
+
+  <rect x="66" y="126" width="525" height="348" rx="20" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="328" y="164" text-anchor="middle" class="label">DDPM：必须逐步走完</text>
+  <text x="328" y="190" text-anchor="middle" class="small">1000 个时间步，1000 次 U-Net 前向推理</text>
+
+  <line x1="110" y1="246" x2="550" y2="246" stroke="#bfdbfe" stroke-width="6" stroke-linecap="round"/>
+  <g fill="#60a5fa">
+    <circle cx="130" cy="246" r="7"/>
+    <circle cx="170" cy="246" r="7"/>
+    <circle cx="210" cy="246" r="7"/>
+    <circle cx="250" cy="246" r="7"/>
+    <circle cx="290" cy="246" r="7"/>
+    <circle cx="330" cy="246" r="7"/>
+    <circle cx="370" cy="246" r="7"/>
+    <circle cx="410" cy="246" r="7"/>
+    <circle cx="450" cy="246" r="7"/>
+    <circle cx="490" cy="246" r="7"/>
+    <circle cx="530" cy="246" r="7"/>
+  </g>
+  <g fill="#cbd5e1">
+    <circle cx="150" cy="246" r="4"/>
+    <circle cx="190" cy="246" r="4"/>
+    <circle cx="230" cy="246" r="4"/>
+    <circle cx="270" cy="246" r="4"/>
+    <circle cx="310" cy="246" r="4"/>
+    <circle cx="350" cy="246" r="4"/>
+    <circle cx="390" cy="246" r="4"/>
+    <circle cx="430" cy="246" r="4"/>
+    <circle cx="470" cy="246" r="4"/>
+    <circle cx="510" cy="246" r="4"/>
+  </g>
+  <text x="328" y="286" text-anchor="middle" class="body">每一步都走一格，噪声和误差累积更慢</text>
+  <text x="328" y="312" text-anchor="middle" class="body">但推理成本高，采样很慢</text>
+
+  <rect x="688" y="126" width="525" height="348" rx="20" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+  <text x="950" y="164" text-anchor="middle" class="label">DDIM：只走选中的子序列</text>
+  <text x="950" y="190" text-anchor="middle" class="small">
+    <tspan>τ = [τ</tspan><tspan baseline-shift="sub" font-size="10">1</tspan><tspan>, τ</tspan><tspan baseline-shift="sub" font-size="10">2</tspan><tspan>, ..., τ</tspan><tspan baseline-shift="sub" font-size="10">S</tspan><tspan>]，S ≪ T</tspan>
+  </text>
+
+  <line x1="730" y1="246" x2="1168" y2="246" stroke="#bbf7d0" stroke-width="6" stroke-linecap="round"/>
+  <g fill="#d1fae5">
+    <circle cx="760" cy="246" r="4"/>
+    <circle cx="800" cy="246" r="4"/>
+    <circle cx="840" cy="246" r="4"/>
+    <circle cx="880" cy="246" r="4"/>
+    <circle cx="920" cy="246" r="4"/>
+    <circle cx="960" cy="246" r="4"/>
+    <circle cx="1000" cy="246" r="4"/>
+    <circle cx="1040" cy="246" r="4"/>
+    <circle cx="1080" cy="246" r="4"/>
+    <circle cx="1120" cy="246" r="4"/>
+  </g>
+  <g fill="#16a34a">
+    <rect x="748" y="226" width="24" height="40" rx="6"/>
+    <rect x="866" y="226" width="24" height="40" rx="6"/>
+    <rect x="984" y="226" width="24" height="40" rx="6"/>
+    <rect x="1102" y="226" width="24" height="40" rx="6"/>
+  </g>
+  <text x="960" y="286" text-anchor="middle" class="body">只在 τ 里调用模型，跳过中间大量时间步</text>
+  <text x="960" y="312" text-anchor="middle" class="body">常见只需 20 / 50 / 100 步</text>
+
+  <path d="M 592 248 C 628 248, 642 248, 678 248" fill="none" stroke="#2563eb" stroke-width="3.5" marker-end="url(#arrow)"/>
+  <text x="635" y="228" text-anchor="middle" class="small">采样时可直接选子序列</text>
+
+  <rect x="120" y="498" width="1040" height="64" rx="18" fill="#0f172a"/>
+  <text x="640" y="535" text-anchor="middle" style="font:600 16px 'PingFang SC','Microsoft YaHei','Noto Sans CJK SC',Arial,sans-serif; fill:#e2e8f0;">少步采样不是“凭空少算”，而是把完整反向链压缩成更短的数值积分路径</text>
+</svg>

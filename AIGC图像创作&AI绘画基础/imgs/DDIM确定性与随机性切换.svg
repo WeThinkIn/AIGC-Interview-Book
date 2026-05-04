@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="620" viewBox="0 0 1280 620">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+    </marker>
+    <style>
+      .title { font: 700 30px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif; fill: #0f172a; }
+      .sub { font: 500 16px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif; fill: #475569; }
+      .label { font: 700 18px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif; fill: #0f172a; }
+      .body { font: 500 15px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif; fill: #1f2937; }
+      .small { font: 500 13px "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif; fill: #334155; }
+      .code { font: 600 14px "Menlo","Consolas","Courier New",monospace; fill: #0f172a; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="620" fill="#ffffff"/>
+  <text x="640" y="48" text-anchor="middle" class="title">DDIM 的确定性与随机性切换</text>
+  <text x="640" y="78" text-anchor="middle" class="sub">
+    <tspan>随机性由 σ</tspan><tspan baseline-shift="sub" font-size="11">t</tspan><tspan> 或全局参数 η 控制；η = 0 时退化为确定性采样</tspan>
+  </text>
+
+  <rect x="170" y="108" width="940" height="72" rx="18" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="640" y="140" text-anchor="middle" class="code">
+    <tspan>σ</tspan><tspan baseline-shift="sub" font-size="10">t</tspan><tspan>(η) = η · √((1−ᾱ</tspan><tspan baseline-shift="sub" font-size="10">t−1</tspan><tspan>)/(1−ᾱ</tspan><tspan baseline-shift="sub" font-size="10">t</tspan><tspan>)) · √(1−ᾱ</tspan><tspan baseline-shift="sub" font-size="10">t</tspan><tspan>/ᾱ</tspan><tspan baseline-shift="sub" font-size="10">t−1</tspan><tspan>)</tspan>
+  </text>
+  <text x="640" y="163" text-anchor="middle" class="small">η 越大，额外随机噪声越强；η = 0 时没有随机项</text>
+
+  <line x1="240" y1="220" x2="1040" y2="220" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="220" y="225" text-anchor="end" class="small">
+    <tspan>z</tspan><tspan baseline-shift="sub" font-size="10">T</tspan>
+  </text>
+  <text x="1060" y="225" class="small">
+    <tspan>x</tspan><tspan baseline-shift="sub" font-size="10">0</tspan>
+  </text>
+
+  <line x1="340" y1="245" x2="340" y2="430" stroke="#60a5fa" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 340 245 C 382 282, 360 330, 392 368 C 414 396, 408 422, 432 430" fill="none" stroke="#2563eb" stroke-width="5" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <text x="340" y="470" text-anchor="middle" class="label">η = 0</text>
+  <text x="340" y="496" text-anchor="middle" class="body">完全确定性</text>
+  <text x="340" y="520" text-anchor="middle" class="small">轨迹固定，可复现</text>
+  <rect x="250" y="532" width="180" height="34" rx="10" fill="#dbeafe" stroke="#93c5fd"/>
+  <text x="340" y="554" text-anchor="middle" class="small">标准 DDIM</text>
+
+  <line x1="640" y1="245" x2="640" y2="430" stroke="#a78bfa" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 640 245 C 676 282, 654 322, 692 362 C 720 392, 712 420, 742 430" fill="none" stroke="#8b5cf6" stroke-width="5" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M 660 255 C 678 286, 684 307, 700 334" fill="none" stroke="#c4b5fd" stroke-width="3" stroke-dasharray="6 6"/>
+  <text x="640" y="470" text-anchor="middle" class="label">0 &lt; η &lt; 1</text>
+  <text x="640" y="496" text-anchor="middle" class="body">半随机</text>
+  <text x="640" y="520" text-anchor="middle" class="small">保留一定扰动，细节会波动</text>
+  <rect x="550" y="532" width="180" height="34" rx="10" fill="#ede9fe" stroke="#c4b5fd"/>
+  <text x="640" y="554" text-anchor="middle" class="small">混合模式</text>
+
+  <line x1="940" y1="245" x2="940" y2="430" stroke="#fb7185" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 940 245 C 882 280, 970 324, 904 368 C 862 396, 928 420, 866 430" fill="none" stroke="#ef4444" stroke-width="5" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M 925 260 C 906 286, 894 316, 910 338" fill="none" stroke="#fecdd3" stroke-width="3" stroke-dasharray="6 6"/>
+  <path d="M 956 296 C 974 318, 958 346, 980 368" fill="none" stroke="#fecdd3" stroke-width="3" stroke-dasharray="6 6"/>
+  <text x="940" y="470" text-anchor="middle" class="label">η = 1</text>
+  <text x="940" y="496" text-anchor="middle" class="body">随机性更强</text>
+  <text x="940" y="520" text-anchor="middle" class="small">更接近 DDPM 式采样</text>
+  <rect x="850" y="532" width="180" height="34" rx="10" fill="#ffe4e6" stroke="#fda4af"/>
+  <text x="940" y="554" text-anchor="middle" class="small">DDPM 风格</text>
+
+  <path d="M 240 590 C 420 574, 860 574, 1040 590" fill="none" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="640" y="590" text-anchor="middle" class="small">
+    <tspan>同一个初始噪声 z</tspan><tspan baseline-shift="sub" font-size="10">T</tspan><tspan>，在不同 η 下会走出不同性质的轨迹</tspan>
+  </text>
+</svg>

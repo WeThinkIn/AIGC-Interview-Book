@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="640" viewBox="0 0 1180 640">
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #d7dee8; stroke-width: 2; }
+      .title { font: 700 30px Arial, "Microsoft YaHei", sans-serif; fill: #172033; }
+      .subtitle { font: 400 18px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
+      .axis { stroke: #6b7788; stroke-width: 2; }
+      .grid { stroke: #e7ecf3; stroke-width: 1.5; }
+      .label { font: 600 18px Arial, "Microsoft YaHei", sans-serif; fill: #253045; }
+      .small { font: 400 15px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
+      .loss { fill: none; stroke: #2563eb; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+      .fid { fill: none; stroke: #f97316; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+      .quality { fill: none; stroke: #10b981; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+      .dash { stroke: #94a3b8; stroke-width: 2.5; stroke-dasharray: 8 8; }
+      .note { fill: #eef6ff; stroke: #bfd7ff; stroke-width: 1.5; }
+      .warn { fill: #fff7ed; stroke: #fed7aa; stroke-width: 1.5; }
+      .good { fill: #ecfdf5; stroke: #a7f3d0; stroke-width: 1.5; }
+      .dot-loss { fill: #2563eb; }
+      .dot-fid { fill: #f97316; }
+      .dot-quality { fill: #10b981; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1180" height="640"/>
+  <rect class="panel" x="46" y="36" width="1088" height="568" rx="22"/>
+
+  <text class="title" x="86" y="86">DDPM训练Loss收敛 ≠ 生成质量最优</text>
+  <text class="subtitle" x="86" y="118">训练Loss是单步噪声预测MSE；生成质量取决于整条反向采样链</text>
+
+  <line class="grid" x1="150" y1="180" x2="150" y2="500"/>
+  <line class="grid" x1="330" y1="180" x2="330" y2="500"/>
+  <line class="grid" x1="510" y1="180" x2="510" y2="500"/>
+  <line class="grid" x1="690" y1="180" x2="690" y2="500"/>
+  <line class="grid" x1="870" y1="180" x2="870" y2="500"/>
+  <line class="grid" x1="1050" y1="180" x2="1050" y2="500"/>
+
+  <line class="grid" x1="150" y1="180" x2="1050" y2="180"/>
+  <line class="grid" x1="150" y1="260" x2="1050" y2="260"/>
+  <line class="grid" x1="150" y1="340" x2="1050" y2="340"/>
+  <line class="grid" x1="150" y1="420" x2="1050" y2="420"/>
+  <line class="grid" x1="150" y1="500" x2="1050" y2="500"/>
+
+  <line class="axis" x1="150" y1="500" x2="1050" y2="500"/>
+  <line class="axis" x1="150" y1="180" x2="150" y2="500"/>
+  <polygon points="1050,500 1038,493 1038,507" fill="#6b7788"/>
+  <polygon points="150,180 143,192 157,192" fill="#6b7788"/>
+
+  <text class="label" x="562" y="550">训练步数 / Checkpoint</text>
+  <text class="label" x="62" y="242" transform="rotate(-90 62 242)">指标变化</text>
+  <text class="small" x="132" y="526">早期</text>
+  <text class="small" x="492" y="526">Loss平台期</text>
+  <text class="small" x="858" y="526">质量评估稳定</text>
+
+  <path class="loss" d="M150 210 C230 285, 300 360, 390 410 C470 448, 560 456, 700 458 C830 459, 940 459, 1050 459"/>
+  <path class="fid" d="M150 220 C260 250, 360 285, 500 330 C650 380, 790 415, 910 432 C970 440, 1015 443, 1050 444"/>
+  <path class="quality" d="M150 470 C250 445, 360 405, 500 350 C650 290, 790 245, 910 228 C980 218, 1025 216, 1050 216"/>
+
+  <line class="dash" x1="500" y1="168" x2="500" y2="515"/>
+  <line class="dash" x1="910" y1="168" x2="910" y2="515"/>
+
+  <circle class="dot-loss" cx="500" cy="448" r="8"/>
+  <circle class="dot-fid" cx="910" cy="432" r="8"/>
+  <circle class="dot-quality" cx="910" cy="228" r="8"/>
+
+  <rect class="note" x="368" y="132" width="260" height="72" rx="14"/>
+  <text class="label" x="392" y="162">Loss已进入平台期</text>
+  <text class="small" x="392" y="188">只能说明平均MSE变化变小</text>
+
+  <rect class="good" x="780" y="132" width="302" height="72" rx="14"/>
+  <text class="label" x="804" y="162">继续看生成质量</text>
+  <text class="small" x="804" y="188">FID/KID、PR、人眼抽样共同判断</text>
+
+  <rect class="warn" x="742" y="348" width="342" height="76" rx="14"/>
+  <text class="label" x="766" y="378">停止标准不是“Loss不降”</text>
+  <text class="small" x="766" y="404">而是继续训练不再稳定改善样本质量</text>
+
+  <rect x="190" y="565" width="20" height="8" rx="4" fill="#2563eb"/>
+  <text class="small" x="220" y="574">训练Loss：很早趋平</text>
+  <rect x="390" y="565" width="20" height="8" rx="4" fill="#f97316"/>
+  <text class="small" x="420" y="574">FID/KID：可能继续改善</text>
+  <rect x="638" y="565" width="20" height="8" rx="4" fill="#10b981"/>
+  <text class="small" x="668" y="574">人眼质量/采样稳定性：后续仍可能提升</text>
+</svg>

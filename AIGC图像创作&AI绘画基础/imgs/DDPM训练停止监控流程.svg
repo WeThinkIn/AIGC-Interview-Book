@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="720" viewBox="0 0 1180 720">
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #d7dee8; stroke-width: 2; }
+      .title { font: 700 30px Arial, "Microsoft YaHei", sans-serif; fill: #172033; }
+      .subtitle { font: 400 18px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
+      .h { font: 700 22px Arial, "Microsoft YaHei", sans-serif; fill: #253045; }
+      .label { font: 600 17px Arial, "Microsoft YaHei", sans-serif; fill: #253045; }
+      .small { font: 400 15px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
+      .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; }
+      .blue { fill: #eff6ff; stroke: #93c5fd; }
+      .green { fill: #ecfdf5; stroke: #86efac; }
+      .orange { fill: #fff7ed; stroke: #fdba74; }
+      .purple { fill: #f5f3ff; stroke: #c4b5fd; }
+      .red { fill: #fef2f2; stroke: #fecaca; }
+      .arrow { stroke: #64748b; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .decision { fill: #ffffff; stroke: #64748b; stroke-width: 2.2; }
+      .badge { fill: #f1f5f9; stroke: #cbd5e1; stroke-width: 1.5; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1180" height="720"/>
+  <rect class="panel" x="44" y="34" width="1092" height="650" rx="22"/>
+  <text class="title" x="84" y="84">DDPM训练停止：看生成质量，而不是只看Loss</text>
+  <text class="subtitle" x="84" y="116">推荐用“健康监控 + 生成评估 + 人工复核”的组合流程选择最佳EMA检查点</text>
+
+  <rect class="box blue" x="86" y="166" width="210" height="112" rx="18"/>
+  <text class="h" x="118" y="206">1. 记录Loss</text>
+  <text class="small" x="118" y="236">训练Loss / 验证Loss</text>
+  <text class="small" x="118" y="260">分时间步Loss</text>
+
+  <rect class="box green" x="350" y="166" width="210" height="112" rx="18"/>
+  <text class="h" x="382" y="206">2. 保存检查点</text>
+  <text class="small" x="382" y="236">普通参数</text>
+  <text class="small" x="382" y="260">EMA参数</text>
+
+  <rect class="box orange" x="614" y="166" width="210" height="112" rx="18"/>
+  <text class="h" x="646" y="206">3. 定期采样</text>
+  <text class="small" x="646" y="236">固定种子样本</text>
+  <text class="small" x="646" y="260">随机大批量样本</text>
+
+  <rect class="box purple" x="878" y="166" width="210" height="112" rx="18"/>
+  <text class="h" x="910" y="206">4. 计算指标</text>
+  <text class="small" x="910" y="236">FID / KID</text>
+  <text class="small" x="910" y="260">Precision / Recall</text>
+
+  <path class="arrow" d="M296 222 H344"/>
+  <path class="arrow" d="M560 222 H608"/>
+  <path class="arrow" d="M824 222 H872"/>
+
+  <polygon class="decision" points="590,340 740,420 590,500 440,420"/>
+  <text class="h" x="516" y="412">质量是否</text>
+  <text class="h" x="506" y="442">继续稳定提升？</text>
+
+  <path class="arrow" d="M983 278 C982 324, 816 384, 742 414"/>
+
+  <rect class="box green" x="116" y="386" width="216" height="112" rx="18"/>
+  <text class="h" x="148" y="426">继续训练</text>
+  <text class="small" x="148" y="456">指标仍在改善</text>
+  <text class="small" x="148" y="480">采样质量仍变好</text>
+
+  <rect class="box red" x="848" y="386" width="216" height="112" rx="18"/>
+  <text class="h" x="880" y="426">停止并选择</text>
+  <text class="small" x="880" y="456">最佳EMA检查点</text>
+  <text class="small" x="880" y="480">不是最后一个检查点</text>
+
+  <path class="arrow" d="M440 420 H338"/>
+  <text class="label" x="363" y="394">是</text>
+  <path class="arrow" d="M740 420 H842"/>
+  <text class="label" x="796" y="394">否</text>
+
+  <path class="arrow" d="M224 386 C220 330, 188 310, 190 282"/>
+
+  <rect class="badge" x="116" y="568" width="948" height="58" rx="18"/>
+  <text class="label" x="154" y="603">核心原则：Loss用于判断训练是否健康；停止训练要看FID/KID、PR、多样性、固定种子样本和人工抽样结果。</text>
+
+  <rect x="144" y="640" width="892" height="1.8" fill="#e2e8f0"/>
+  <text class="small" x="194" y="666">常见风险：FID下降但多样性变差、CLIP Score提升但图像过饱和、Loss平稳但采样链仍不稳定。</text>
+</svg>

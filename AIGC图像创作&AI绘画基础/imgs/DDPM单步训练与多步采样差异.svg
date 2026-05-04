@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="680" viewBox="0 0 1180 680">
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #d7dee8; stroke-width: 2; }
+      .title { font: 700 30px Arial, "Microsoft YaHei", sans-serif; fill: #172033; }
+      .subtitle { font: 400 18px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
+      .h { font: 700 23px Arial, "Microsoft YaHei", sans-serif; fill: #253045; }
+      .label { font: 600 18px Arial, "Microsoft YaHei", sans-serif; fill: #253045; }
+      .small { font: 400 15px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
+      .box-blue { fill: #eff6ff; stroke: #93c5fd; stroke-width: 2; }
+      .box-orange { fill: #fff7ed; stroke: #fdba74; stroke-width: 2; }
+      .box-green { fill: #ecfdf5; stroke: #86efac; stroke-width: 2; }
+      .box-gray { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 2; }
+      .arrow { stroke: #64748b; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .arrow-blue { stroke: #2563eb; stroke-width: 4; fill: none; marker-end: url(#arrowBlue); }
+      .arrow-orange { stroke: #f97316; stroke-width: 4; fill: none; marker-end: url(#arrowOrange); }
+      .dash { stroke: #94a3b8; stroke-width: 2.5; stroke-dasharray: 8 8; fill: none; }
+      .formula { font: 600 18px Arial, "Microsoft YaHei", sans-serif; fill: #1e293b; }
+      .pill { fill: #ffffff; stroke: #d7dee8; stroke-width: 1.5; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#64748b"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#f97316"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1180" height="680"/>
+  <rect class="panel" x="44" y="34" width="1092" height="604" rx="22"/>
+  <text class="title" x="84" y="84">DDPM训练看单步，生成看整条反向链</text>
+  <text class="subtitle" x="84" y="116">单步平均误差小，不代表多步采样后的累积偏差也小</text>
+
+  <rect class="box-blue" x="82" y="160" width="470" height="392" rx="20"/>
+  <text class="h" x="116" y="205">训练阶段：单步噪声预测</text>
+  <text class="small" x="116" y="234">每次随机采样一个时间步 t，输入来自真实前向分布</text>
+
+  <rect class="pill" x="124" y="276" width="102" height="58" rx="14"/>
+  <text class="label" x="154" y="312"><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="12">0</tspan></text>
+  <text class="small" x="138" y="356">真实图像</text>
+
+  <rect class="pill" x="294" y="276" width="130" height="58" rx="14"/>
+  <text class="formula" x="310" y="312">加噪 q</text>
+  <text class="small" x="296" y="356">人为构造 <tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="11">t</tspan></text>
+
+  <rect class="pill" x="456" y="276" width="68" height="58" rx="14"/>
+  <text class="label" x="478" y="312"><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="12">t</tspan></text>
+
+  <path class="arrow-blue" d="M226 305 H288"/>
+  <path class="arrow-blue" d="M424 305 H450"/>
+
+  <rect class="box-gray" x="124" y="402" width="180" height="74" rx="16"/>
+  <text class="formula" x="145" y="434"><tspan>ε</tspan><tspan baseline-shift="sub" font-size="12">θ</tspan><tspan>(</tspan><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="12">t</tspan><tspan>, t)</tspan></text>
+  <text class="small" x="145" y="460">预测噪声 ε</text>
+
+  <rect class="box-green" x="344" y="402" width="160" height="74" rx="16"/>
+  <text class="formula" x="368" y="434"><tspan>MSE(ε, ε</tspan><tspan baseline-shift="sub" font-size="12">θ</tspan><tspan>)</tspan></text>
+  <text class="small" x="374" y="460">单步Loss</text>
+
+  <path class="arrow" d="M490 334 C488 370, 430 384, 306 420"/>
+  <path class="arrow" d="M304 438 H338"/>
+
+  <text class="small" x="116" y="515">结论：训练Loss主要衡量“某一步预测得准不准”。</text>
+
+  <rect class="box-orange" x="628" y="160" width="470" height="392" rx="20"/>
+  <text class="h" x="662" y="205">采样阶段：多步反向去噪</text>
+  <text class="small" x="662" y="234">每一步输入都来自模型上一步输出，偏差可能累积</text>
+
+  <rect class="pill" x="664" y="286" width="80" height="56" rx="14"/>
+  <text class="label" x="688" y="321"><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="12">T</tspan></text>
+  <text class="small" x="663" y="366">纯噪声</text>
+
+  <rect class="pill" x="792" y="286" width="88" height="56" rx="14"/>
+  <text class="label" x="810" y="321"><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="12">t</tspan></text>
+
+  <rect class="pill" x="928" y="286" width="96" height="56" rx="14"/>
+  <text class="label" x="944" y="321"><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="12">t-1</tspan></text>
+
+  <rect class="pill" x="792" y="414" width="88" height="56" rx="14"/>
+  <text class="label" x="812" y="449"><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="12">1</tspan></text>
+
+  <rect class="pill" x="928" y="414" width="96" height="56" rx="14"/>
+  <text class="label" x="944" y="449"><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="12">0</tspan></text>
+  <text class="small" x="928" y="494">生成图像</text>
+
+  <path class="arrow-orange" d="M744 314 H786"/>
+  <path class="arrow-orange" d="M880 314 H922"/>
+  <path class="dash" d="M976 342 C984 378, 912 396, 880 426"/>
+  <path class="arrow-orange" d="M880 442 H922"/>
+
+  <rect class="box-gray" x="664" y="520" width="396" height="76" rx="16"/>
+  <text class="label" x="690" y="552">多步误差累积</text>
+  <text class="small" x="690" y="578">一步偏一点，连续采样后可能变成结构、细节或语义问题</text>
+
+  <line x1="590" y1="166" x2="590" y2="552" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="10 10"/>
+
+  <rect class="box-green" x="192" y="580" width="798" height="48" rx="16"/>
+  <text class="label" x="236" y="611">所以：Loss进入平台期后，仍要继续评估整条采样链的生成质量和稳定性</text>
+</svg>
