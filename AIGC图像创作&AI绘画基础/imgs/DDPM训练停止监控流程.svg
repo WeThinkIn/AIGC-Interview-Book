@@ -3,11 +3,11 @@
     <style>
       .bg { fill: #f8fafc; }
       .panel { fill: #ffffff; stroke: #d7dee8; stroke-width: 2; }
-      .title { font: 700 30px Arial, "Microsoft YaHei", sans-serif; fill: #172033; }
-      .subtitle { font: 400 18px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
-      .h { font: 700 22px Arial, "Microsoft YaHei", sans-serif; fill: #253045; }
-      .label { font: 600 17px Arial, "Microsoft YaHei", sans-serif; fill: #253045; }
-      .small { font: 400 15px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
+      .title { font: 700 30px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .subtitle { font: 400 18px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #526071; }
+      .h { font: 700 22px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #253045; }
+      .label { font: 600 17px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #253045; }
+      .small { font: 400 15px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #526071; }
       .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; }
       .blue { fill: #eff6ff; stroke: #93c5fd; }
       .green { fill: #ecfdf5; stroke: #86efac; }

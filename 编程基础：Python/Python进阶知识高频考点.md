@@ -30,6 +30,13 @@
 - [28.Python与C++有哪些区别？](#28.Python与C++有哪些区别？)
 - [29.Python与C语言有哪些区别？](#29.Python与C语言有哪些区别？)
 - [30.在AI行业中，Python编程中的动态库和静态库的含义是什么？两者之间什么差异？](#30.在AI行业中，Python编程中的动态库和静态库的含义是什么？两者之间什么差异？)
+- [31.Python中的闭包是什么？在AI工程中有什么用？](#31.Python中的闭包是什么在AI工程中有什么用)
+- [32.Python中的元类metaclass是什么？](#32.Python中的元类metaclass是什么)
+- [33.Python中的上下文管理器with和__enter__/__exit__有什么价值？](#33.Python中的上下文管理器with和__enter____exit__有什么价值)
+- [34.Python协程、asyncio和异步IO在AI Agent中如何使用？](#34.Python协程asyncio和异步IO在AI-Agent中如何使用)
+- [35.Python设计模式在AI Agent系统中如何落地？](#35.Python设计模式在AI-Agent系统中如何落地)
+- [36.Python对象池、连接池和模型池在AI服务中有什么区别？](#36.Python对象池连接池和模型池在AI服务中有什么区别)
+- [37.Python中如何设计插件化工具注册机制？](#37.Python中如何设计插件化工具注册机制)
 
 
 <h2 id="1.python中迭代器的概念？">1.Python中迭代器的概念？</h2>
@@ -3551,5 +3558,324 @@ result = opencv.cv_detect_objects(img_ptr)
    - **传统DL**：静态库优化移动端部署，动态库实现多版本推理引擎共存
    - **自动驾驶**：静态库保障安全模块实时性，动态库实现OTA算法更新
 
+
+<h2 id="31.Python中的闭包是什么在AI工程中有什么用">31.Python中的闭包是什么？在AI工程中有什么用？</h2>
+
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+闭包是指内部函数引用了外部函数作用域中的变量，并且外部函数返回后，这些变量仍然能被内部函数访问。
+
+```python
+def make_prompt_builder(style: str):
+    prefix = f"请使用{style}风格回答："
+
+    def build(user_input: str) -> str:
+        return prefix + user_input
+
+    return build
+
+creative_prompt = make_prompt_builder("简洁专业")
+print(creative_prompt("什么是RAG？"))
+```
+
+闭包的关键点：
+
+- 外部变量会被内部函数持有；
+- 可以用于保存少量状态；
+- 常用于装饰器、回调函数、函数工厂、策略构造；
+- 如果闭包持有大对象，可能导致内存长期不释放。
+
+在 AI 工程中的典型应用：
+
+- 构造不同风格的 prompt builder；
+- 给 Agent 工具注入固定配置；
+- 为重试、限流、日志埋点封装装饰器；
+- 在数据处理 pipeline 中生成特定预处理函数。
+
+示例：为工具函数注入超时配置。
+
+```python
+def make_tool(timeout: float):
+    def search(query: str) -> dict:
+        return {"query": query, "timeout": timeout}
+    return search
+```
+
+面试中要补一句：闭包方便，但不要让闭包偷偷持有模型、数据库连接、大型缓存等长生命周期资源，否则排查内存问题会很痛。
+
+
+<h2 id="32.Python中的元类metaclass是什么">32.Python中的元类metaclass是什么？</h2>
+
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐ (3/5)**
+
+元类是“创建类的类”。普通对象由类创建，类本身由元类创建。默认情况下，Python 中大多数类的元类是 `type`。
+
+```python
+class Tool:
+    pass
+
+print(type(Tool))      # <class 'type'>
+print(type(Tool()))    # <class '__main__.Tool'>
+```
+
+元类可以拦截类创建过程，适合做框架级能力，例如：
+
+- 自动注册子类；
+- 校验类是否实现必要方法；
+- 注入属性或方法；
+- 构建 ORM、配置系统、插件系统。
+
+示例：创建工具类时自动注册。
+
+```python
+class ToolMeta(type):
+    registry = {}
+
+    def __new__(mcls, name, bases, namespace):
+        cls = super().__new__(mcls, name, bases, namespace)
+        tool_name = namespace.get("name")
+        if tool_name:
+            mcls.registry[tool_name] = cls
+        return cls
+
+class BaseTool(metaclass=ToolMeta):
+    pass
+
+class SearchTool(BaseTool):
+    name = "search"
+
+print(ToolMeta.registry)  # {'search': <class '__main__.SearchTool'>}
+```
+
+AI Agent 框架中，元类可用于自动发现工具、校验工具 schema、注册模型适配器。但面试中也要强调：元类很强但复杂，很多场景用装饰器、基类、`__init_subclass__` 就足够了。
+
+
+<h2 id="33.Python中的上下文管理器with和__enter____exit__有什么价值">33.Python中的上下文管理器with和__enter__/__exit__有什么价值？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+上下文管理器用于管理资源的进入和退出，典型语法是 `with`。它能保证无论代码正常结束还是抛出异常，退出逻辑都会执行。
+
+常见用途：
+
+- 文件自动关闭；
+- 数据库连接释放；
+- 锁的获取与释放；
+- GPU 显存上下文；
+- tracing/span 记录；
+- 临时目录清理。
+
+自定义上下文管理器：
+
+```python
+class TraceSpan:
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        print(f"start {self.name}")
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        print(f"end {self.name}")
+        return False  # 不吞异常
+
+with TraceSpan("tool_call"):
+    print("running tool")
+```
+
+也可以使用 `contextlib`：
+
+```python
+from contextlib import contextmanager
+
+@contextmanager
+def temporary_temperature(value):
+    old = 0.7
+    try:
+        yield value
+    finally:
+        print(f"restore temperature to {old}")
+```
+
+在 AIGC/Agent 服务中，上下文管理器常用于模型推理计时、请求 trace、临时文件、沙箱执行、数据库事务和 GPU autocast。它的本质是把“必须成对出现”的资源操作写成可靠协议。
+
+
+<h2 id="34.Python协程asyncio和异步IO在AI-Agent中如何使用">34.Python协程、asyncio和异步IO在AI Agent中如何使用？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+协程适合 IO 密集型并发，例如并发调用 LLM API、向量数据库、搜索服务、浏览器工具、文件上传、流式响应等。它不适合直接加速 CPU 密集型计算。
+
+基础示例：
+
+```python
+import asyncio
+
+async def call_tool(name: str, delay: float):
+    await asyncio.sleep(delay)
+    return f"{name} done"
+
+async def main():
+    results = await asyncio.gather(
+        call_tool("search", 0.5),
+        call_tool("retrieval", 0.3),
+    )
+    print(results)
+
+asyncio.run(main())
+```
+
+Agent 中常见异步模式：
+
+- 并发检索多个知识库；
+- 同时调用搜索、OCR、代码执行等工具；
+- LLM 流式输出时同步收集工具状态；
+- 对慢工具设置 timeout；
+- 对不稳定外部 API 做重试和熔断。
+
+需要注意：
+
+- 在 `async def` 中不要直接执行长时间阻塞代码；
+- CPU 密集任务应放到进程池或专门 worker；
+- GPU 推理本身不一定因为 asyncio 变快，需要结合队列和 batch；
+- 外部 API 调用要做限流和超时；
+- 共享状态要注意并发安全。
+
+面试金句：`asyncio` 提升的是等待 IO 时的吞吐，不是让 Python 计算本身变快。
+
+
+<h2 id="35.Python设计模式在AI-Agent系统中如何落地">35.Python设计模式在AI Agent系统中如何落地？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+
+设计模式不应机械背诵，关键是知道它们解决什么工程问题。
+
+| 设计模式 | 解决的问题 | AI Agent 场景 |
+| --- | --- | --- |
+| 工厂模式 | 根据配置创建对象 | 创建不同 LLM、Embedding、Retriever |
+| 策略模式 | 可替换算法 | 不同检索策略、重排策略、规划策略 |
+| 装饰器模式 | 给函数增加横切能力 | 日志、重试、限流、鉴权、缓存 |
+| 代理模式 | 控制对真实对象的访问 | 工具权限、安全沙箱、远程模型代理 |
+| 单例模式 | 共享唯一实例 | 配置中心、轻量注册表 |
+| 对象池 | 复用昂贵资源 | 数据库连接池、浏览器池、模型 worker 池 |
+| 观察者模式 | 事件通知 | Agent step 事件、流式日志、UI 更新 |
+| Builder 模式 | 分阶段构造复杂对象 | 构建工作流、Prompt、工具链 |
+
+示例：用策略模式封装不同检索策略。
+
+```python
+class Retriever:
+    def retrieve(self, query: str) -> list[str]:
+        raise NotImplementedError
+
+class VectorRetriever(Retriever):
+    def retrieve(self, query: str) -> list[str]:
+        return ["vector result"]
+
+class WebRetriever(Retriever):
+    def retrieve(self, query: str) -> list[str]:
+        return ["web result"]
+
+def answer(query: str, retriever: Retriever):
+    docs = retriever.retrieve(query)
+    return {"query": query, "docs": docs}
+```
+
+好的模式能降低耦合，差的模式会增加抽象负担。面试中要结合场景讲：Agent 系统变化快，模型、工具、记忆、评测和权限都可能替换，因此策略、工厂、装饰器、代理模式特别常见。
+
+
+<h2 id="36.Python对象池连接池和模型池在AI服务中有什么区别">36.Python对象池、连接池和模型池在AI服务中有什么区别？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+
+三者本质都是复用昂贵资源，但资源类型不同。
+
+| 类型 | 复用对象 | 典型场景 | 注意点 |
+| --- | --- | --- | --- |
+| 对象池 | 普通 Python 对象 | 浏览器实例、解析器、临时 worker | 生命周期和状态清理 |
+| 连接池 | 网络/数据库连接 | MySQL、Redis、向量数据库、HTTP Client | 超时、最大连接数、健康检查 |
+| 模型池 | 模型实例或推理 worker | 多 GPU 推理、Stable Diffusion 服务、Embedding 服务 | 显存、batch、并发隔离 |
+
+简单连接池思想：
+
+```python
+from queue import Queue
+
+class ClientPool:
+    def __init__(self, clients):
+        self._q = Queue()
+        for client in clients:
+            self._q.put(client)
+
+    def acquire(self):
+        return self._q.get()
+
+    def release(self, client):
+        self._q.put(client)
+```
+
+AI 服务中，不建议每个请求都重新加载模型或新建数据库连接。模型加载慢、显存昂贵、连接建立有成本。更合理的是服务启动时初始化资源池，请求到来时从池中获取可用资源，用完归还或交给调度器。
+
+
+<h2 id="37.Python中如何设计插件化工具注册机制">37.Python中如何设计插件化工具注册机制？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+AI Agent 的工具系统需要支持可插拔、可发现、可校验和可审计。Python 中常见做法是装饰器注册、基类注册或包入口发现。
+
+装饰器注册示例：
+
+```python
+from typing import Callable
+
+TOOLS: dict[str, Callable] = {}
+
+def tool(name: str):
+    def decorator(func: Callable):
+        TOOLS[name] = func
+        return func
+    return decorator
+
+@tool("calculator")
+def calculator(expression: str) -> str:
+    return str(eval(expression, {"__builtins__": {}}, {}))
+
+print(TOOLS["calculator"]("1 + 2"))
+```
+
+生产系统要比上面的示例更严格：
+
+- 工具参数必须有 schema；
+- 工具要有权限等级；
+- 工具调用要记录 trace；
+- 外部副作用工具要二次确认；
+- 工具执行要有 timeout；
+- 不可信代码要放入沙箱；
+- `eval` 只能用于受限示例，真实项目不要直接执行用户输入。
+
+更完整的工具元数据可以这样设计：
+
+```python
+from dataclasses import dataclass
+from typing import Callable
+
+@dataclass
+class ToolSpec:
+    name: str
+    description: str
+    func: Callable
+    dangerous: bool = False
+
+REGISTRY: dict[str, ToolSpec] = {}
+
+def register_tool(name: str, description: str, dangerous: bool = False):
+    def wrapper(func: Callable):
+        REGISTRY[name] = ToolSpec(name, description, func, dangerous)
+        return func
+    return wrapper
+```
+
+面试中可以总结：插件化工具注册是 Agent 工程的基础设施，重点不是把函数放进字典，而是把 schema、权限、审计、超时、错误恢复和安全边界一起设计进去。
 
 

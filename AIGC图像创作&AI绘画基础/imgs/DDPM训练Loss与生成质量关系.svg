@@ -3,12 +3,12 @@
     <style>
       .bg { fill: #f8fafc; }
       .panel { fill: #ffffff; stroke: #d7dee8; stroke-width: 2; }
-      .title { font: 700 30px Arial, "Microsoft YaHei", sans-serif; fill: #172033; }
-      .subtitle { font: 400 18px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
+      .title { font: 700 30px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .subtitle { font: 400 18px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #526071; }
       .axis { stroke: #6b7788; stroke-width: 2; }
       .grid { stroke: #e7ecf3; stroke-width: 1.5; }
-      .label { font: 600 18px Arial, "Microsoft YaHei", sans-serif; fill: #253045; }
-      .small { font: 400 15px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
+      .label { font: 600 18px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #253045; }
+      .small { font: 400 15px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #526071; }
       .loss { fill: none; stroke: #2563eb; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
       .fid { fill: none; stroke: #f97316; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
       .quality { fill: none; stroke: #10b981; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }

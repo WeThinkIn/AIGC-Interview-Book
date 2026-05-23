@@ -43,6 +43,13 @@
 - [41.Python中tuple、list和dict有什么区别？](#41.Python中tuple、list和dict有什么区别？)
 - [42.为什么说Python是动态语言？](#42.为什么说Python是动态语言？)
 - [43.介绍一下Python中logging库的作用](#43.介绍一下Python中logging库的作用)
+- [44.Python中单下划线、双下划线、前后双下划线分别代表什么？](#44.Python中单下划线双下划线前后双下划线分别代表什么)
+- [45.Python中类变量和实例变量有什么区别？](#45.Python中类变量和实例变量有什么区别)
+- [46.Python中__new__和__init__有什么区别？](#46.Python中__new__和__init__有什么区别)
+- [47.Python中文件读取read、readline、readlines和迭代文件对象有什么区别？](#47.Python中文件读取readreadlinereadlines和迭代文件对象有什么区别)
+- [48.Python中的类型注解、dataclass和Pydantic在AI工程中有什么价值？](#48.Python中的类型注解dataclass和Pydantic在AI工程中有什么价值)
+- [49.Python 3.13/3.14之后，GIL、JIT、t-string、延迟注解有哪些新变化？](#49.Python-313314之后GILJITt-string延迟注解有哪些新变化)
+- [50.AIGC和AI Agent项目中，Python基础能力应该重点掌握哪些？](#50.AIGC和AI-Agent项目中Python基础能力应该重点掌握哪些)
 
 
 <h2 id="1.python是解释语言还是编译语言？">1.Python是解释语言还是编译语言？</h2>
@@ -2249,3 +2256,247 @@ graph LR
 ```
 
 掌握Logging库不仅能提升开发效率，更是构建可靠AI系统的基石。在AIGC场景实现生成质量追踪，在深度学习训练中监控模型行为，在自动驾驶系统满足安全合规要求，专业级的日志管理是AI工程师的核心竞争力之一。
+
+
+<h2 id="44.Python中单下划线双下划线前后双下划线分别代表什么">44.Python中单下划线、双下划线、前后双下划线分别代表什么？</h2>
+
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+Python 中下划线命名不是简单的风格问题，它体现了访问约定、名称改写和协议方法。
+
+| 写法 | 含义 | 示例 | 面试重点 |
+| --- | --- | --- | --- |
+| `_name` | 约定为内部变量或受保护成员 | `_cache` | 只是约定，不会真正禁止访问 |
+| `name_` | 避免与关键字或内置名冲突 | `class_` | 常用于参数命名 |
+| `__name` | 触发名称改写 name mangling | `__token` | 防止子类无意覆盖 |
+| `__name__` | 魔术方法或解释器保留属性 | `__init__`、`__len__` | 不要随意自定义新的双下划线协议 |
+| `_` | 临时变量、忽略变量或交互式上次结果 | `for _ in range(3)` | 语义是“不关心这个值” |
+
+示例：
+
+```python
+class AgentConfig:
+    def __init__(self, api_key: str):
+        self._runtime_cache = {}
+        self.__api_key = api_key
+
+cfg = AgentConfig("sk-xxx")
+print(cfg._runtime_cache)            # 可以访问，但约定上不建议外部依赖
+print(cfg._AgentConfig__api_key)     # 名称改写后仍可访问，不是真正私有
+```
+
+在 AI Agent 项目中，`_tool_registry`、`_model_client`、`_trace_id` 这类变量通常表示模块内部实现细节。面试时要强调：Python 的封装更依赖约定和工程纪律，而不是强制访问控制。
+
+
+<h2 id="45.Python中类变量和实例变量有什么区别">45.Python中类变量和实例变量有什么区别？</h2>
+
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+类变量属于类对象，被所有实例共享；实例变量属于具体实例，每个对象各自一份。
+
+```python
+class Tool:
+    registry = []  # 类变量，所有实例共享
+
+    def __init__(self, name):
+        self.name = name  # 实例变量，每个实例独立
+
+t1 = Tool("search")
+t2 = Tool("calculator")
+t1.registry.append(t1.name)
+t2.registry.append(t2.name)
+
+print(Tool.registry)  # ['search', 'calculator']
+```
+
+常见坑点是把可变对象放成类变量，导致多个实例之间状态串扰：
+
+```python
+class BadSession:
+    messages = []
+
+    def add(self, msg):
+        self.messages.append(msg)
+
+a = BadSession()
+b = BadSession()
+a.add("用户A的问题")
+b.add("用户B的问题")
+print(a.messages)  # 两个用户的消息混在一起
+```
+
+正确做法：
+
+```python
+class Session:
+    def __init__(self):
+        self.messages = []
+```
+
+在 AIGC 服务中，这个问题尤其危险。用户会话、Agent 记忆、工具调用结果、检索上下文都应放在实例变量、请求上下文或外部状态存储中，不应误用类变量共享。
+
+
+<h2 id="46.Python中__new__和__init__有什么区别">46.Python中__new__和__init__有什么区别？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+
+`__new__` 负责创建对象，`__init__` 负责初始化对象。
+
+```python
+class ModelClient:
+    def __new__(cls, *args, **kwargs):
+        print("创建对象")
+        return super().__new__(cls)
+
+    def __init__(self, endpoint):
+        print("初始化对象")
+        self.endpoint = endpoint
+```
+
+调用 `ModelClient("http://localhost:8000")` 时，流程是：
+
+1. 调用 `__new__` 创建实例；
+2. 如果 `__new__` 返回的是当前类实例，再调用 `__init__`；
+3. `__init__` 不应返回非 `None` 值。
+
+典型用途：
+
+- 控制不可变对象创建，例如继承 `tuple`、`str`；
+- 实现单例或对象缓存；
+- 在框架底层控制实例构造流程。
+
+示例：简单单例客户端。
+
+```python
+class SingletonClient:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, endpoint):
+        self.endpoint = endpoint
+```
+
+AI 工程中，单例常用于模型配置、连接池、工具注册表，但不建议把所有模型对象都做成单例。GPU 模型、Agent 记忆和请求上下文通常需要更明确的生命周期管理。
+
+
+<h2 id="47.Python中文件读取readreadlinereadlines和迭代文件对象有什么区别">47.Python中文件读取read、readline、readlines和迭代文件对象有什么区别？</h2>
+
+**难度评分：⭐⭐ (2/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+
+| 方法 | 行为 | 内存占用 | 适用场景 |
+| --- | --- | --- | --- |
+| `read()` | 一次读取全部内容 | 高 | 小文件、配置文件 |
+| `readline()` | 每次读取一行 | 低 | 手动控制读取流程 |
+| `readlines()` | 一次读取所有行，返回列表 | 高 | 小文本文件 |
+| `for line in f` | 惰性逐行迭代 | 低 | 日志、大语料、JSONL 数据 |
+
+示例：处理大规模训练语料或 Agent 日志时，应优先使用迭代方式。
+
+```python
+from pathlib import Path
+
+path = Path("agent_trace.jsonl")
+with path.open("r", encoding="utf-8") as f:
+    for line in f:
+        if "tool_call" in line:
+            print(line.strip())
+```
+
+如果文件很大，`read()` 和 `readlines()` 会把内容一次性加载到内存，可能导致 OOM。AIGC 数据处理、RAG 文档切分、训练日志分析中，流式读取更稳。
+
+
+<h2 id="48.Python中的类型注解dataclass和Pydantic在AI工程中有什么价值">48.Python中的类型注解、dataclass和Pydantic在AI工程中有什么价值？</h2>
+
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+类型注解不改变 Python 的动态语言本质，但能显著提升可维护性、IDE 体验、静态检查和接口可靠性。
+
+`dataclass` 适合定义轻量数据结构：
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class GenerationConfig:
+    prompt: str
+    steps: int = 30
+    guidance_scale: float = 7.5
+```
+
+Pydantic 更适合外部输入校验、API 请求响应、Agent 工具参数和结构化输出：
+
+```python
+from pydantic import BaseModel, Field
+
+class ToolArgs(BaseModel):
+    query: str = Field(min_length=1)
+    top_k: int = Field(default=5, ge=1, le=20)
+```
+
+在 AI Agent 和 AIGC 服务中，类型系统的价值非常直接：
+
+- 工具调用参数需要校验，避免 LLM 传入错误字段；
+- 结构化输出需要 schema，方便解析和重试；
+- 多模型服务需要稳定请求/响应协议；
+- RAG 检索、生成、审核、日志链路需要清晰数据结构；
+- 团队协作时能降低隐式约定带来的 bug。
+
+面试金句：Python 可以动态，但 AI 工程不能随意。类型注解、Pydantic 和数据模型是把 LLM 的不确定输出接入确定性系统的重要边界。
+
+
+<h2 id="49.Python-313314之后GILJITt-string延迟注解有哪些新变化">49.Python 3.13/3.14之后，GIL、JIT、t-string、延迟注解有哪些新变化？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+
+截至 2026 年，Python 3.14 已经是稳定大版本。近两年 Python 的几个变化对 AI 工程有实际影响：
+
+1. **Free-threaded Python**
+
+   Python 3.13 开始提供可关闭 GIL 的 free-threaded 构建，Python 3.14 进一步进入官方支持阶段。它的目标是让多线程真正并行执行 Python 字节码，但生态兼容、C 扩展线程安全、单线程性能权衡仍需关注。
+
+2. **实验性 JIT**
+
+   Python 3.13 引入实验性 JIT，3.14 继续改进。它不是立刻让所有 Python 代码接近 C++，但说明 CPython 正在持续优化解释器执行性能。
+
+3. **t-string**
+
+   Python 3.14 引入 template string literals。它的语法类似 f-string，但返回可处理的模板对象，而不是立即拼接字符串。它适合安全 SQL、Shell、HTML、日志模板和 DSL 场景。
+
+4. **延迟求值注解与多解释器**
+
+   Python 3.14 改进类型注解求值语义，减少循环导入和前向引用问题，对大型 AI 服务的类型建模更友好。
+
+   同时，3.14 在标准库中引入多解释器相关能力，例如 `concurrent.futures.InterpreterPoolExecutor`，为 CPU 密集型 Python 任务提供了除多进程之外的新并行方向。但它仍然要求依赖库、扩展模块和数据共享方式配合，不能简单理解成“自动加速所有代码”。
+
+面试中要避免两个误区：
+
+- free-threaded Python 不等于所有项目都应该马上去掉 GIL，生产环境仍要看依赖库兼容性；
+- JIT 不等于 Python 取代 CUDA/C++，AI 性能瓶颈通常仍在矩阵计算、GPU kernel、IO 和服务架构。
+
+
+<h2 id="50.AIGC和AI-Agent项目中Python基础能力应该重点掌握哪些">50.AIGC和AI Agent项目中，Python基础能力应该重点掌握哪些？</h2>
+
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+AIGC 和 AI Agent 项目并不只考“会不会写 Python 语法”，更看是否能把 Python 写成可靠工程。
+
+高频能力清单：
+
+- **数据结构**：list、dict、set、tuple、deque、heapq、Counter；
+- **函数与对象模型**：参数传递、作用域、闭包、装饰器、类方法、魔术方法；
+- **IO 与序列化**：JSON、JSONL、YAML、pickle、pathlib、流式读写；
+- **并发**：threading、multiprocessing、asyncio、线程池、进程池；
+- **类型与校验**：typing、dataclass、Pydantic；
+- **服务化**：FastAPI、请求校验、异常处理、日志、健康检查；
+- **AI 数据处理**：NumPy、Pandas、Pillow、OpenCV、PyTorch Tensor；
+- **工程安全**：不要滥用 `eval`，不要拼接 SQL，敏感信息放环境变量；
+- **可观测性**：logging、trace_id、token 用量、延迟统计、工具调用日志；
+- **包管理**：虚拟环境、pyproject.toml、依赖锁定、可复现部署。
+
+一个优秀回答可以落到真实场景：
+
+> 在 Agent 系统中，Python 负责把 LLM、工具、检索、数据库、文件系统、浏览器和沙箱执行串起来。基础语法只是起点，真正关键的是类型边界、并发模型、状态管理、异常恢复和安全控制。

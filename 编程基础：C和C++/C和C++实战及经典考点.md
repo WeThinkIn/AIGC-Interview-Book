@@ -14,6 +14,12 @@
 - [14.编程实现LRU](#14.编程实现LRU)
 - [15.编程实现memcopy](#15.编程实现memcopy)
 - [16.在AI行业中，C/C++编程中的动态库和静态库的含义是什么？两者之间什么差异？](#16.在AI行业中，C/C++编程中的动态库和静态库的含义是什么？两者之间什么差异？)
+- [17.如何用C++设计一个AI推理SDK的核心接口？](#17.如何用C++设计一个AI推理SDK的核心接口？)
+- [18.C++动态库插件化如何支持多后端推理？](#18.C++动态库插件化如何支持多后端推理？)
+- [19.C++与Python如何通过pybind11、ctypes、C API协作？](#19.C++与Python如何通过pybind11ctypesCAPI协作？)
+- [20.C++高性能网络服务如何支撑LLM推理和流式输出？](#20.C++高性能网络服务如何支撑LLM推理和流式输出？)
+- [21.CMake、ABI兼容和依赖管理在AI SDK交付中为什么重要？](#21.CMakeABI兼容和依赖管理在AI-SDK交付中为什么重要？)
+- [22.C++ AI服务如何用gdb、ASan、Valgrind、perf排查问题？](#22.C++-AI服务如何用gdbASanValgrindperf排查问题？)
 
 
 <h2 id="1.C++中什么是大端、小端？">1.C++中什么是大端、小端？</h2>
@@ -384,4 +390,206 @@ int main() {
 5.  **总结升华**：说明理解两者差异对于AI工程师设计可部署、可维护、高效的AI系统至关重要，尤其是在模型集成、SDK开发和大型系统架构层面。
 
 
+<h2 id="17.如何用C++设计一个AI推理SDK的核心接口？">17.如何用C++设计一个AI推理SDK的核心接口？</h2>
+
+一个合格的AI推理SDK，核心不是把模型跑起来，而是让调用方稳定、可观测、可扩展地使用模型能力。典型接口要覆盖模型加载、输入输出描述、推理执行、错误码、资源释放和版本信息。
+
+```cpp
+struct TensorView {
+    const void* data = nullptr;
+    std::vector<int64_t> shape;
+    std::string dtype;
+};
+
+struct InferResult {
+    int code = 0;
+    std::string message;
+    std::vector<float> scores;
+};
+
+class ModelSession {
+public:
+    virtual ~ModelSession() = default;
+    virtual bool load(const std::string& model_path) = 0;
+    virtual InferResult infer(const std::vector<TensorView>& inputs) = 0;
+    virtual std::string version() const = 0;
+};
+```
+
+工程设计要点：
+
+1. 接口层尽量稳定，不把底层框架类型直接暴露给业务方，否则更换后端会破坏调用方代码。
+2. 输入输出要表达shape、dtype、layout、device等信息，避免CPU/GPU内存误用。
+3. 错误处理要可诊断，不能只返回 `false`，至少要有错误码、错误消息和日志上下文。
+4. 资源管理要清晰，模型session、GPU上下文、线程池、缓存都应该有明确生命周期。
+5. 版本信息要可查询，便于定位线上模型、SDK、CUDA、推理后端不匹配问题。
+
+面试中可以补一句：AI推理SDK的本质是把模型能力产品化，接口稳定性、资源生命周期和可观测性往往比单次demo推理更重要。
+
+
+<h2 id="18.C++动态库插件化如何支持多后端推理？">18.C++动态库插件化如何支持多后端推理？</h2>
+
+多后端推理指同一套业务代码可以根据环境选择不同推理引擎，例如CPU后端、CUDA后端、TensorRT后端、ONNX Runtime后端、端侧后端。动态库插件化的做法是：主程序只依赖稳定接口，具体后端在运行时加载。
+
+常见结构如下：
+
+```text
+app
+├── libbackend_onnx.so
+├── libbackend_trt.so
+├── libbackend_cpu.so
+└── config.yaml
+```
+
+每个动态库导出统一的C ABI工厂函数：
+
+```cpp
+extern "C" ModelSession* create_session();
+extern "C" void destroy_session(ModelSession* session);
+```
+
+主程序通过 `dlopen` / `dlsym` 加载：
+
+```cpp
+void* handle = dlopen("./libbackend_trt.so", RTLD_NOW);
+auto create = reinterpret_cast<ModelSession*(*)()>(dlsym(handle, "create_session"));
+std::unique_ptr<ModelSession, void(*)(ModelSession*)> session(create(), destroy_session);
+```
+
+关键坑点：
+
+1. 不建议跨库直接new/delete不同运行时分配的对象，最好由同一个库创建并销毁。
+2. C++类跨库导出容易受编译器、标准库、编译选项影响，C ABI更稳定。
+3. 插件要声明版本、能力、依赖设备、支持模型格式，便于主程序选择。
+4. 插件加载失败要有降级策略，例如TensorRT不可用时回退到ONNX Runtime或CPU。
+
+
+<h2 id="19.C++与Python如何通过pybind11ctypesCAPI协作？">19.C++与Python如何通过pybind11、ctypes、C API协作？</h2>
+
+AI系统里常见组合是：Python负责训练、实验、编排，C++负责高性能推理、底层算子、端侧SDK。两者协作方式主要有三类：
+
+| 方式 | 特点 | 适合场景 |
+| --- | --- | --- |
+| `pybind11` | C++接口自然暴露给Python，类型转换方便 | 算子封装、推理SDK Python绑定、研究原型 |
+| `ctypes` / `cffi` | 调用C ABI动态库，依赖少 | 简单函数、稳定C接口、跨语言SDK |
+| Python C API | 最底层、控制力强、复杂度高 | 深度定制扩展、性能敏感框架内部 |
+
+`pybind11`示例：
+
+```cpp
+#include <pybind11/pybind11.h>
+
+int add(int a, int b) {
+    return a + b;
+}
+
+PYBIND11_MODULE(ai_sdk, m) {
+    m.def("add", &add);
+}
+```
+
+工程注意事项：
+
+1. 大数组传递要尽量零拷贝，例如使用NumPy buffer协议，而不是反复复制 `std::vector`。
+2. C++内部抛出的异常要转换成Python异常，避免进程直接崩溃。
+3. 多线程场景要理解GIL，耗时C++计算应释放GIL。
+4. 生产SDK最好保留C ABI层，Python绑定只是其中一个上层封装。
+
+
+<h2 id="20.C++高性能网络服务如何支撑LLM推理和流式输出？">20.C++高性能网络服务如何支撑LLM推理和流式输出？</h2>
+
+LLM服务与传统一次性HTTP服务不同，它通常具备长连接、流式token返回、GPU批处理、请求取消、超时和背压控制等特点。C++服务要重点处理三条链路：
+
+1. 网络接入：HTTP、SSE、WebSocket或gRPC。
+2. 调度执行：请求排队、动态batch、KV Cache管理、GPU worker执行。
+3. 流式返回：边生成边返回，处理客户端断开、限速和错误收尾。
+
+高性能实现要点：
+
+| 问题 | 工程做法 |
+| --- | --- |
+| 高并发连接 | 事件循环、epoll/kqueue/io_uring、异步框架 |
+| GPU吞吐 | 动态batch、请求合并、prefill/decode分阶段调度 |
+| 首token延迟 | 控制队列等待时间，优先处理短请求或交互请求 |
+| 流式输出 | SSE/WebSocket/gRPC streaming，逐token flush |
+| 背压 | 客户端读慢时限制缓冲，必要时取消请求 |
+| 可观测性 | 记录排队时间、prefill时间、decode速度、token吞吐、错误码 |
+
+面试回答时可以强调：LLM服务的瓶颈不只在模型算力，还在调度、缓存、网络流式返回和资源隔离。C++常用于对延迟、吞吐、内存和GPU利用率要求较高的底层服务。
+
+
+<h2 id="21.CMakeABI兼容和依赖管理在AI-SDK交付中为什么重要？">21.CMake、ABI兼容和依赖管理在AI SDK交付中为什么重要？</h2>
+
+AI SDK交付常常失败在“我本地能跑，客户环境跑不了”。原因通常不是算法错，而是编译器版本、C++标准库、CUDA/cuDNN/TensorRT版本、动态库搜索路径、ABI不兼容、CPU指令集不匹配。
+
+### CMake的价值
+
+CMake负责描述构建目标、头文件、库依赖、编译选项和安装规则。好的CMake工程能让SDK在不同平台上稳定构建：
+
+```cmake
+add_library(ai_sdk SHARED src/session.cpp)
+target_compile_features(ai_sdk PUBLIC cxx_std_17)
+target_include_directories(ai_sdk PUBLIC include)
+target_link_libraries(ai_sdk PRIVATE onnxruntime)
+```
+
+### ABI兼容的价值
+
+ABI是二进制接口。源代码兼容不代表二进制兼容。C++类布局、虚表、异常、标准库容器、编译器版本都可能影响ABI。对外发布SDK时，稳定策略通常是：
+
+1. 对外暴露C ABI或极简C++接口。
+2. 不在ABI边界暴露 `std::string`、`std::vector` 等标准库复杂类型。
+3. 由同一模块分配并释放内存。
+4. 明确编译器、系统、CUDA、推理后端版本矩阵。
+
+### 依赖管理的价值
+
+AIGC时代模型服务依赖复杂，可能同时涉及CUDA、cuDNN、TensorRT、ONNX Runtime、OpenCV、FFmpeg、protobuf等。交付时应提供版本锁定、容器镜像、依赖检查脚本和最小可运行样例。面试金句：AI SDK不是把 `.so` 发出去就结束，能被稳定集成、升级、排障，才算真正完成工程交付。
+
+
+<h2 id="22.C++-AI服务如何用gdbASanValgrindperf排查问题？">22.C++ AI服务如何用gdb、ASan、Valgrind、perf排查问题？</h2>
+
+C++ AI服务常见问题包括段错误、内存泄漏、越界访问、悬垂指针、死锁、CPU热点、动态库加载失败和线上偶发崩溃。排查工具要按问题类型选择。
+
+| 工具 | 主要解决什么 | AI工程场景 |
+| --- | --- | --- |
+| `gdb` | 单步调试、查看栈、分析core dump | 推理服务崩溃、空指针、非法访问 |
+| ASan/UBSan | 运行期检测越界、use-after-free、未定义行为 | 自定义算子、图像预处理、C++扩展 |
+| Valgrind | 内存泄漏、非法读写检测 | CPU服务、SDK离线测试 |
+| `perf` | CPU性能热点、调用栈采样 | tokenization慢、后处理慢、锁竞争 |
+| `strace` | 系统调用追踪 | 文件找不到、权限错误、socket异常 |
+| `ldd/readelf/objdump` | 动态库依赖、符号、ELF分析 | `.so` 找不到、ABI不兼容、符号未定义 |
+
+典型排查流程：
+
+```bash
+# 开启core dump
+ulimit -c unlimited
+
+# 使用gdb分析崩溃栈
+gdb ./server core
+(gdb) bt
+(gdb) frame 3
+(gdb) info locals
+
+# 编译时打开地址和未定义行为检测
+g++ -fsanitize=address,undefined -g main.cpp -o server
+
+# 查看动态库依赖
+ldd ./server
+readelf -d ./server
+
+# 采样CPU热点
+perf record -g ./server
+perf report
+```
+
+面试中可以结合AI服务说明：
+
+1. 如果是加载模型时崩溃，先查模型路径、动态库依赖、CUDA/TensorRT版本和core dump。
+2. 如果是请求量上来后崩溃，重点查并发数据结构、对象生命周期、队列和锁。
+3. 如果是延迟高，先用指标判断瓶颈在CPU、GPU、IO还是网络，再用 `perf` 或 trace 工具定位。
+4. 如果是Python调用C++扩展崩溃，不能只看Python traceback，要分析C++ core dump和扩展模块符号。
+
+面试金句：C++线上排障的核心是证据链，先定位崩溃栈和资源指标，再判断是内存生命周期、并发同步、动态库依赖还是性能热点。
 

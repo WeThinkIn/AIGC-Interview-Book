@@ -27,6 +27,17 @@
 - [26.Gradio如何使用？](#26.Gradio如何使用？)
 - [27.Strreamlit如何使用？](#27.Streamlit如何使用？)
 - [28.pyproject.toml编译安装自定义库包？](#28.pyproject.toml编译安装自定义库包？)
+- [29.如何用Python构建AI Agent工具调用的最小闭环？](#29.如何用Python构建AI-Agent工具调用的最小闭环)
+- [30.如何用Pydantic规范Agent工具参数和结构化输出？](#30.如何用Pydantic规范Agent工具参数和结构化输出)
+- [31.如何用FastAPI实现支持流式输出的AIGC服务？](#31.如何用FastAPI实现支持流式输出的AIGC服务)
+- [32.如何在Python中实现LLM API的重试、超时和限流？](#32.如何在Python中实现LLM-API的重试超时和限流)
+- [33.如何用Python实现RAG文档读取、切分和JSONL处理？](#33.如何用Python实现RAG文档读取切分和JSONL处理)
+- [34.如何安全执行Agent生成的Python代码？](#34.如何安全执行Agent生成的Python代码)
+- [35.如何组织一个可维护的AIGC/Agent Python项目结构？](#35.如何组织一个可维护的AIGCAgent-Python项目结构)
+- [36.Python AI服务中WSGI、ASGI、Gunicorn、Uvicorn应该如何理解？](#36.Python-AI服务中WSGIASGIGunicornUvicorn应该如何理解)
+- [37.Python AI服务中REST、RPC、幂等、Cookie/Session和鉴权如何落地？](#37.Python-AI服务中RESTRPC幂等CookieSession和鉴权如何落地)
+- [38.MySQL、Redis、向量数据库在Agent状态管理中如何分工？](#38.MySQLRedis向量数据库在Agent状态管理中如何分工)
+- [39.Python AI服务如何理解select、poll、epoll、socket和IPC？](#39.Python-AI服务如何理解selectpollepollsocket和IPC)
 
 
 <h2 id='1.多进程multiprocessing基本使用代码段'>1.多进程multiprocessing基本使用代码段</h2>
@@ -472,7 +483,7 @@ async def predict(input: TextInput):
 
 
 
-<h2 id="6.python如何清理AI模型的显存占用?">6.python如何清理AI模型的显存占用?</h2>
+<h2 id="5.python如何清理AI模型的显存占用?">5.python如何清理AI模型的显存占用?</h2>
 
 在AIGC、传统深度学习、自动驾驶领域，在AI项目服务的运行过程中，当我们不再需要使用AI模型时，可以通过以下两个方式来释放该模型占用的显存：
 
@@ -3435,3 +3446,546 @@ my_script
 4. **文档和测试**：为包编写文档（如 `README.md`）和单元测试（如 `pytest`）。
 
 ---
+
+
+<h2 id="29.如何用Python构建AI-Agent工具调用的最小闭环">29.如何用Python构建AI Agent工具调用的最小闭环？</h2>
+
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+AI Agent 工具调用的最小闭环包括四步：
+
+```text
+用户任务 -> 选择工具 -> 执行工具 -> 汇总结果
+```
+
+下面用纯 Python 实现一个最小版本：
+
+```python
+from dataclasses import dataclass
+from typing import Callable, Any
+
+@dataclass
+class Tool:
+    name: str
+    description: str
+    func: Callable[..., Any]
+
+TOOLS: dict[str, Tool] = {}
+
+def register_tool(name: str, description: str):
+    def wrapper(func: Callable[..., Any]):
+        TOOLS[name] = Tool(name=name, description=description, func=func)
+        return func
+    return wrapper
+
+@register_tool("search_docs", "从本地知识库检索相关文档")
+def search_docs(query: str) -> list[str]:
+    return [f"与 {query} 相关的文档片段"]
+
+@register_tool("calculator", "执行安全的简单数学计算")
+def calculator(a: float, b: float, op: str) -> float:
+    if op == "+":
+        return a + b
+    if op == "*":
+        return a * b
+    raise ValueError(f"unsupported op: {op}")
+
+def run_agent(task: str):
+    if "计算" in task:
+        result = TOOLS["calculator"].func(2, 3, "*")
+    else:
+        result = TOOLS["search_docs"].func(task)
+    return {"task": task, "result": result}
+
+print(run_agent("计算2乘3"))
+```
+
+真实 Agent 会把“选择工具”交给 LLM 或 planner，但工程结构类似：工具注册表负责描述能力，执行器负责调用工具，日志系统负责记录过程，安全模块负责限制副作用。
+
+面试中要强调：Agent 的本质不是魔法，而是“LLM 负责决策，Python 负责把决策转成可靠、可审计、可恢复的程序执行”。
+
+
+<h2 id="30.如何用Pydantic规范Agent工具参数和结构化输出">30.如何用Pydantic规范Agent工具参数和结构化输出？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+LLM 输出天然不稳定，Agent 工具调用必须通过 schema 限制参数结构。Pydantic 是 Python AI 工程中非常常用的数据校验工具。
+
+```python
+from pydantic import BaseModel, Field, ValidationError
+
+class SearchArgs(BaseModel):
+    query: str = Field(min_length=1, description="检索问题")
+    top_k: int = Field(default=5, ge=1, le=20)
+
+class SearchResult(BaseModel):
+    title: str
+    content: str
+    score: float = Field(ge=0, le=1)
+
+def search_tool(args: SearchArgs) -> list[SearchResult]:
+    return [
+        SearchResult(title="RAG基础", content=f"query={args.query}", score=0.92)
+    ]
+
+try:
+    args = SearchArgs(query="Agent memory", top_k=3)
+    print(search_tool(args))
+except ValidationError as e:
+    print(e)
+```
+
+在 AIGC/Agent 系统中，Pydantic 常用于：
+
+- FastAPI 请求体和响应体；
+- LLM function calling / tool calling 参数；
+- 结构化输出解析；
+- 配置文件校验；
+- 数据库写入前校验；
+- RAG chunk 元数据约束；
+- 评测结果 schema 固定。
+
+实践建议：
+
+- 对外部输入一律校验；
+- 对 LLM 输出不要直接信任；
+- 字段要有范围约束，例如 `top_k`、`temperature`、`max_tokens`；
+- 对工具参数设计默认值，但高风险动作不要默认执行；
+- 结构化输出失败时可以触发重试或降级。
+
+
+<h2 id="31.如何用FastAPI实现支持流式输出的AIGC服务">31.如何用FastAPI实现支持流式输出的AIGC服务？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+AIGC 聊天、代码生成、Agent 执行过程通常需要流式输出，让用户尽快看到首 token 或中间步骤。FastAPI 可以用 `StreamingResponse` 实现。
+
+```python
+import asyncio
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class ChatRequest(BaseModel):
+    prompt: str
+
+async def fake_llm_stream(prompt: str):
+    for token in ["正在", "处理", "：", prompt]:
+        yield f"data: {token}\n\n"
+        await asyncio.sleep(0.1)
+
+@app.post("/chat/stream")
+async def chat_stream(req: ChatRequest):
+    return StreamingResponse(
+        fake_llm_stream(req.prompt),
+        media_type="text/event-stream",
+    )
+```
+
+生产环境还要补充：
+
+- 请求鉴权和限流；
+- trace_id 和日志；
+- 客户端断开检测；
+- 超时控制；
+- 错误事件格式；
+- token 用量统计；
+- 模型队列和并发控制；
+- 敏感内容审核。
+
+对 Agent 来说，流式输出不只输出文本，还可以输出事件：
+
+```text
+planner.started
+tool.search.started
+tool.search.finished
+llm.delta
+agent.finished
+```
+
+这样前端可以实时展示“正在检索”“正在调用工具”“正在总结”等过程。
+
+
+<h2 id="32.如何用Python实现LLM-API的重试超时和限流">32.如何在Python中实现LLM API的重试、超时和限流？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+LLM API 会遇到网络波动、限流、超时、服务端错误和上下文过长等问题，生产系统必须做容错。
+
+一个简化的异步重试示例：
+
+```python
+import asyncio
+import random
+
+class RateLimiter:
+    def __init__(self, max_concurrency: int):
+        self._sem = asyncio.Semaphore(max_concurrency)
+
+    async def __aenter__(self):
+        await self._sem.acquire()
+
+    async def __aexit__(self, exc_type, exc, tb):
+        self._sem.release()
+
+limiter = RateLimiter(max_concurrency=3)
+
+async def call_llm(prompt: str) -> str:
+    await asyncio.sleep(0.1)
+    if random.random() < 0.3:
+        raise TimeoutError("timeout")
+    return f"answer: {prompt}"
+
+async def call_with_retry(prompt: str, retries: int = 3):
+    async with limiter:
+        for i in range(retries):
+            try:
+                return await asyncio.wait_for(call_llm(prompt), timeout=2)
+            except TimeoutError:
+                if i == retries - 1:
+                    raise
+                await asyncio.sleep(0.2 * (2 ** i))
+
+print(asyncio.run(call_with_retry("什么是RAG？")))
+```
+
+生产建议：
+
+- 对 429/503 使用指数退避；
+- 对不可重试错误立即失败，例如鉴权错误；
+- 对每个外部 API 设置 timeout；
+- 对用户、租户、模型维度做限流；
+- 记录失败原因和重试次数；
+- 对幂等请求才自动重试；
+- 设置 fallback 模型或降级策略。
+
+面试中可以强调：LLM API 调用是分布式系统问题，不是简单 `requests.post()`。稳定性来自超时、重试、限流、熔断、降级和可观测性。
+
+
+<h2 id="33.如何用Python实现RAG文档读取切分和JSONL处理">33.如何用Python实现RAG文档读取、切分和JSONL处理？</h2>
+
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+RAG 数据处理通常需要读取文档、切分 chunk、写入 JSONL，后续再做 embedding 和索引。
+
+```python
+import json
+from pathlib import Path
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+def split_text(text: str, chunk_size: int = 300, overlap: int = 50):
+    chunks = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        chunks.append(text[start:end])
+        if end >= len(text):
+            break
+        start = end - overlap
+    return chunks
+
+def write_jsonl(records: list[dict], path: Path):
+    with path.open("w", encoding="utf-8") as f:
+        for item in records:
+            f.write(json.dumps(item, ensure_ascii=False) + "\n")
+
+doc_path = Path("README.md")
+text = read_text(doc_path)
+records = [
+    {"doc_id": doc_path.name, "chunk_id": i, "text": chunk}
+    for i, chunk in enumerate(split_text(text))
+]
+write_jsonl(records, Path("chunks.jsonl"))
+```
+
+上面的切分很简单，真实 RAG 应更关注：
+
+- 按标题、段落、表格、代码块切分；
+- 保留文件名、页码、章节、坐标等元数据；
+- chunk 不能过短，也不能超过 embedding 模型长度；
+- overlap 要控制冗余；
+- JSONL 适合大规模流式处理；
+- 对 PDF/OCR 结果要保留原始证据位置。
+
+在 Agent 场景中，文档 chunk 不只是检索材料，还会成为工具调用证据。结构越清楚，后续引用、审计和纠错越容易。
+
+
+<h2 id="34.如何安全执行Agent生成的Python代码">34.如何安全执行Agent生成的Python代码？</h2>
+
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+Agent 生成代码并执行是高风险能力，不能直接 `eval` 或 `exec` 用户/模型输出。
+
+风险包括：
+
+- 删除文件；
+- 读取密钥；
+- 访问网络；
+- 无限循环；
+- 消耗 CPU/内存/GPU；
+- 安装恶意包；
+- 横向访问内部服务。
+
+安全原则：
+
+```text
+默认不信任生成代码
+  -> 静态检查
+  -> 沙箱执行
+  -> 限制文件系统/网络/进程
+  -> 设置超时和资源上限
+  -> 记录输入输出和审计日志
+  -> 高风险动作人工确认
+```
+
+一个极简的 AST 检查示例：
+
+```python
+import ast
+
+BLOCKED_NAMES = {"open", "exec", "eval", "__import__"}
+
+def validate_code(code: str):
+    tree = ast.parse(code)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            if node.func.id in BLOCKED_NAMES:
+                raise ValueError(f"blocked function: {node.func.id}")
+    return tree
+```
+
+注意：AST 检查只能作为第一层防线，不能替代沙箱。生产中更合理的是使用容器、microVM、受限解释器、独立 worker、临时目录、网络隔离、CPU/内存限制和超时杀死机制。
+
+面试金句：能执行代码的 Agent 本质上拿到了系统操作能力，安全边界要按“运行不可信程序”设计，而不是按普通函数调用设计。
+
+
+<h2 id="35.如何组织一个可维护的AIGCAgent-Python项目结构">35.如何组织一个可维护的AIGC/Agent Python项目结构？</h2>
+
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+一个可维护的 AIGC/Agent Python 项目应把模型、工具、服务、配置、测试、脚本分清楚。
+
+推荐结构：
+
+```text
+ai_project/
+  pyproject.toml
+  README.md
+  .env.example
+  src/
+    ai_project/
+      __init__.py
+      config.py
+      api/
+        app.py
+        schemas.py
+      agents/
+        planner.py
+        executor.py
+        memory.py
+      tools/
+        registry.py
+        search.py
+        code_runner.py
+      models/
+        llm_client.py
+        embedding_client.py
+      rag/
+        loader.py
+        splitter.py
+        retriever.py
+      observability/
+        logging.py
+        tracing.py
+  tests/
+    test_tools.py
+    test_rag.py
+  scripts/
+    build_index.py
+    run_eval.py
+```
+
+关键原则：
+
+- 配置和密钥分离，密钥不要写进代码；
+- API schema 与内部领域对象分层；
+- 工具注册、权限、执行器分离；
+- 模型客户端统一封装，便于替换供应商；
+- RAG 数据处理可复现；
+- 关键逻辑写单元测试；
+- 日志、trace、评测脚本从第一天就设计；
+- 使用 `pyproject.toml` 管理依赖和打包。
+
+面试中可以这样总结：
+
+> AIGC 项目最容易烂在“demo 能跑但不可维护”。优秀的 Python 项目结构要让模型可替换、工具可扩展、配置可复现、日志可追踪、测试可运行、安全边界可审计。
+
+
+<h2 id="36.Python-AI服务中WSGIASGIGunicornUvicorn应该如何理解">36.Python AI服务中WSGI、ASGI、Gunicorn、Uvicorn应该如何理解？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+Python AI 服务上线时，不能只知道 Flask/FastAPI 怎么写，还要知道应用、网关和 worker 如何协作。
+
+| 概念 | 作用 | 典型搭配 | 适用场景 |
+| --- | --- | --- | --- |
+| WSGI | 同步 Web 应用接口规范 | Flask + Gunicorn | 普通 HTTP API、同步请求 |
+| ASGI | 异步 Web 应用接口规范 | FastAPI + Uvicorn | 流式输出、WebSocket、高并发 IO |
+| Gunicorn | 进程管理器/WSGI Server | Gunicorn + Flask，Gunicorn + UvicornWorker | 多进程部署、稳定托管 |
+| Uvicorn | ASGI Server | FastAPI + Uvicorn | 异步服务、SSE、WebSocket |
+
+一个常见 AIGC 服务部署形态：
+
+```text
+Nginx / API Gateway
+  -> Gunicorn master
+  -> 多个 Uvicorn worker
+  -> FastAPI app
+  -> 模型队列 / 推理 worker / 外部 LLM API
+```
+
+面试中可以这样回答：
+
+> Flask 时代常讲 WSGI，FastAPI/流式输出/WebSocket 时代常讲 ASGI。Gunicorn 更偏进程管理，Uvicorn 更偏 ASGI 协议服务。AIGC 服务通常需要多 worker、限流、队列和模型资源管理，不能把 Web worker 直接当无限并发的推理 worker。
+
+工程注意点：
+
+- GPU 模型不要在过多 Web worker 中重复加载，否则显存会爆；
+- CPU 密集型预处理可以放进进程池或任务队列；
+- LLM API 调用属于 IO 密集型，适合异步；
+- 流式输出通常使用 SSE 或 WebSocket；
+- 生产环境应配置超时、最大请求体、健康检查和优雅退出。
+
+
+<h2 id="37.Python-AI服务中RESTRPC幂等CookieSession和鉴权如何落地">37.Python AI服务中REST、RPC、幂等、Cookie/Session和鉴权如何落地？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+AI 服务本质也是网络服务，API 设计不清楚会直接影响稳定性、安全性和可维护性。
+
+**REST 与 RPC 的区别：**
+
+- REST 面向资源，例如 `POST /v1/images/generations`、`GET /v1/tasks/{task_id}`；
+- RPC 面向动作，例如 `GenerateImage()`、`RunAgentTask()`；
+- 对外开放 API 常用 REST 风格，内部高性能服务可用 RPC/gRPC。
+
+**幂等性：**
+
+幂等是指同一个请求执行一次和执行多次，最终效果一致。AI 服务里很重要，因为 LLM/API 调用常有超时重试。
+
+```text
+GET /tasks/{id}          幂等，查询任务状态
+POST /tasks              通常非幂等，创建新任务
+PUT /configs/{id}        通常幂等，覆盖配置
+POST /payments           高风险，必须使用 idempotency_key
+```
+
+生成式任务可以这样设计：
+
+```python
+from pydantic import BaseModel
+
+class GenerationRequest(BaseModel):
+    prompt: str
+    idempotency_key: str | None = None
+```
+
+如果客户端重试同一个 `idempotency_key`，服务端应返回同一个任务结果或任务 ID，而不是重复扣费、重复生成或重复写库。
+
+**Cookie/Session 与 Token：**
+
+- Web 后台和浏览器应用常用 Cookie/Session；
+- API、移动端、Agent SDK 常用 Bearer Token 或 API Key；
+- 多租户企业 Agent 还要记录 tenant_id、user_id、role、tool_scope。
+
+**安全重点：**
+
+- 不要把 API Key 写在前端；
+- 高风险工具调用要校验权限；
+- 防止 XSS/CSRF 影响 Web 控制台；
+- 对上传文档和 OCR 文本防 prompt injection；
+- 对删除、转账、外发等副作用动作加入二次确认。
+
+
+<h2 id="38.MySQLRedis向量数据库在Agent状态管理中如何分工">38.MySQL、Redis、向量数据库在Agent状态管理中如何分工？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+Agent 状态不能都塞进一个存储里。不同状态有不同一致性、查询和生命周期要求。
+
+| 存储 | 适合保存 | 不适合保存 |
+| --- | --- | --- |
+| MySQL/PostgreSQL | 用户、任务、权限、账单、审计、工具调用记录、长期结构化记忆 | 高维向量相似搜索 |
+| Redis | 会话缓存、限流计数、任务队列状态、短期中间结果、分布式锁 | 强审计、长期唯一事实 |
+| 向量数据库 | 文档 chunk、embedding、语义记忆、相似检索 | 事务型业务数据、权限主数据 |
+| 对象存储 | 图片、视频、PDF、模型产物、大文件 | 小型频繁更新状态 |
+
+一个常见 Agent 状态架构：
+
+```text
+MySQL: task_id、user_id、权限、状态机、审计日志
+Redis: session cache、rate limit、短期工具结果、队列进度
+Vector DB: RAG 文档、语义记忆、历史经验召回
+Object Storage: 上传文件、生成图片、日志归档
+```
+
+Python 代码层面要注意：
+
+- MySQL 写操作用事务，失败要 rollback；
+- Redis 缓存要设置 TTL，避免无限膨胀；
+- 向量库记录要带 metadata，便于权限过滤；
+- 同一个 `task_id` 应贯穿日志、数据库、对象存储和 trace；
+- 不能只靠向量库做权限控制和审计。
+
+面试金句：
+
+> 向量数据库解决“语义相似”，关系数据库解决“事实一致”，Redis 解决“短期高频状态”，对象存储解决“大文件持久化”。Agent 工程要组合使用，而不是迷信单一存储。
+
+
+<h2 id="39.Python-AI服务如何理解selectpollepollsocket和IPC">39.Python AI服务如何理解select、poll、epoll、socket和IPC？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐ (3/5)**
+
+这类问题属于系统层基础，但在 Python AI 服务中也有实际意义：它解释了为什么异步框架能处理大量连接，以及多进程服务如何通信。
+
+**select / poll / epoll：**
+
+- `select`、`poll`、`epoll` 都是 IO 多路复用机制；
+- 它们允许一个线程监听多个 socket 的可读/可写事件；
+- Linux 高并发服务常依赖 `epoll`；
+- Python 的 `asyncio`、Uvicorn、底层事件循环会利用这些机制。
+
+面试不需要在 Python 板块展开所有内核细节，但要能说清楚：
+
+> 异步 Web 服务不是给每个连接创建一个线程，而是通过事件循环监听大量 IO 事件。当某个 socket 可读或可写时，再调度对应协程继续执行。
+
+**socket：**
+
+socket 是网络通信端点。Python 可以直接用 `socket` 写 TCP 服务，但 AI 工程中通常会使用 FastAPI、httpx、websockets、grpc 等更高层封装。
+
+**IPC：**
+
+进程间通信常见方式包括：
+
+- Queue；
+- Pipe；
+- shared memory；
+- socket；
+- Redis/消息队列；
+- 文件或对象存储。
+
+在模型服务中，IPC 常用于 Web 进程和推理 worker 分离：
+
+```text
+FastAPI Web worker
+  -> Redis / Queue
+  -> GPU inference worker
+  -> result store
+  -> streaming response / polling
+```
+
+这样可以避免 Web worker 被长时间 GPU 推理阻塞，也方便做排队、限流、取消任务和多 GPU 调度。

@@ -43,6 +43,11 @@
 - [42. 介绍一下左值和右值引用](#42.介绍一下左值和右值引用)
 - [43. 介绍一下C++转型操作符？](#43.介绍一下C++转型操作符？)
 - [44.sizeof与strlen的区别？](#44.sizeof与strlen的区别？)
+- [45.C++17/20/23中哪些特性在AI工程中高频使用？](#45.C++172023中哪些特性在AI工程中高频使用？)
+- [46.STL容器在AI数据处理和推理服务中如何选择？](#46.STL容器在AI数据处理和推理服务中如何选择？)
+- [47.std::string_view、std::span、std::optional在高性能接口中有什么价值？](#47.stdstring_viewstdspanstdoptional在高性能接口中有什么价值？)
+- [48.const、constexpr、consteval、constinit有什么区别？](#48.constconstexprconstevalconstinit有什么区别？)
+- [49.为什么RAII是C++资源管理的核心思想？](#49.为什么RAII是C++资源管理的核心思想？)
 
 
 <h2 id="1.cc中面向对象的相关知识">1.C/C++中面向对象的相关知识</h2>
@@ -721,3 +726,124 @@ int main() {
 - `sizeof` 用于计算变量、类型或对象的大小，在编译时确定，适用于任何类型。
 - `strlen` 用于计算以 `null` 结尾的字符串长度，在运行时确定，只适用于以 `null` 结尾的字符数组或字符串常量。
 
+
+<h2 id="45.C++172023中哪些特性在AI工程中高频使用？">45.C++17/20/23中哪些特性在AI工程中高频使用？</h2>
+
+AI工程中的C++不只是“会写语法”，更重要的是写出低拷贝、可维护、可部署的系统代码。现代C++的高频特性可以按工程价值理解：
+
+| 特性 | 主要版本 | 核心价值 | AI/AIGC场景 |
+| --- | --- | --- | --- |
+| `auto`、范围for、lambda | C++11 | 减少样板代码，表达回调和算法逻辑 | 数据预处理、后处理、批处理任务 |
+| 移动语义、右值引用 | C++11 | 减少大对象拷贝 | Tensor、图像帧、音频块、embedding数组传递 |
+| 智能指针 | C++11 | 自动管理对象生命周期 | 模型实例、推理上下文、插件对象 |
+| `std::optional` | C++17 | 显式表达“可能没有值” | 可选配置、检索结果、工具调用结果 |
+| `std::variant` | C++17 | 类型安全的多类型结果 | Agent工具返回文本、图片、结构化JSON等不同结果 |
+| `std::string_view` | C++17 | 只读字符串视图，避免拷贝 | prompt片段、HTTP header、token文本切片 |
+| `std::filesystem` | C++17 | 跨平台文件路径处理 | 模型权重、LoRA、配置文件扫描 |
+| concepts、coroutine | C++20 | 约束模板、表达异步流程 | 高性能框架泛型接口、流式生成服务 |
+| `std::span` | C++20 | 连续内存视图，避免传裸指针+长度 | 图像buffer、token id数组、embedding向量 |
+
+面试中可以这样回答：现代C++的价值不是“语法新”，而是把资源生命周期、类型约束、内存视图、并发协作表达得更安全。AI推理服务中最怕隐式拷贝、生命周期悬空、ABI不稳定和错误的资源释放，现代C++特性正是围绕这些痛点提升工程质量。
+
+
+<h2 id="46.STL容器在AI数据处理和推理服务中如何选择？">46.STL容器在AI数据处理和推理服务中如何选择？</h2>
+
+STL容器选择要看三个问题：是否需要连续内存、是否需要稳定迭代器、是否需要有序、是否需要高频插入删除。
+
+| 容器 | 底层特点 | 适合场景 | 不适合场景 |
+| --- | --- | --- | --- |
+| `vector` | 连续内存，随机访问快 | token序列、embedding数组、batch输入、结果列表 | 中间频繁插入删除 |
+| `array` | 固定大小连续内存 | 固定维度向量、小型矩阵、协议字段 | 运行期大小变化 |
+| `deque` | 分段连续，头尾操作快 | 流式token缓冲、生产消费队列 | 追求极致连续内存访问 |
+| `list` | 双向链表，节点分散 | 需要稳定节点地址的少数场景 | AI高性能数据路径，缓存局部性差 |
+| `map` / `set` | 红黑树，有序 | 需要范围查询、有序遍历、稳定复杂度 | 只需要快速查找 |
+| `unordered_map` / `unordered_set` | 哈希表，平均O(1) | 词表、缓存、id映射、session索引 | 需要顺序、哈希质量差或对最坏情况敏感 |
+| `priority_queue` | 堆 | TopK检索、beam search候选维护 | 需要任意删除或遍历全量有序结果 |
+
+AI工程里最常见的默认选择是：连续数值数据优先 `vector`，键值映射优先 `unordered_map`，需要排序和范围查询时选 `map`，TopK候选维护选 `priority_queue`。如果数据在GPU、共享内存或外部框架中，STL容器不一定直接持有内存，更常见的是用视图类型或轻量封装表示外部buffer。
+
+
+<h2 id="47.stdstring_viewstdspanstdoptional在高性能接口中有什么价值？">47.std::string_view、std::span、std::optional在高性能接口中有什么价值？</h2>
+
+这三个类型的共同价值是：让接口更清楚地表达“只看不拥有”“连续内存视图”“可能为空”，减少裸指针和隐式拷贝。
+
+### `std::string_view`
+
+`std::string_view` 是对字符串的只读视图，不拥有内存。它适合接收 prompt 片段、HTTP header、模型名称、配置key等只读文本：
+
+```cpp
+void log_prompt(std::string_view request_id, std::string_view prompt) {
+    // 不拷贝字符串，只读取内容
+}
+```
+
+注意：`string_view` 不能比原始字符串活得更久，否则会悬空。
+
+### `std::span`
+
+`std::span<T>` 是连续内存视图，适合表达“指针 + 长度”：
+
+```cpp
+void normalize_embedding(std::span<float> emb) {
+    float norm = 0.0f;
+    for (float v : emb) norm += v * v;
+    norm = std::sqrt(norm);
+    for (float& v : emb) v /= (norm + 1e-6f);
+}
+```
+
+在AI推理中，图像buffer、音频采样、token id、embedding都可以用 `span` 传递，既避免拷贝，又比裸指针安全。
+
+### `std::optional`
+
+`std::optional<T>` 显式表达“可能没有结果”：
+
+```cpp
+std::optional<int> find_token_id(std::string_view token);
+```
+
+它比用 `-1`、空字符串、`nullptr` 更清楚，适合配置读取、检索命中、工具调用返回等场景。
+
+
+<h2 id="48.constconstexprconstevalconstinit有什么区别？">48.const、constexpr、consteval、constinit有什么区别？</h2>
+
+这几个关键字都和“不可变”或“编译期”有关，但语义不同：
+
+| 关键字 | 核心含义 | 是否一定编译期 | 典型场景 |
+| --- | --- | --- | --- |
+| `const` | 对象不可被当前路径修改 | 不一定 | 函数只读参数、常量对象 |
+| `constexpr` | 可用于常量表达式 | 在常量上下文中必须编译期求值 | 固定维度、编译期配置、查表 |
+| `consteval` | 函数必须编译期求值 | 是 | 编译期生成常量、元编程工具 |
+| `constinit` | 保证静态变量静态初始化 | 初始化在编译/加载阶段完成 | 避免静态初始化顺序问题 |
+
+在AI工程中，`const` 常用于防止接口误修改输入；`constexpr` 常用于固定维度、对齐大小、编译期分支；`constinit` 适合全局配置或注册表，避免运行期初始化顺序导致的隐蔽bug。面试时要强调：`const` 不等于编译期常量，`constexpr` 更强调可进入常量表达式，`consteval` 是强制编译期执行。
+
+
+<h2 id="49.为什么RAII是C++资源管理的核心思想？">49.为什么RAII是C++资源管理的核心思想？</h2>
+
+RAII（Resource Acquisition Is Initialization）的思想是：资源在对象构造时获取，在对象析构时释放。它管理的不只是内存，还包括文件句柄、socket、锁、CUDA stream、模型上下文、临时目录等。
+
+AI服务中资源往往昂贵且有状态，例如模型引擎、GPU显存、推理会话、线程池。如果靠手动 `init()` / `release()`，异常路径、提前返回、并发取消都容易泄漏。RAII把释放逻辑绑定到对象生命周期上，可以显著降低泄漏风险。
+
+```cpp
+class ScopedTimer {
+public:
+    explicit ScopedTimer(std::string name) : name_(std::move(name)), start_(std::chrono::steady_clock::now()) {}
+    ~ScopedTimer() {
+        auto end = std::chrono::steady_clock::now();
+        std::cout << name_ << " cost "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(end - start_).count()
+                  << " ms\n";
+    }
+private:
+    std::string name_;
+    std::chrono::steady_clock::time_point start_;
+};
+
+void run_inference() {
+    ScopedTimer timer("inference");
+    // 加载输入、执行推理、后处理；函数退出时自动打印耗时
+}
+```
+
+面试金句：C++工程质量很大程度取决于资源生命周期设计。能用RAII表达的资源，就不要散落在多个分支里手动释放。

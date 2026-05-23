@@ -20,7 +20,7 @@
 
 ## 📖目录
 
-- :star: [算法岗面试求职宝典（包含简历模版、求职攻略、面试经验、面试技巧等通用AIGC面试技巧）](算法岗面试求职宝典)
+- :star: [AIGC/LLM/AI Agent算法岗面试求职经验指南（包含简历模版、求职攻略、面试经验、面试技巧等通用AI岗位面试技巧）](算法岗面试求职经验指南)
 - :art: [AIGC图像创作&AI绘画基础](AIGC图像创作&AI绘画基础)
 - :clapper: [AI视频基础](AI视频基础)
 - :sparkler: [大模型基础](大模型基础)
@@ -34,11 +34,11 @@
 - :stars: [经典模型](经典模型)
 - :snake: [编程基础：Python](编程基础：Python)
 - :bar_chart: [编程基础：C和C++](编程基础：C和C++)
-- :boom: [大厂高频算法题](大厂高频算法题)
+- :boom: [大厂高频面试题（实时更新）](大厂高频面试题（实时更新）)
 - :battery: [数据结构&算法基础](数据结构&算法基础)
 - :computer: [计算机基础](计算机基础)
 - :chart_with_upwards_trend: [开放性问题](开放性问题)
-- [2025年AI算法岗求职群&学习交流社区](https://mp.weixin.qq.com/s/ssEJjHBoJDB4y5CfQIWYvw)
+- [2026年AI算法岗求职群&学习交流社区](https://mp.weixin.qq.com/s/ssEJjHBoJDB4y5CfQIWYvw)
 
 ## 💎加入2026年AIGC算法岗/开发岗求职招聘社群（实习、秋招、春招、校招、社招）
 

@@ -3,12 +3,12 @@
     <style>
       .bg { fill: #f8fafc; }
       .panel { fill: #ffffff; stroke: #d7dee8; stroke-width: 2; }
-      .title { font: 700 30px Arial, "Microsoft YaHei", sans-serif; fill: #172033; }
-      .subtitle { font: 400 18px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
-      .h { font: 700 21px Arial, "Microsoft YaHei", sans-serif; fill: #253045; }
-      .label { font: 600 17px Arial, "Microsoft YaHei", sans-serif; fill: #253045; }
-      .small { font: 400 15px Arial, "Microsoft YaHei", sans-serif; fill: #526071; }
-      .tiny { font: 400 13px Arial, "Microsoft YaHei", sans-serif; fill: #64748b; }
+      .title { font: 700 30px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #172033; }
+      .subtitle { font: 400 18px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #526071; }
+      .h { font: 700 21px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #253045; }
+      .label { font: 600 17px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #253045; }
+      .small { font: 400 15px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #526071; }
+      .tiny { font: 400 13px "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; fill: #64748b; }
       .layer1 { fill: #eff6ff; stroke: #93c5fd; stroke-width: 2; }
       .layer2 { fill: #ecfdf5; stroke: #86efac; stroke-width: 2; }
       .layer3 { fill: #fff7ed; stroke: #fdba74; stroke-width: 2; }

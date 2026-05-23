@@ -47,6 +47,12 @@
 - [46.多态实现方式是什么？](#46.多态实现方式是什么？)
 - [47.介绍一下c++内存泄漏？](#47.介绍一下c++内存泄漏？)
 - [48.vector的底层原理和扩容机制是什么？](#48.vector的底层原理和扩容机制是什么？)
+- [49.C++对象模型、虚表、虚指针在插件化推理框架中有什么意义？](#49.C++对象模型虚表虚指针在插件化推理框架中有什么意义？)
+- [50.C++智能指针在模型服务中如何选择？](#50.C++智能指针在模型服务中如何选择？)
+- [51.C++移动语义和完美转发如何减少AI数据拷贝？](#51.C++移动语义和完美转发如何减少AI数据拷贝？)
+- [52.C++线程、mutex、condition_variable、atomic如何用于推理队列？](#52.C++线程mutexcondition_variableatomic如何用于推理队列？)
+- [53.C++设计模式在AI推理SDK和Agent工具运行时中如何落地？](#53.C++设计模式在AI推理SDK和Agent工具运行时中如何落地？)
+- [54.C++模板、CRTP和类型擦除如何用于高性能框架？](#54.C++模板CRTP和类型擦除如何用于高性能框架？)
 
 
 
@@ -472,5 +478,155 @@ vector是基于动态数组实现的，支持随机访问。
 当向vector添加元素超过其当前容量时，它会创建一个更大的动态数组，并将所有现有元素复制到新数组中，释放旧数组的内存。
 新容量通常是当前容量的两倍，不过这可能因实现而异。
 
+
+<h2 id="49.C++对象模型虚表虚指针在插件化推理框架中有什么意义？">49.C++对象模型、虚表、虚指针在插件化推理框架中有什么意义？</h2>
+
+C++运行期多态通常依赖虚函数表。含有虚函数的对象中会有一个虚指针，指向该类对应的虚表；通过基类指针调用虚函数时，程序会在运行期查表跳转到真实对象的实现。
+
+在AI推理框架中，这种机制很常见。例如同一个推理接口可以有 TensorRT、ONNX Runtime、CPU、Metal、OpenVINO 等不同后端：
+
+```cpp
+class InferenceBackend {
+public:
+    virtual ~InferenceBackend() = default;
+    virtual void load(std::string_view model_path) = 0;
+    virtual std::vector<float> infer(std::span<const float> input) = 0;
+};
+```
+
+业务层只依赖 `InferenceBackend`，运行时根据硬件、模型格式、延迟要求选择具体实现。这就是插件化推理框架的基本形态。
+
+需要注意三点：
+
+1. 基类析构函数必须是 `virtual`，否则通过基类指针删除派生类对象会导致资源释放不完整。
+2. 跨动态库导出C++类时要谨慎，编译器、标准库、ABI版本不同可能导致不兼容。稳定做法是导出C ABI工厂函数，再在内部使用C++对象。
+3. 虚函数有一次间接调用开销，但对大多数模型推理而言远小于算子计算开销；只有在极高频小函数路径上才需要考虑CRTP等静态多态方案。
+
+
+<h2 id="50.C++智能指针在模型服务中如何选择？">50.C++智能指针在模型服务中如何选择？</h2>
+
+智能指针的选择，本质是所有权设计。
+
+| 智能指针 | 所有权语义 | AI工程场景 | 常见坑 |
+| --- | --- | --- | --- |
+| `std::unique_ptr` | 独占所有权 | 模型后端实例、插件对象、不可复制资源 | 需要转移所有权时使用 `std::move` |
+| `std::shared_ptr` | 共享所有权 | 多请求共享只读模型、共享配置、缓存对象 | 过度使用会让生命周期变得不清楚 |
+| `std::weak_ptr` | 弱引用，不延长生命周期 | 打破循环引用、观察缓存对象是否还存在 | 使用前必须 `lock()` 检查 |
+
+在模型服务中，最推荐的默认策略是：能独占就用 `unique_ptr`，确实需要跨线程或跨请求共享才用 `shared_ptr`。例如模型权重加载后通常是只读对象，可以用 `shared_ptr<const Model>` 在多个请求间共享；请求上下文、临时buffer、推理任务对象通常用 `unique_ptr` 或栈对象表达更清晰。
+
+面试中要避免一句“智能指针能防止内存泄漏”就结束。更好的回答是：智能指针解决的是所有权表达和异常安全，不是所有内存问题。循环引用、错误的自定义deleter、跨动态库分配释放不一致、GPU资源没有正确封装，仍然会产生泄漏或崩溃。
+
+
+<h2 id="51.C++移动语义和完美转发如何减少AI数据拷贝？">51.C++移动语义和完美转发如何减少AI数据拷贝？</h2>
+
+AI工程中的对象经常很大，例如图像帧、音频片段、token序列、embedding矩阵、推理结果。如果每次函数返回或入队都深拷贝，会显著增加延迟和内存带宽压力。移动语义通过“转移资源所有权”避免不必要拷贝。
+
+```cpp
+struct Request {
+    std::vector<int> token_ids;
+    std::string session_id;
+};
+
+void enqueue(Request req);
+
+Request build_request(std::vector<int> ids, std::string sid) {
+    return Request{std::move(ids), std::move(sid)};
+}
+```
+
+`std::move` 本身不移动数据，它只是把对象转换为右值，允许移动构造或移动赋值发生。移动后对象仍然有效，但值处于可析构、可重新赋值的状态，不应继续依赖其原内容。
+
+完美转发通常用于泛型封装，例如任务队列、日志包装、对象工厂：
+
+```cpp
+template <class F, class... Args>
+auto submit(F&& f, Args&&... args) {
+    return std::async(std::forward<F>(f), std::forward<Args>(args)...);
+}
+```
+
+它的价值是保留参数的左值/右值属性，避免模板封装层把可移动对象变成必须拷贝的对象。
+
+
+<h2 id="52.C++线程mutexcondition_variableatomic如何用于推理队列？">52.C++线程、mutex、condition_variable、atomic如何用于推理队列？</h2>
+
+典型推理服务会有请求接收线程、预处理线程、推理worker、后处理线程、流式返回线程。它们之间通常通过队列协作。
+
+```cpp
+std::mutex mu;
+std::condition_variable cv;
+std::queue<Request> queue;
+std::atomic<bool> stopped{false};
+
+void producer(Request req) {
+    {
+        std::lock_guard<std::mutex> lock(mu);
+        queue.push(std::move(req));
+    }
+    cv.notify_one();
+}
+
+void worker() {
+    while (!stopped.load()) {
+        std::unique_lock<std::mutex> lock(mu);
+        cv.wait(lock, [] { return !queue.empty() || stopped.load(); });
+        if (stopped.load() && queue.empty()) break;
+        Request req = std::move(queue.front());
+        queue.pop();
+        lock.unlock();
+        // 执行预处理、推理、后处理
+    }
+}
+```
+
+核心考点：
+
+1. `mutex` 保护共享队列，避免并发读写破坏内部结构。
+2. `condition_variable` 避免worker空转忙等。
+3. `atomic` 适合停止标志、计数器、轻量状态，不适合保护复杂对象不变量。
+4. 锁的粒度要小，取出任务后应尽快解锁，不能把耗时推理放在锁内。
+5. GPU推理还要考虑batch合并、超时策略、显存复用和流式输出背压。
+
+
+<h2 id="53.C++设计模式在AI推理SDK和Agent工具运行时中如何落地？">53.C++设计模式在AI推理SDK和Agent工具运行时中如何落地？</h2>
+
+设计模式不是背类图，而是解决工程变化点。AI系统中常见变化点包括模型后端变化、工具类型变化、部署环境变化、前后处理流程变化。
+
+| 模式 | 解决的问题 | AI/AIGC场景 |
+| --- | --- | --- |
+| 工厂模式 | 根据配置创建不同对象 | 根据模型格式创建ONNX/TensorRT/llama.cpp后端 |
+| 策略模式 | 替换算法策略 | TopK采样、beam search、rerank策略、调度策略 |
+| 适配器模式 | 统一不兼容接口 | 将第三方OCR、ASR、TTS、检索服务包装成统一工具 |
+| 观察者模式 | 状态变化通知 | token流式输出、任务进度、监控事件 |
+| 单例模式 | 全局唯一资源 | 配置中心、日志器、指标注册表；需要注意并发和测试隔离 |
+| 责任链模式 | 分阶段处理请求 | 鉴权、限流、prompt过滤、工具调用审计、结果后处理 |
+
+例如Agent工具运行时中，不同工具可能来自HTTP API、本地C++函数、Python脚本、沙箱命令。用适配器统一成 `Tool::call()` 接口，再用策略模式选择重试、超时、降级策略，就能让上层Agent编排不依赖具体工具实现。
+
+
+<h2 id="54.C++模板CRTP和类型擦除如何用于高性能框架？">54.C++模板、CRTP和类型擦除如何用于高性能框架？</h2>
+
+C++高性能框架通常在“性能”和“灵活性”之间做取舍：
+
+1. 模板：编译期生成代码，减少运行期分支，适合数值类型、维度、算子策略在编译期确定的场景。
+2. CRTP：用静态多态替代虚函数，适合极高频、细粒度调用路径。
+3. 类型擦除：隐藏具体类型，让接口保持统一，例如 `std::function`、自定义Any/Function包装。
+
+简单理解：
+
+```cpp
+template <class Derived>
+class Op {
+public:
+    void run() {
+        static_cast<Derived*>(this)->run_impl();
+    }
+};
+```
+
+CRTP可以在编译期绑定 `run_impl()`，避免虚函数间接调用。它适合算子库、张量表达式、编译期策略优化等场景。
+
+但模板和CRTP会增加编译时间、二进制体积和错误信息复杂度；类型擦除更灵活，但可能带来间接调用和堆分配。工程中常见组合是：底层算子和热路径使用模板/CRTP，上层插件接口使用虚函数或类型擦除，兼顾性能与可扩展性。
 
 
