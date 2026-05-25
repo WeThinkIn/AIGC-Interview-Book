@@ -1,0 +1,9 @@
+# Python scripts
+*.py
+
+# Patch files
+*.patch
+
+# Skills directory
+SKILLS/
+api-key
