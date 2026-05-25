@@ -1,16 +1,16 @@
 window.frontierHighlightsData = {
   header: {
-    eyebrow: "Frontier Highlights",
-    title: "把知识星球的高价值前沿精选，做成主页里的动态高光区",
+    eyebrow: "Frontier Intelligence",
+    title: "跟随 AI 行业变化，持续更新前沿判断",
     description:
-      "这里将知识星球的季度精选浓缩为四个主题方向，既承接主页的知识地图，也补充更贴近行业变化的动态观察、能力判断与实战入口。",
+      "AI 岗位的考察口径变化很快：新的框架、协议、模型能力和产品形态，都会逐渐变成新的面试追问。前沿精选关注这些变化背后的能力要求、产品趋势和职业判断。",
   },
   hero: {
-    label: "2026 Q1 精选内容",
+    label: "前沿精选 / 2026 Q1",
     titleHtml:
-      '用 <span class="frontier-word frontier-word-agent">AI Agent</span>、<span class="frontier-word frontier-word-multimodal">多模态</span>、<span class="frontier-word frontier-word-research">具身智能</span> 与 <span class="frontier-word frontier-word-model">前沿模型应用</span>，帮助求职者看清“行业现在在追什么”',
+      '用 <span class="frontier-word frontier-word-agent">AI Agent</span>、<span class="frontier-word frontier-word-multimodal">多模态</span>、<span class="frontier-word frontier-word-research">具身智能</span> 与 <span class="frontier-word frontier-word-model">前沿模型应用</span>，校准下一阶段 AI 人才真正需要补齐的能力',
     description:
-      "精选报告聚合全球最新 AI 技术动态、行业研报与落地方法，强调的不只是资讯密度，更是对能力边界、产品趋势、工程实践与职业判断的梳理。",
+      "这里不追求把所有新闻都搬进来，而是筛选那些会改变岗位能力、产品形态、工程实践和求职表达的信号。真正有价值的不是知道发生了什么，而是知道它会怎样改变你该学什么、该做什么、该怎么讲。",
     pills: [
       { label: "10 条精选", tone: "signal" },
       { label: "4 大主题", tone: "neutral" },
@@ -21,19 +21,19 @@ window.frontierHighlightsData = {
     ],
     metrics: [
       {
-        label: "核心目标",
+        label: "系统角色",
         valueHtml:
-          '帮助用户快速捕捉 <span class="frontier-word frontier-word-agent">技术拐点</span> 与 <span class="frontier-word frontier-word-model">岗位新要求</span>',
+          '作为知识库之外的 <span class="frontier-word frontier-word-agent">动态更新层</span>，持续校准学习重点',
       },
       {
-        label: "内容特征",
+        label: "筛选标准",
         valueHtml:
-          '资讯筛选 + 原理拆解 + <span class="frontier-word frontier-word-multimodal">落地链接</span> + 职业判断',
+          '技术变化 + 产品落地 + <span class="frontier-word frontier-word-multimodal">工程影响</span> + 岗位表达',
       },
       {
-        label: "适合人群",
+        label: "服务对象",
         valueHtml:
-          '求职者、算法工程师、<span class="frontier-word frontier-word-multimodal">应用开发者</span> 与持续跟踪 AI 方向的人',
+          'AI 求职者、算法工程师、<span class="frontier-word frontier-word-multimodal">应用开发者</span>、面试官与持续转型者',
       },
     ],
   },
@@ -43,9 +43,9 @@ window.frontierHighlightsData = {
       badge: "Theme 01",
       shortLabel: "Agent",
       count: "3 篇",
-      title: "AI Agent 进化论",
+      title: "AI Agent 从概念走向工作流",
       descriptionHtml:
-        '聚焦 <span class="frontier-word frontier-word-agent">AI Agent</span> 技术突破与产业趋势，帮助理解模型能力边界、交互范式变化与未来岗位机会。',
+        'Agent 的本质不是多一个聊天入口，而是把模型放进工具、记忆、任务编排和组织流程中。这个方向决定了未来 AI 工程岗会越来越重视 <span class="frontier-word frontier-word-agent">执行链路</span> 与系统边界。',
       spotlight: [
         { label: "能力边界", tone: "agent" },
         { label: "交互范式", tone: "agent" },
@@ -54,26 +54,26 @@ window.frontierHighlightsData = {
       items: [
         {
           index: "01",
-          overline: "趋势判断",
+          overline: "职业判断",
           title: "LLM/Agent 模型跨过临界点的迷茫期",
           summaryHtml:
-            '剖析行业割裂现象，厘清 <span class="frontier-word frontier-word-agent">Agent 提效</span> 与岗位变化之间的关系，帮助建立更稳的技术与职业判断。',
+            '讨论 Agent 提效与岗位变化之间的真实张力，帮助学习者避免被短期情绪牵引，转而判断哪些能力会被模型吸收，哪些能力会变得更贵。',
           url: "https://wx.zsxq.com/group/48884124114188/topic/45811251281585418",
         },
         {
           index: "02",
-          overline: "架构拆解",
+          overline: "系统拆解",
           title: "一文彻底搞懂 OpenClaw：原理·架构·Skills·部署",
           summaryHtml:
-            '从原理到本地化部署完整拆解 OpenClaw，理解自然语言如何逐步成为新的 <span class="frontier-word frontier-word-agent">系统交互层</span>。',
+            '从原理、架构、Skills 到本地化部署拆解 OpenClaw，理解自然语言如何逐步成为新的 <span class="frontier-word frontier-word-agent">系统交互层</span>。',
           url: "https://wx.zsxq.com/group/48884124114188/topic/22811421281248111",
         },
         {
           index: "03",
-          overline: "行业研报",
+          overline: "产业视角",
           title: "《OpenClaw：吹响 AI Agent 时代号角》行业研报",
           summaryHtml:
-            '围绕 Agent 市场规模、算力需求、Token 消耗与国产大模型投资机会给出 <span class="frontier-word frontier-word-signal">宏观视角</span>。',
+            '围绕 Agent 市场规模、算力需求、Token 消耗与国产大模型机会建立 <span class="frontier-word frontier-word-signal">宏观视角</span>，把技术演进放进产业周期里理解。',
           url: "https://wx.zsxq.com/group/48884124114188/topic/45811251585128458",
         },
       ],
@@ -83,9 +83,9 @@ window.frontierHighlightsData = {
       badge: "Theme 02",
       shortLabel: "Multimodal",
       count: "4 篇",
-      title: "多模态实战指南",
+      title: "多模态从模型能力走向产品界面",
       descriptionHtml:
-        '聚焦实时交互、多模态 Prompt、设计工作流与企业级落地方法，适合希望把模型能力接入 <span class="frontier-word frontier-word-multimodal">真实产品</span> 的人。',
+        '多模态的价值不只是模型能看图、听音频、读视频，而是改变人机交互、内容生产和企业流程。这个方向会持续重塑 <span class="frontier-word frontier-word-multimodal">AI 应用开发</span> 与产品设计岗位。',
       spotlight: [
         { label: "实时交互", tone: "multimodal" },
         { label: "Prompt 设计", tone: "multimodal" },
@@ -97,7 +97,7 @@ window.frontierHighlightsData = {
           overline: "实时智能体",
           title: "Google Gemini 3.1 Flash Live · 实时多模态智能体",
           summaryHtml:
-            '覆盖低延迟语音到语音能力、官方 API 使用方式、定价与代码示例，适合快速搭建 <span class="frontier-word frontier-word-multimodal">实时交互链路</span>。',
+            '关注低延迟语音到语音、API 接入、成本结构和代码入口，重点不是追新模型，而是理解 <span class="frontier-word frontier-word-multimodal">实时交互链路</span> 如何进入产品。',
           url: "https://wx.zsxq.com/group/48884124114188/topic/55188458514411214",
           resources: [
             {
@@ -119,7 +119,7 @@ window.frontierHighlightsData = {
           overline: "工作流设计",
           title: "2026 多模态提示工程 & 设计工作流（Google Stitch）",
           summaryHtml:
-            '面向产品与设计场景，展示如何借助自然语言快速生成界面原型与交互流程，加速 <span class="frontier-word frontier-word-multimodal">UX / MX 设计</span>。',
+            '面向产品与设计场景，观察自然语言如何生成界面原型与交互流程，提示未来 <span class="frontier-word frontier-word-multimodal">UX / MX 设计</span> 会更靠近模型协作。',
           url: "https://wx.zsxq.com/group/48884124114188/topic/55188458514452554",
         },
         {
@@ -127,7 +127,7 @@ window.frontierHighlightsData = {
           overline: "Prompt 框架",
           title: "Multimodal AI in 2026 · 如何改变 Prompt 写法",
           summaryHtml:
-            '基于 GPT-4o、Gemini 等模型总结多模态 Prompt 框架，覆盖图像、音频、视频写法差异。',
+            '基于主流多模态模型总结 Prompt 框架，重点区分图像、音频、视频输入下的任务描述、上下文组织与评估方式。',
           url: "https://wx.zsxq.com/group/48884124114188/topic/55188458514415514",
         },
         {
@@ -135,7 +135,7 @@ window.frontierHighlightsData = {
           overline: "企业落地",
           title: "企业级多模态落地指南 · Digital Transformation",
           summaryHtml:
-            '聚焦从实验室 Demo 走向生产环境的关键步骤，覆盖数据治理、模型选型与实施路径。',
+            '聚焦从 Demo 走向生产环境的关键步骤，覆盖数据治理、模型选型、流程改造与组织落地。',
           url: "https://wx.zsxq.com/group/48884124114188/topic/14588148451158812",
         },
       ],
@@ -145,9 +145,9 @@ window.frontierHighlightsData = {
       badge: "Theme 03",
       shortLabel: "Research",
       count: "2 篇",
-      title: "硬核学术资源",
+      title: "研究深度与长期技术主线",
       descriptionHtml:
-        '面向希望补齐理论深度的人群，精选课程与综述类内容，把前沿研究与工程趋势连接起来。',
+        '真正能穿越周期的能力来自底层理解。扩散模型、世界模型、VLA 与具身智能不是孤立论文，而是未来 AI 系统理解物理世界、生成内容和执行任务的长期主线。',
       spotlight: [
         { label: "扩散模型", tone: "research" },
         { label: "VLA 世界模型", tone: "research" },
@@ -159,7 +159,7 @@ window.frontierHighlightsData = {
           overline: "体系课程",
           title: "德克萨斯大学奥斯汀分校 · 扩散模型全体系教学",
           summaryHtml:
-            '覆盖扩散模型原理、DDIM、蒸馏采样加速，以及 LoRA、ControlNet 等可控生成技术。',
+            '系统覆盖扩散模型原理、DDIM、蒸馏采样加速，以及 LoRA、ControlNet 等可控生成技术，适合作为生成模型方向的底层补课入口。',
           url: "https://wx.zsxq.com/group/48884124114188/topic/55188458518221184",
         },
         {
@@ -167,7 +167,7 @@ window.frontierHighlightsData = {
           overline: "前沿综述",
           title: "面向通用具身智能的 VLA 代理世界模型综述",
           summaryHtml:
-            '梳理世界模型与视觉-语言-动作代理结合的主要范式，聚焦 <span class="frontier-word frontier-word-research">物理常识</span> 与安全性问题。',
+            '梳理世界模型与视觉-语言-动作代理结合的主要范式，帮助理解具身智能为什么需要 <span class="frontier-word frontier-word-research">物理常识</span>、环境建模与安全约束。',
           url: "https://wx.zsxq.com/group/48884124114188/topic/55188458515854414",
           resources: [
             {
@@ -183,9 +183,9 @@ window.frontierHighlightsData = {
       badge: "Theme 04",
       shortLabel: "Model Ops",
       count: "1 篇",
-      title: "前沿模型应用",
+      title: "模型能力到业务价值的转换",
       descriptionHtml:
-        '关注新一代大模型在真实业务中的使用方式，让用户看到模型能力如何转换为 <span class="frontier-word frontier-word-model">企业效率</span> 与个人生产力。',
+        '模型发布本身不是终点，真正值得跟踪的是它如何进入财务、咨询、电商、运营、研发和内容生产等流程，并转换为 <span class="frontier-word frontier-word-model">效率、收入与组织能力</span>。',
       spotlight: [
         { label: "业务提效", tone: "model" },
         { label: "应用场景", tone: "model" },
@@ -197,7 +197,7 @@ window.frontierHighlightsData = {
           overline: "实战应用",
           title: "《GPT-5.4 实战应用完全指南（2026 年）》",
           summaryHtml:
-            '梳理 GPT-5.4 在企业财务、专家咨询、电商运营等场景中的实战路径，强调效率提升与价值创造。',
+            '梳理前沿大模型在企业财务、专家咨询、电商运营等场景中的实战路径，训练用户用业务语言理解模型价值。',
           url: "https://wx.zsxq.com/group/48884124114188/topic/14588148454885452",
           resources: [
             {
@@ -210,37 +210,37 @@ window.frontierHighlightsData = {
     },
   ],
   benefits: {
-    label: "加入后可获得",
+    label: "动态层价值",
     titleHtml:
-      '除了知识地图之外，再补上一层真正跟着 <span class="frontier-word frontier-word-signal">行业变化</span> 走的内容密度',
+      '除了静态知识地图，还需要一套真正跟着 <span class="frontier-word frontier-word-signal">行业变化</span> 更新的判断系统',
     items: [
       {
-        title: "一手资讯",
-        text: "跟进最新模型发布、技术架构更新与行业报告，避免只学旧知识。",
+        title: "过滤噪声",
+        text: "不是追逐每一条新闻，而是筛选真正会影响岗位能力、产品形态和工程实践的信号。",
       },
       {
-        title: "深度解析",
-        text: "不仅转发信息，更拆技术原理、落地难点与背后的商业逻辑。",
+        title: "拆解机制",
+        text: "把新模型、新框架和新产品拆成原理、架构、成本、限制和落地条件，而不是停留在标题党。",
       },
       {
-        title: "实战工具",
-        text: "获取可复用的 Prompt 框架、部署资料、方法论文档与案例入口。",
+        title: "反哺学习",
+        text: "把前沿变化映射回知识库和学习路线，帮助用户知道下一阶段该补哪类能力。",
       },
       {
-        title: "社群价值",
-        text: "与同行交流，形成对技术变革、求职窗口与方向选择的共同判断。",
+        title: "形成判断",
+        text: "与同行、作者和产业一线从业者交流，把技术变化转化成求职窗口、职业选择和产品判断。",
       },
     ],
   },
   cta: {
     label: "Knowledge Planet",
     titleHtml:
-      '进入知识星球，持续追踪 <span class="frontier-word frontier-word-model">AI 前沿变化</span>',
+      '进入知识星球，接入持续更新的 <span class="frontier-word frontier-word-model">AI 职业情报层</span>',
     description:
-      "如果主页负责建立系统框架，那么知识星球更像是动态更新层，帮你把技术趋势、应用案例与职业判断补齐。",
-    bullets: ["动态追踪", "方法沉淀", "案例链接", "长期更新"],
-    buttonText: "立即加入",
+      "如果 GitHub 负责沉淀长期知识，知识星球就负责跟踪变化、复盘案例、连接机会和形成判断。一个是基础设施，一个是动态雷达。",
+    bullets: ["趋势追踪", "案例复盘", "求职陪跑", "长期判断"],
+    buttonText: "进入动态雷达",
     buttonUrl: "https://t.zsxq.com/YtJ09",
-    footnote: "提示：加入知识星球可获得更多内容。",
+    footnote: "适合希望持续跟踪 AI 技术变化、岗位机会与产品落地的人。",
   },
 };
