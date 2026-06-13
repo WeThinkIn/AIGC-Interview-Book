@@ -33,46 +33,45 @@
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Rocky认为，AIGC图像生成框架不能只理解为“一个能跑Stable Diffusion的界面”。到了FLUX、SD3/SD3.5、Qwen-Image、HiDream、Z-Image、Seedream、GPT-Image、Nano Banana这一代模型之后，框架的本质已经变成三件事：**模型接入层、创作工作流层、工程部署层**。
+Rocky认为，AIGC图像生成框架不能只理解为“一个能跑扩散模型或者AIGC图像创作大模型的界面”。到了FLUX、SD3/SD3.5、Qwen-Image、HiDream、Z-Image、Seedream、GPT-Image、Nano Banana这一代AIGC图像创作大模型之后，框架的本质已经变成三件事：**模型接入层、创作工作流层、工程部署层**。
 
-从使用场景看，主流框架可以分成五类：
+我们从使用场景看，主流框架可以分成五类：
 
 <div align="center">
 
 | 框架类型 | 代表框架 | 核心价值 | 适合人群/场景 |
 |---|---|---|---|
-| 可视化工作流框架 | ComfyUI | 用节点图把模型、采样器、VAE、ControlNet、LoRA、后处理串成可复现流程 | 复杂工作流、批量生产、影视/电商/设计管线 |
+| 可视化工作流框架 | ComfyUI | 用节点图把模型、采样器、VAE、ControlNet、LoRA、后处理串成可复现流程 | 复杂工作流、批量生产、影视/电商/设计Pipeline |
 | 参数面板式创作框架 | Stable Diffusion WebUI | 以Gradio界面承载txt2img、img2img、inpaint、插件和参数调试 | 新手、社区插件、快速出图、提示词实验 |
-| WebUI增强分支 | Stable Diffusion WebUI Forge、SD.Next | 在WebUI范式上强化资源管理、模型兼容、实验特性或多模型支持 | 低显存、本地部署、多模型尝试、WebUI老用户迁移 |
+| WebUI增强分支 | Stable Diffusion WebUI Forge、SD.Next | 在WebUI范式上强化资源管理、模型兼容、实验特性或多模型支持 | 低显存、本地部署、多模型尝试 |
 | 低门槛产品化工具 | Fooocus等 | 尽量隐藏采样器、CFG、ControlNet等复杂参数，让用户像使用产品一样生成图像 | 非技术用户、快速创意验证、轻量设计 |
-| Python研发与部署库 | Diffusers | 用代码统一管理Pipeline、Scheduler、模型组件、LoRA、量化、offload、训练脚本和推理优化 | 算法研发、模型评测、产品后端、API服务 |
+| Python研发/部署库 | Diffusers | 用代码统一管理Pipeline、Scheduler、模型组件、训练脚本和推理优化等模块 | 算法研发、模型评测、产品后端、API服务 |
 
 </div>
 
-其中最有跨周期价值的不是某一个框架本身，而是框架背后的**产品构建方式**：
+Rocky认为，最有跨周期价值的不是某一个框架本身，而是每个框架背后的精华**产品构建思想**：
 
 1. **WebUI类框架把复杂模型包装成可操作产品。**  
    它的价值是降低使用门槛，让更多创作者能通过提示词、采样器、CFG、Seed、Hires.fix、ControlNet等参数完成图像创作。
 
+![Stable Diffusion WebUI](./imgs/WebUI图标.png)
+
 2. **ComfyUI类框架把图像生成变成可编排工作流。**  
-   它的价值不是“界面更酷”，而是把复杂生成流程拆成节点，让每个节点的输入、输出、参数和依赖关系可见、可复现、可自动化。
+   它的价值不是“界面更酷”，而是在AIGC创作画布上把复杂生成流程拆成节点，让每个节点的输入、输出、参数和依赖关系可见、可复现、可自动化。
+
+![ComfyUI](./imgs/comfyui图标.png)
 
 3. **Diffusers类框架把图像生成变成可研发、可部署、可测试的软件工程。**  
    它的价值是把模型组件、Scheduler、Adapter、量化、offload、torch.compile、训练脚本和推理服务整合到Python生态里。
 
-4. **插件生态把基础模型扩展成完整创作系统。**  
-   ControlNet补控制，IP-Adapter补图像参考，LoRA补风格和角色，ADetailer补局部修复，Tiled VAE/Tiled Diffusion补大图和低显存，Ultimate SD Upscale补超分和细节重绘。
+![diffusers](./imgs/diffusers图标.png)
 
+4. **插件生态把基础模型扩展成完整AIGC图像创作系统。**  
+   ControlNet注入特征控制，IP-Adapter进行图像参考，LoRA控制风格和角色，ADetailer补局部修复，Tiled VAE/Tiled Diffusion进行超高清图像生成和低显存推理，Ultimate SD Upscale进行超分和细节重绘等。
 
 可以说，**AIGC图像生成框架的竞争，已经从“谁能启动模型”变成“谁能承载更复杂的模型生态、更稳定的工作流复现、更低成本的推理部署和更高效率的创作生产线”。**
 
 <div align="center">
-
-![diffusers](./imgs/diffusers图标.png)
-
-![Stable Diffusion WebUI](./imgs/WebUI图标.png)
-
-![ComfyUI](./imgs/comfyui图标.png)
 
 </div>
 
@@ -87,15 +86,15 @@ Rocky认为，AIGC图像生成框架不能只理解为“一个能跑Stable Diff
 用户输入Prompt/参考图/控制图
 → Prompt解析与增强
 → 文本编码器/VLM条件编码
-→ 模型权重与Adapter加载
+→ 扩散模型权重与Adapter模型权重加载
 → 初始噪声/Latent初始化
 → Scheduler/KSampler多步去噪
 → ControlNet/IP-Adapter/LoRA等条件注入
 → VAE Decode解码成像素图
-→ 后处理、超分、局部修复、保存与元数据记录
+→ 后处理、GAN超分、局部修复、保存与元数据记录
 ```
 
-可以把这条链路拆成七个关键环节：
+我们可以把这条链路拆成七个关键环节：
 
 <div align="center">
 
@@ -111,11 +110,11 @@ Rocky认为，AIGC图像生成框架不能只理解为“一个能跑Stable Diff
 
 </div>
 
-Rocky认为，理解框架执行链路有两个价值：
+Rocky认为，理解框架执行链路有两个跨周期的行业思想价值：
 
-第一，**能够定位问题**。如果生成结果不听prompt，可能是caption/文本编码/CFG/条件注入的问题；如果大图爆显存，可能是VAE解码、attention序列长度或tile策略的问题；如果局部人脸坏了，可能不是主模型不行，而是分辨率和局部像素不足，需要ADetailer或局部inpaint。
+第一，**能够定位问题**。如果生成结果不遵循prompt，可能是caption/文本编码/CFG/条件注入的问题；如果大图爆显存，可能是VAE解码、attention序列长度或tile策略的问题；如果局部人脸坏了，可能不是主模型不行，而是分辨率和局部像素不足，需要ADetailer或局部inpaint。
 
-第二，**能够做工程选型**。WebUI适合快速调参，ComfyUI适合把上述链路可视化成稳定工作流，Diffusers适合把链路写成可测试、可部署、可扩展的Python服务。
+第二，**能够做工程选型**。ComfyUI适合把上述链路可视化成稳定工作流，WebUI适合快速调参，Diffusers适合把链路写成可测试、可部署、可扩展的Python服务。
 
 
 <h1 id="q-004">2.ComfyUI为什么会成为AIGC图像创作领域的重要工作流框架？</h1>
