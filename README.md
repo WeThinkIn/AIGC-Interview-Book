@@ -23,7 +23,7 @@
 - :star: [AIGC/LLM/AI Agent算法岗面试求职经验指南（包含简历模版、求职攻略、面试经验、面试技巧等通用AI岗位面试技巧）](算法岗面试求职经验指南)
 - :art: [AIGC图像创作&AI绘画基础](AIGC图像创作&AI绘画基础)
 - :clapper: [AI视频基础](AI视频基础)
-- :sparkler: [大模型基础](大模型基础)
+- :sparkler: [大模型基础](大模型基础（精华版）)
 - :trident: [AI多模态基础](AI多模态基础)
 - :video_game: [AI Agent基础](AI%20Agent基础)
 - :shipit: [AI数字人基础](AI数字人基础)
