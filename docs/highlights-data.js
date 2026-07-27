@@ -233,14 +233,14 @@ window.frontierHighlightsData = {
     ],
   },
   cta: {
-    label: "Knowledge Planet",
+    label: "Advanced Services",
     titleHtml:
-      '进入知识星球，接入持续更新的 <span class="frontier-word frontier-word-model">AI 职业情报层</span>',
+      '进入 AIGCmagic 进阶服务，获得更有针对性的 <span class="frontier-word frontier-word-model">求职与成长支持</span>',
     description:
-      "如果 GitHub 负责沉淀长期知识，知识星球就负责跟踪变化、复盘案例、连接机会和形成判断。一个是基础设施，一个是动态雷达。",
-    bullets: ["趋势追踪", "案例复盘", "求职陪跑", "长期判断"],
-    buttonText: "进入动态雷达",
+      "在开源知识之外，进一步提供答疑、内推、简历、模拟面试、项目辅导与职业规划等服务。",
+    bullets: ["答疑与内推", "简历优化", "模拟面试", "项目与职业规划"],
+    buttonText: "查看进阶服务",
     buttonUrl: "https://t.zsxq.com/YtJ09",
-    footnote: "适合希望持续跟踪 AI 技术变化、岗位机会与产品落地的人。",
+    footnote: "具体服务形式与开放节奏以社区实际发布为准。",
   },
 };

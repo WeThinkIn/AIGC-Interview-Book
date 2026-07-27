@@ -1396,12 +1396,45 @@ img {
   margin-bottom: 14px;
 }
 
+.image-card-header p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.service-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.service-chip-grid span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid rgba(14, 165, 233, 0.18);
+  border-radius: 6px;
+  background: rgba(238, 247, 255, 0.86);
+  color: #075985;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+}
+
 .image-card img {
   width: 100%;
   aspect-ratio: 4 / 5;
   object-fit: cover;
   border-radius: var(--radius-md);
   border: 1px solid rgba(28, 118, 166, 0.14);
+}
+
+.image-card .community-qr-poster {
+  aspect-ratio: auto;
+  object-fit: contain;
+  background: #f5f8fc;
 }
 
 .social-grid {
@@ -1651,6 +1684,10 @@ img {
 
   .frontier-item {
     grid-template-columns: auto 1fr;
+  }
+
+  .service-chip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .frontier-link {
