@@ -269,7 +269,7 @@ img {
 }
 
 .section {
-  padding: 42px 0;
+  padding: 36px 0;
 }
 
 section[id] {
@@ -730,20 +730,22 @@ section[id] {
 
 .section-heading {
   max-width: none;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 
 .section-heading h2 {
   font-size: clamp(1.78rem, 3vw, 2.72rem);
   letter-spacing: 0;
   max-width: 1120px;
+  text-wrap: balance;
 }
 
 .section-heading p {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   font-size: 1rem;
   max-width: 118ch;
   line-height: 1.75;
+  text-wrap: pretty;
 }
 
 .overview-grid,
@@ -792,17 +794,16 @@ section[id] {
 
 .route-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .route-card {
   position: relative;
-  grid-column: span 2;
-  min-height: 224px;
+  min-height: 184px;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 18px;
   overflow: hidden;
   border: 1px solid rgba(28, 118, 166, 0.16);
   border-radius: var(--radius-lg);
@@ -815,10 +816,6 @@ section[id] {
     border-color 220ms ease,
     box-shadow 220ms ease,
     background 220ms ease;
-}
-
-.route-card:nth-child(n + 4) {
-  grid-column: span 3;
 }
 
 .route-card::after {
@@ -867,21 +864,23 @@ section[id] {
 }
 
 .route-card h3 {
-  margin: 18px 0 9px;
-  font-size: 1.18rem;
-  line-height: 1.45;
+  margin: 14px 0 8px;
+  font-size: 1.08rem;
+  line-height: 1.38;
+  text-wrap: balance;
 }
 
 .route-card p {
   margin: 0;
   color: var(--muted);
-  font-size: 0.94rem;
-  line-height: 1.72;
+  font-size: 0.9rem;
+  line-height: 1.62;
+  text-wrap: pretty;
 }
 
 .route-footer {
   margin-top: auto;
-  padding-top: 18px;
+  padding-top: 14px;
   color: #475467;
   font-size: 0.8rem;
 }
@@ -1653,9 +1652,8 @@ section[id] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .route-card,
-  .route-card:nth-child(n + 4) {
-    grid-column: auto;
+  .route-card {
+    min-height: 176px;
   }
 }
 
@@ -1710,7 +1708,7 @@ section[id] {
   }
 
   .section {
-    padding: 34px 0;
+    padding: 30px 0;
   }
 
   section[id] {
