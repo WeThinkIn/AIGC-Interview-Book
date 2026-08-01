@@ -146,15 +146,21 @@ Zero Convolution是ControlNet面试中最容易被问到的点，因为它看起
 
 答案是不会。假设一个简化的一维线性层为：
 
-$$y = wx + b$$
+```math
+y = wx + b
+```
 
 它的梯度是：
 
-$$\frac{\partial y}{\partial w}=x,\quad \frac{\partial y}{\partial x}=w,\quad \frac{\partial y}{\partial b}=1$$
+```math
+\frac{\partial y}{\partial w}=x,\quad \frac{\partial y}{\partial x}=w,\quad \frac{\partial y}{\partial b}=1
+```
 
 当初始化时 $w=0$ 且 $x \neq 0$，可以得到：
 
-$$\frac{\partial y}{\partial w}\neq 0,\quad \frac{\partial y}{\partial x}=0,\quad \frac{\partial y}{\partial b}\neq 0$$
+```math
+\frac{\partial y}{\partial w}\neq 0,\quad \frac{\partial y}{\partial x}=0,\quad \frac{\partial y}{\partial b}\neq 0
+```
 
 也就是说，第一步反向传播时，权重 $w$ 仍然可以被更新；一旦 $w$ 从0变成非零，后续输入方向的梯度也会逐渐打开。Zero Convolution不是让网络永远静默，而是让它在训练初期“安全静默”，等到学到有效控制残差后再逐步介入。
 
@@ -324,13 +330,13 @@ ControlNet训练的核心不是“多训练一个模型”，而是把原始扩�
 
 在训练初始阶段，由于Zero Convolution输出为0，ControlNet不会影响原始扩散模型：
 
-$$
+```math
 \begin{cases}
 \mathcal{Z}\left(\boldsymbol{c};\Theta_{z1}\right)=0 \\
 \mathcal{F}\left(x+\mathcal{Z}\left(\boldsymbol{c};\Theta_{z1}\right);\Theta_c\right)=\mathcal{F}(x;\Theta_c) \\
 \mathcal{Z}\left(\mathcal{F}(x;\Theta_c);\Theta_{z2}\right)=0
 \end{cases}
-$$
+```
 
 随后，控制分支会在扩散训练目标的约束下逐渐学习有效残差。常见训练步骤是：
 
@@ -376,11 +382,11 @@ $$
 
 ControlNet通常沿用扩散模型的训练目标，本质上还是预测噪声、预测速度或预测干净样本，取决于底座模型的参数化方式。以常见噪声预测为例，训练目标可以写成：
 
-$$
+```math
 \mathcal{L}=\mathbb{E}_{z_0,t,\epsilon,c,y}\left[\left\|\epsilon-\epsilon_\theta(z_t,t,y,c)\right\|_2^2\right]
-$$
+```
 
-其中 $z_t$ 是加噪后的latent，$t$ 是时间步，$y$ 是文本条件，$c$ 是控制条件图，$\epsilon_\theta$ 是带ControlNet的噪声预测网络。
+其中 $`z_t`$ 是加噪后的latent，$`t`$ 是时间步，$`y`$ 是文本条件，$`c`$ 是控制条件图，$`\epsilon_\theta`$ 是带ControlNet的噪声预测网络。
 
 面试时可以进一步展开：ControlNet并不一定需要一个全新的损失函数，因为它的目标不是重新定义生成任务，而是让原有去噪任务在额外条件下完成得更稳定。真正影响训练效果的，往往是数据质量、条件图质量、Caption质量、控制强度分布、学习率、batch size、训练分辨率和是否过拟合到某一种条件风格。
 
@@ -781,9 +787,9 @@ Rocky认为，这类系统里的人脸处理算法非常关键：有的解决“
 
 ArcFace、CurricularFace这类模型的核心作用，是把一张人脸编码成一个定长向量，也就是身份Embedding。两个Embedding之间通常可以用余弦相似度衡量身份接近程度：
 
-$$
-\text{sim}(x_1, x_2)=\frac{f(x_1)\cdot f(x_2)}{\|f(x_1)\|\|f(x_2)\|}
-$$
+```math
+\mathrm{sim}(x_1,x_2)=\frac{f(x_1)\cdot f(x_2)}{\|f(x_1)\|\,\|f(x_2)\|}
+```
 
 相似度越高，说明两张脸越像同一个人。这一步不是让机器“真的理解一个人”，而是把人眼判断的“像不像”变成可排序、可筛选、可自动化的指标。
 
@@ -866,11 +872,12 @@ Rocky认为，这条路线真正的跨周期价值不是“某个技术能不能
 
 PuLID（Pure and Lightning ID Customization）的核心目标不是单纯提高人脸相似度，而是同时解决两类问题：一方面，身份条件要足够强，生成结果确实像参考人物；另一方面，身份注入不能污染底座模型原本的Prompt遵循能力、构图、光照和风格编辑能力。
 
-它的第一层是身份表示。PuLID使用人脸识别特征捕捉身份判别信息，同时引入EVA-CLIP等视觉特征补充纹理、表情和局部外观，再通过MLP把全局和局部信息映射成多组身份Token。之后，身份Token不与文本Token粗暴拼接，而是通过类似IP-Adapter的并行图像Cross-Attention，使用独立的 $K_{id}$ 和 $V_{id}$ 参与注意力计算：
+它的第一层是身份表示。PuLID使用人脸识别特征捕捉身份判别信息，同时引入EVA-CLIP等视觉特征补充纹理、表情和局部外观，再通过MLP把全局和局部信息映射成多组身份Token。之后，身份Token不与文本Token粗暴拼接，而是通过类似IP-Adapter的并行图像Cross-Attention，使用独立的 $`K_{\mathrm{id}}`$ 和 $`V_{\mathrm{id}}`$ 参与注意力计算：
 
-$$
-\operatorname{Attention}_{id}(Q,K_{id},V_{id})=\operatorname{Softmax}\left(\frac{QK_{id}^{T}}{\sqrt{d}}\right)V_{id}
-$$
+```math
+\mathrm{Attention}_{\mathrm{id}}(Q,K_{\mathrm{id}},V_{\mathrm{id}})
+=\mathrm{Softmax}\left(\frac{QK_{\mathrm{id}}^{\top}}{\sqrt{d}}\right)V_{\mathrm{id}}
+```
 
 **这样做的关键是保留文本通道和身份通道的可调节性**。文本仍然负责场景、动作与风格，身份通道主要负责人物特征，二者不是把所有信息压进同一个Token序列。
 
@@ -898,13 +905,13 @@ PuLID为此增加了一个Lightning T2I训练分支，如下图所示。它从�
 
 它同时使用更接近推理结果的身份损失。Lightning分支经过少量完整去噪步骤得到接近真实图像的结果，再用人脸识别特征计算生成脸与参考脸的余弦距离。整体目标可以概括为：
 
-$$
-\mathcal{L}=\mathcal{L}_{diff}+\mathcal{L}_{align}+\lambda_{id}\mathcal{L}_{id}
-$$
+```math
+\mathcal{L}=\mathcal{L}_{\mathrm{diff}}+\mathcal{L}_{\mathrm{align}}+\lambda_{\mathrm{id}}\mathcal{L}_{\mathrm{id}}
+```
 
-其中，$\mathcal{L}_{diff}$保证扩散生成基本能力，$\mathcal{L}_{align}$减少身份注入对文本语义和布局的污染，$\mathcal{L}_{id}$提升最终身份相似度。这里的Lightning分支主要服务于训练中的对齐和身份监督，不应该简单理解为“PuLID必须依赖某个采样器才能工作”。
+其中， $`\mathcal{L}_{\mathrm{diff}}`$ 保证扩散生成基本能力， $`\mathcal{L}_{\mathrm{align}}`$ 减少身份注入对文本语义和布局的污染， $`\mathcal{L}_{\mathrm{id}}`$ 提升最终身份相似度。这里的Lightning分支主要服务于训练中的对齐和身份监督，不应该简单理解为“PuLID必须依赖某个采样器才能工作”。
 
-标题中的“正交投影”还需要区分两个层次：**对比对齐是PuLID论文的核心训练思想，正交投影更多是公开实现中用于推理时调节身份与文本冲突的控制策略。** 在注意力输出空间中，如果身份方向为 $v_{id}$、文本方向为 $v_{txt}$，可以用下面的形式去除身份方向中与文本方向重叠的分量：
+标题中的“正交投影”还需要区分两个层次：**对比对齐是PuLID论文的核心训练思想，正交投影更多是公开实现中用于推理时调节身份与文本冲突的控制策略。** 在注意力输出空间中，如果身份方向为 $`v_{\mathrm{id}}`$、文本方向为 $`v_{\mathrm{txt}}`$，可以用下面的形式去除身份方向中与文本方向重叠的分量：
 
 <div align="center">
 
@@ -918,15 +925,17 @@ $$
 
 投影的基本形式是：
 
-$$
-\operatorname{proj}_{v_{txt}}(v_{id})=\frac{v_{id}\cdot v_{txt}}{\|v_{txt}\|^{2}}v_{txt}
-$$
+```math
+\mathrm{proj}_{v_{\mathrm{txt}}}(v_{\mathrm{id}})
+=\frac{v_{\mathrm{id}}\cdot v_{\mathrm{txt}}}{\|v_{\mathrm{txt}}\|^{2}}v_{\mathrm{txt}}
+```
 
 去掉重叠分量后，身份增量可以写成：
 
-$$
-v_{id}^{\perp}=v_{id}-\operatorname{proj}_{v_{txt}}(v_{id})
-$$
+```math
+v_{\mathrm{id}}^{\perp}
+=v_{\mathrm{id}}-\mathrm{proj}_{v_{\mathrm{txt}}}(v_{\mathrm{id}})
+```
 
 实际实现通常不会在所有位置完全删除身份信号，而是用权重保留一部分重叠分量。因此，身份强度、正交处理方式以及开始注入身份的去噪阶段共同构成一个连续的权衡：身份注入越早、权重越高，通常越像参考人物，但Prompt编辑空间越小；注入越晚、去耦越强，风格和构图越自由，但身份保持可能下降。
 
@@ -1025,15 +1034,13 @@ EcomID本身主要补齐的是**领域数据与身份控制分支**，并不自�
 
 其核心计算可写为：
 
-$$
-Z_{\text{new}}
-=
-\operatorname{Attention}(Q,K_t,V_t)
-+
-\lambda\operatorname{Attention}(Q,K_i,V_i)
-$$
+```math
+Z_{\mathrm{new}}
+=\mathrm{Attention}(Q,K_t,V_t)
++\lambda\,\mathrm{Attention}(Q,K_i,V_i)
+```
 
-其中，$(K_t,V_t)$ 来自文本Token，$(K_i,V_i)$ 来自图像Token。两个分支共享Query，说明它们都在回答“当前空间位置需要什么信息”；但Key/Value分离，使文本语义和视觉参考可以保持相对独立的表达空间。
+其中， $`(K_t,V_t)`$ 来自文本Token， $`(K_i,V_i)`$ 来自图像Token。两个分支共享Query，说明它们都在回答“当前空间位置需要什么信息”；但Key/Value分离，使文本语义和视觉参考可以保持相对独立的表达空间。
 
 训练时，IP-Adapter冻结预训练文生图底座和CLIP图像编码器，只训练图像投影网络以及新增图像分支的Key/Value投影。原论文中适配器约有22M可训练参数。这个数字不是需要死记的产品规格，它体现的架构思想是：**保留底座的通用生成先验，用轻量旁路扩展新的条件模态。**
 
@@ -1064,27 +1071,24 @@ LayerDiffuse解决的是传统图像生成的一个长期痛点：扩散模型�
 
 **1. 为什么不能直接让RGB模型多生成一个Alpha通道？**
 
-在前景 $I_{fg}$、背景 $I_{bg}$ 和透明度 $\alpha$ 确定后，常见Alpha合成可写为：
+在前景 $`I_{\mathrm{fg}}`$、背景 $`I_{\mathrm{bg}}`$ 和透明度 $`\alpha`$ 确定后，常见Alpha合成可写为：
 
-$$
-I_{\text{blend}}
-=
-\alpha I_{fg}
-+
-(1-\alpha)I_{bg}
-$$
+```math
+I_{\mathrm{blend}}
+=\alpha I_{\mathrm{fg}}+(1-\alpha)I_{\mathrm{bg}}
+```
 
 问题在于，Stable Diffusion这类隐空间扩散模型的VAE是在RGB图像上训练的，并不理解Alpha的物理与组合含义。对完全透明的像素而言，其RGB颜色在最终合成结果中不可见，因而可以是多种值；如果直接给VAE或U-Net增加第四个通道，会改变已学习的隐变量分布和网络接口，也会破坏与大量预训练模型、LoRA和社区工作流的兼容性。
 
 **2. LayerDiffuse如何用Latent Transparency建模RGBA？**
 
-LayerDiffuse没有完全重训一套RGBA扩散底座大模型，而是学习一个轻量的**隐透明度偏移（Latent Transparency Offset）**。设原始RGB图像经预训练VAE得到隐变量 $x$，透明度编码器再根据RGB与Alpha预测一个偏移 $x_{\epsilon}$：
+LayerDiffuse没有完全重训一套RGBA扩散底座大模型，而是学习一个轻量的**隐透明度偏移（Latent Transparency Offset）**。设原始RGB图像经预训练VAE得到隐变量 $`x`$，透明度编码器再根据RGB与Alpha预测一个偏移 $`x_{\epsilon}`$：
 
-$$
+```math
 x_a=x+x_{\epsilon}
-$$
+```
 
-这个偏移不是随意扰动，而是受到隐空间分布约束，使调整后的 $x_a$ 仍尽量停留在原有VAE和预训练扩散模型熟悉的隐空间附近。随后，专用的透明度解码器从 $x_a$ 恢复RGBA，扩散侧的Adapter或LoRA则学习在去噪过程中生成这种带透明信息的隐表示。
+这个偏移不是随意扰动，而是受到隐空间分布约束，使调整后的 $`x_a`$ 仍尽量停留在原有VAE和预训练扩散模型熟悉的隐空间附近。随后，专用的透明度解码器从 $`x_a`$ 恢复RGBA，扩散侧的Adapter或LoRA则学习在去噪过程中生成这种带透明信息的隐表示。
 
 这个设计的关键不是“增加一个通道”，而是**把RGBA信息压入原有隐空间可容纳的小偏移中**。因此，它同时追求透明表示能力与旧生态兼容性，这比单纯扩宽输入输出通道更具有架构价值。
 
@@ -1135,9 +1139,9 @@ SUPIR（Scaling-UP Image Restoration）面向的是现实世界图像修复：�
 
 原始SDXL的VAE Encoder主要见过较高质量图像，直接编码低质图时，可能把压缩块、噪声和模糊错误地理解为内容。SUPIR复制并微调一个退化鲁棒Encoder，让低质图与对应高质图经过编码和固定Decoder后尽量接近：
 
-$$
+```math
 \mathcal{L}_{E}=\left\|D\left(E_{dr}(x_{LQ})\right)-D\left(E_{dr}(x_{GT})\right)\right\|_{2}^{2}
-$$
+```
 
 这里的目标不是先完成最终超分，而是先得到一个更可信的低质图Latent，避免后续扩散模型沿着错误内容继续生成。
 
@@ -1157,11 +1161,11 @@ SUPIR使用SDXL作为大规模生成先验，并构建了约2000万张高分辨�
 
 SUPIR在EDM采样过程中，把当前生成预测持续拉回低质图Latent。其核心可以抽象为：
 
-$$
+```math
 z_{t-1}=\hat{z}_{t-1}+k_t\left(z_{LQ}-\hat{z}_{t-1}\right),\qquad k_t=\left(\frac{\sigma_t}{\sigma_T}\right)^{\tau_r}
-$$
+```
 
-扩散早期主要决定构图和低频结构，此时 $k_t$ 较大，结果更贴近原图；扩散后期主要补充高频纹理，此时约束逐渐减弱，允许生成先验恢复毛发、皮肤、材质等细节。它解决的不是“如何采样更好看”，而是**如何按时间步分配原图忠实度与生成自由度**。
+扩散早期主要决定构图和低频结构，此时 $`k_t`$ 较大，结果更贴近原图；扩散后期主要补充高频纹理，此时约束逐渐减弱，允许生成先验恢复毛发、皮肤、材质等细节。它解决的不是“如何采样更好看”，而是**如何按时间步分配原图忠实度与生成自由度**。
 
 完整链路可以概括为：
 
@@ -1192,9 +1196,9 @@ AnyText解决的是扩散模型中的“符号精确性”问题。普通文生�
 
 | 条件 | 表达的信息 | 解决的问题 |
 |---|---|---|
-| Glyph字形图 $l_g$ | 每一行文字的标准笔画外观 | 明确“写什么、字长什么样” |
-| Position位置图 $l_p$ | 每段文字的目标区域 | 约束“写在哪里、占多大范围” |
-| Masked Image $l_m$ | 需要保留的原图内容 | 区分从零生成与局部文字编辑 |
+| Glyph字形图 $`l_g`$ | 每一行文字的标准笔画外观 | 明确“写什么、字长什么样” |
+| Position位置图 $`l_p`$ | 每段文字的目标区域 | 约束“写在哪里、占多大范围” |
+| Masked Image $`l_m`$ | 需要保留的原图内容 | 区分从零生成与局部文字编辑 |
 
 </div>
 
@@ -1202,11 +1206,11 @@ AnyText解决的是扩散模型中的“符号精确性”问题。普通文生�
 
 AnyText分别用卷积模块编码Glyph和Position，用VAE编码Masked Image，再把三者融合为与扩散latent空间对齐的辅助特征：
 
-$$
+```math
 z_a=f\left(G(l_g)+P(l_p)+E(l_m)\right)
-$$
+```
 
-$z_a$会与带噪latent一起进入可训练的TextControlNet，而原始U-Net保持冻结。这个设计继承了ControlNet的跨周期思想：底座继续负责场景、人物、材质和光照，文字控制分支专门学习字形与位置，避免为了学会写字而破坏底座的通用生成能力。
+$`z_a`$会与带噪latent一起进入可训练的TextControlNet，而原始U-Net保持冻结。这个设计继承了ControlNet的跨周期思想：底座继续负责场景、人物、材质和光照，文字控制分支专门学习字形与位置，避免为了学会写字而破坏底座的通用生成能力。
 
 ### Text Embedding Module：让OCR笔画表征进入文本语义空间
 
@@ -1216,13 +1220,13 @@ $z_a$会与带噪latent一起进入可训练的TextControlNet，而原始U-Net�
 
 ### Text Perceptual Loss：让训练目标真正关心有没有写对
 
-普通扩散损失对几个错误笔画并不敏感。AnyText因此从当前去噪结果估计 $x_0$，根据位置条件裁剪文字区域，再用OCR网络比较生成文字与真实文字的中间特征。整体目标写成：
+普通扩散损失对几个错误笔画并不敏感。AnyText因此从当前去噪结果估计 $`x_0`$，根据位置条件裁剪文字区域，再用OCR网络比较生成文字与真实文字的中间特征。整体目标写成：
 
-$$
-\mathcal{L}=\mathcal{L}_{td}+\lambda\mathcal{L}_{tp}
-$$
+```math
+\mathcal{L}=\mathcal{L}_{\mathrm{td}}+\lambda\mathcal{L}_{\mathrm{tp}}
+```
 
-其中，$\mathcal{L}_{td}$是文本控制扩散损失，$\mathcal{L}_{tp}$是文字感知损失。后者把训练关注点从“整张图像像不像”拉回“字符是否真的正确”。AnyText还构建了AnyWord-3M多语言数据集，并使用Sentence Accuracy、Normalized Edit Distance和FID分别衡量完整字符串正确率、编辑距离与整体图像质量。
+其中， $`\mathcal{L}_{\mathrm{td}}`$ 是文本控制扩散损失， $`\mathcal{L}_{\mathrm{tp}}`$ 是文字感知损失。后者把训练关注点从“整张图像像不像”拉回“字符是否真的正确”。AnyText还构建了AnyWord-3M多语言数据集，并使用Sentence Accuracy、Normalized Edit Distance和FID分别衡量完整字符串正确率、编辑距离与整体图像质量。
 
 ![AnyText框架示意图](./imgs/AnyText框架示意图.png)
 
@@ -1236,7 +1240,7 @@ AnyText2进一步把控制范围从“内容与位置”扩展到每行文字的
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐ (3/5)**
 
-IDM-VTON处理的不是普通图像编辑，而是一个多目标约束的条件生成问题：给定人物图 $x_p$ 和独立服装图 $x_g$，输出人物穿上指定服装后的图像。结果既要保留人物的脸、头发、姿态和背景，又要保留服装的颜色、图案、Logo、领口、袖型和版型，还要生成符合人体结构的褶皱、遮挡与光照。
+IDM-VTON处理的不是普通图像编辑，而是一个多目标约束的条件生成问题：给定人物图 $`x_p`$ 和独立服装图 $`x_g`$，输出人物穿上指定服装后的图像。结果既要保留人物的脸、头发、姿态和背景，又要保留服装的颜色、图案、Logo、领口、袖型和版型，还要生成符合人体结构的褶皱、遮挡与光照。
 
 它最关键的设计，是没有尝试用一种Embedding同时表达服装的全部信息，而是把服装特征分成高层语义与低层细节两条路径：
 

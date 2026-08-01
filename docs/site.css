@@ -269,7 +269,11 @@ img {
 }
 
 .section {
-  padding: 42px 0;
+  padding: 36px 0;
+}
+
+section[id] {
+  scroll-margin-top: 72px;
 }
 
 .hero {
@@ -301,7 +305,7 @@ img {
 .section-heading h2 {
   margin: 0;
   font-family: "Space Grotesk", "Noto Sans SC", sans-serif;
-  line-height: 1.03;
+  line-height: 1.2;
 }
 
 .hero h1 {
@@ -726,20 +730,22 @@ img {
 
 .section-heading {
   max-width: none;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 
 .section-heading h2 {
   font-size: clamp(1.78rem, 3vw, 2.72rem);
   letter-spacing: 0;
   max-width: 1120px;
+  text-wrap: balance;
 }
 
 .section-heading p {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   font-size: 1rem;
   max-width: 118ch;
   line-height: 1.75;
+  text-wrap: pretty;
 }
 
 .overview-grid,
@@ -784,6 +790,105 @@ img {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
+}
+
+.route-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.route-card {
+  position: relative;
+  min-height: 184px;
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(28, 118, 166, 0.16);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(145deg, rgba(224, 242, 254, 0.36), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 251, 255, 0.82));
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease;
+}
+
+.route-card::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary));
+  opacity: 0.72;
+}
+
+.route-card:hover,
+.route-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: rgba(14, 165, 233, 0.32);
+  background:
+    linear-gradient(145deg, rgba(224, 242, 254, 0.58), transparent 44%),
+    var(--surface-hover);
+  box-shadow:
+    0 18px 42px rgba(24, 39, 75, 0.12),
+    0 0 26px rgba(14, 165, 233, 0.08);
+}
+
+.route-topline,
+.route-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.route-code,
+.route-duration {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.76rem;
+}
+
+.route-code {
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.route-duration {
+  color: #6b21a8;
+}
+
+.route-card h3 {
+  margin: 14px 0 8px;
+  font-size: 1.08rem;
+  line-height: 1.38;
+  text-wrap: balance;
+}
+
+.route-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+
+.route-footer {
+  margin-top: auto;
+  padding-top: 14px;
+  color: #475467;
+  font-size: 0.8rem;
+}
+
+.route-footer strong {
+  flex: 0 0 auto;
+  color: #075985;
+  font-size: 0.84rem;
 }
 
 .knowledge-card,
@@ -1396,12 +1501,45 @@ img {
   margin-bottom: 14px;
 }
 
+.image-card-header p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.service-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.service-chip-grid span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid rgba(14, 165, 233, 0.18);
+  border-radius: 6px;
+  background: rgba(238, 247, 255, 0.86);
+  color: #075985;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+}
+
 .image-card img {
   width: 100%;
   aspect-ratio: 4 / 5;
   object-fit: cover;
   border-radius: var(--radius-md);
   border: 1px solid rgba(28, 118, 166, 0.14);
+}
+
+.image-card .community-qr-poster {
+  aspect-ratio: auto;
+  object-fit: contain;
+  background: #f5f8fc;
 }
 
 .social-grid {
@@ -1509,6 +1647,14 @@ img {
   .author-grid-deputy {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .route-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .route-card {
+    min-height: 176px;
+  }
 }
 
 @media (max-width: 780px) {
@@ -1546,6 +1692,7 @@ img {
 
   .hero-meta,
   .overview-grid,
+  .route-grid,
   .knowledge-grid,
   .frontier-hero,
   .frontier-grid,
@@ -1561,7 +1708,11 @@ img {
   }
 
   .section {
-    padding: 34px 0;
+    padding: 30px 0;
+  }
+
+  section[id] {
+    scroll-margin-top: 82px;
   }
 
   .hero {
@@ -1651,6 +1802,10 @@ img {
 
   .frontier-item {
     grid-template-columns: auto 1fr;
+  }
+
+  .service-chip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .frontier-link {
