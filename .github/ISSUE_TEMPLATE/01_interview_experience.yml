@@ -1,0 +1,81 @@
+name: 面经投稿
+description: 投稿真实的 AIGC、LLM、AI Agent、多模态、算法岗或开发岗面试经历。
+title: "[面经投稿] 公司｜岗位｜时间"
+labels:
+  - 面经投稿
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你把个人经历沉淀为公共知识。请去除候选人、面试官及业务机密等敏感信息，并尽量保留真实问题的原意与顺序。
+  - type: input
+    id: company
+    attributes:
+      label: 公司或组织
+      description: 可以使用公开名称；不便披露时可填写公司类型。
+      placeholder: 例如：某互联网大厂 / AI 创业公司 / 研究院
+    validations:
+      required: true
+  - type: input
+    id: role
+    attributes:
+      label: 岗位名称与方向
+      placeholder: 例如：大模型算法工程师｜AI Agent 工程岗
+    validations:
+      required: true
+  - type: input
+    id: time
+    attributes:
+      label: 面试时间与招聘类型
+      placeholder: 例如：2026-07｜秋招提前批 / 社招
+    validations:
+      required: true
+  - type: textarea
+    id: process
+    attributes:
+      label: 面试流程
+      description: 请说明轮次、形式、时长及每轮重点。
+      placeholder: |
+        一面：技术基础与项目，约 60 分钟
+        二面：系统设计与业务理解，约 45 分钟
+        HR 面：求职动机与职业规划
+    validations:
+      required: true
+  - type: textarea
+    id: questions
+    attributes:
+      label: 面试问题与追问
+      description: 尽量按真实顺序整理；不确定的表述请明确标注。
+      placeholder: |
+        1. 原始问题
+           - 追问：
+           - 考察重点：
+        2. 原始问题
+           - 追问：
+           - 考察重点：
+    validations:
+      required: true
+  - type: textarea
+    id: review
+    attributes:
+      label: 复盘与建议
+      description: 哪些能力最关键？准备路线有什么可以改进？
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 可公开核验的信息
+      description: 可选。填写公开 JD、招聘页面或与岗位技术栈有关的链接和日期。
+  - type: checkboxes
+    id: agreements
+    attributes:
+      label: 投稿确认
+      options:
+        - label: 内容来自本人真实经历或经当事人明确授权。
+          required: true
+        - label: 已移除个人隐私、业务机密及受保密协议约束的信息。
+          required: true
+        - label: 同意项目在保留署名的前提下进行结构整理、去敏与勘误。
+          required: true
+

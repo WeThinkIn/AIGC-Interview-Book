@@ -1,0 +1,74 @@
+name: 章节内容更新
+description: 更新模型、框架、算法、数据、评测、部署、工程实践或岗位相关章节内容。
+title: "[章节更新] 章节或主题｜版本或日期｜核心变化"
+labels:
+  - 章节内容更新
+body:
+  - type: input
+    id: subject
+    attributes:
+      label: 更新对象
+      placeholder: 章节名｜主题名｜版本或发布日期
+    validations:
+      required: true
+  - type: dropdown
+    id: content_type
+    attributes:
+      label: 内容类型
+      options:
+        - 新模型
+        - 新框架
+        - 新协议
+        - 新算法
+        - 新数据集
+        - 新评测方法
+        - 新部署与推理实践
+        - 岗位考点或行业变化
+        - 其他专题内容
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 它解决了什么问题
+      description: 从问题和机制出发，避免只罗列功能或宣传语。
+    validations:
+      required: true
+  - type: textarea
+    id: mechanism
+    attributes:
+      label: 核心机制与真实增量
+      description: 说明相对已有内容真正新增了什么，以及它的适用边界。
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 证据边界与章节影响
+      description: 说明哪些证据支持它，哪些结论仍需谨慎；并写明它会影响哪些章节或学习路线。
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: 工程与面试影响
+      description: 哪些能力已经值得学习？可能形成哪些面试题或系统设计问题？
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: 一手资料
+      description: 提供官方文档、论文、源码或技术报告链接，并注明日期。
+    validations:
+      required: true
+  - type: checkboxes
+    id: agreements
+    attributes:
+      label: 提交确认
+      options:
+        - label: 已区分公开事实、个人判断与尚未验证的推测。
+          required: true
+        - label: 已说明版本、发布日期或信息核验日期。
+          required: true
+

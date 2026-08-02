@@ -1,0 +1,59 @@
+name: 路线图共建
+description: 共建校招、社招、转岗或具体岗位方向的学习与面试路线。
+title: "[路线共建] 目标人群｜目标岗位｜周期"
+labels:
+  - 路线图共建
+body:
+  - type: input
+    id: audience
+    attributes:
+      label: 目标人群
+      placeholder: 例如：2027 届校招生 / 传统 CV 转大模型 / 后端转 AI 应用
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: 目标岗位与准备周期
+      placeholder: 例如：AI Agent 工程岗｜30 天
+    validations:
+      required: true
+  - type: textarea
+    id: baseline
+    attributes:
+      label: 起点假设与能力缺口
+      description: 说明学习者已经具备什么，以及最需要补齐什么。
+    validations:
+      required: true
+  - type: textarea
+    id: stages
+    attributes:
+      label: 分阶段路线
+      placeholder: |
+        阶段 1：目标、核心知识、仓库链接、输出物、验收标准
+        阶段 2：目标、核心知识、仓库链接、输出物、验收标准
+        阶段 3：目标、核心知识、仓库链接、输出物、验收标准
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 路线依据与岗位信号
+      description: 说明路线来自哪些真实岗位要求、面经反馈或实践经验。
+    validations:
+      required: true
+  - type: textarea
+    id: links
+    attributes:
+      label: 建议关联的仓库章节
+      description: 使用仓库相对链接或稳定锚点，避免重复改写原始问答。
+  - type: checkboxes
+    id: agreements
+    attributes:
+      label: 提交确认
+      options:
+        - label: 路线包含阶段目标、学习内容、实践输出和验收标准。
+          required: true
+        - label: 路线优先复用现有问答与教程链接，不无必要复制原文。
+          required: true
+

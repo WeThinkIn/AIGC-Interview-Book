@@ -4,6 +4,8 @@
 
 【Three Years of Interviews, Five Years of Practice】The Ultimate Guide to **AIGC Interview、LLMs Interview、AI Agent Interview、Deep Learning Interview、Algorithm Engineer Interview**
 
+**AI行业最前沿、最全面、最本质、最跨周期的学习、研究、面试、职业生涯成长平台**，涵盖AIGC面试、大模型面试、AI Agent面试、AI岗位面试、AI应用开发面试、AI应用商业化落地、AI职业生涯发展规划等。
+
 </div>
 
 # 
@@ -12,11 +14,11 @@
 
 🏆**AIGC开发岗方向：** 涵盖Python、Java、C/C++、Go、嵌入式、前端、后端、测试、运维、设计、售前等。
 
-🚀**本项目凝聚了AIGC时代众多一线AIGC/LLM/AI Agent算法专家的行业经验与深度洞察**，涵盖AIGC/LLM/AI Agent等前沿AI技术完整知识架构、AI大厂内推、AI面试经验、AI公司指南/辛秘、AI校招时间表、AI面试准备、AI薪资爆料、AI刷题指南、AI求职答疑等干货资源。本项目的核心内容均取材于编者专家们在AI行业中的工作、研究、竞赛经验，以及对各互联网大厂/AIGC明星公司的AIGC岗位笔试/面试题提炼。
+🚀**本项目凝聚了AIGC时代众多一线AIGC/LLM/AI Agent算法专家的行业经验与深度洞察**，涵盖AIGC/LLM/AI Agent等前沿AI技术的完整知识架构、AI大厂内推、AI面试经验、AI公司指南/辛秘、AI面试准备、AI薪资爆料、AI刷题指南、AI求职答疑、AI职业生涯发展规划等干货资源。本项目平台的核心内容均提炼于编者专家们在AI行业中的工作、研究、竞赛经验以及对互联网大厂/AI明星公司的AI岗位笔试/面试题。
 
-💡**本项目也可作为高等学府AIGC、LLM、AI Agent相关专业的研究、教学、竞赛以及学习的参考用书**；还可为AIGC、LLM、AI Agent、传统深度学习以及自动驾驶领域的初、中级技术人员提供技术思路参考，**尤其适合AIGC/LLM/AI Agent求职者和提供相关AIGC/LLM/AI Agent算法/开发岗位的面试官深入研读**。
+💡**本项目平台也可作为高等学府AIGC、LLM、AI Agent相关专业的研究、教学、竞赛以及学习的核心参考平台**；还可为AIGC、LLM、AI Agent、传统深度学习以及自动驾驶领域的初、中级技术人员提供技术思路参考，**尤其适合AIGC/LLM/AI Agent求职者和提供相关AIGC/LLM/AI Agent岗位的面试官进行深入研读**。
 
-👍**本项目的持续构建/维护十分不易，希望大家能多多star～。Star本项目，你就获得了0.5个心仪的offer；再分享本项目，你就获得了0.75个心仪offer！在这里，Rocky祝大家求职顺利、工作顺利、职业生涯顺利！**
+👍**本项目的持续构建/升级/维护十分不易，希望大家能多多star～。Star本项目，你就获得了0.5个心仪的offer；再分享本项目，你就获得了0.75个心仪offer！在这里，Rocky祝大家求职顺利、工作顺利、职业生涯顺利！**
 
 ## 📖目录
 
@@ -79,8 +81,6 @@
   </tbody>
 </table>
 
-[查看《热门AI学习核心课程与教程》完整说明与路线选择](热门AI学习核心课程与教程/README.md)
-
 ## 💎加入 AIGCmagic 进阶服务社区（实习、秋招、春招、校招、社招）
 
 《三年面试五年模拟》源自 AIGCmagic 社区的长期积累。需要更多AI行业职业生涯规划、求职招聘、课程培训、个性化定制服务的读者朋友们，可以进入进阶服务社区，我们将进一步提供：
@@ -112,9 +112,11 @@
 <a href="imgs/WeThinkIn公众号.jpg"><img src="https://img.shields.io/badge/WeThinkIn-公众号-brightgreen"></a>
 <a href="https://rockyding.blog.csdn.net"><img src="https://img.shields.io/badge/Rocky Ding-CSDN-red"></a>
 
-Rocky Ding，AIGCmagic社区创始人，知乎AI领域知名博主（同名Rocky Ding），公众号《WeThinkIn》主理人，全网文章阅读量800万+。资深AIGC算法专家，头部投资机构FA合作伙伴，专注于AIGC产品与AI算法解决方案的商业应用。在互联网大厂、AI独角兽、传统科技公司以及国企研究院有丰富的工作经验与创业经验。多次带队获得CVPR、AAAI、Kaggle等AI领域顶级竞赛的冠军成绩。发表多篇AI领域论文和专利。
+Rocky Ding，AI行业技术实战派KOL，AIGCmagic社区创始人，知乎AI领域知名博主（同名Rocky Ding），公众号《WeThinkIn》主理人，全网文章阅读量800万+。资深AIGC算法专家，头部投资机构FA合作伙伴，专注于AIGC产品与AI算法解决方案的商业应用。在互联网大厂、AI独角兽、传统科技公司以及国企研究院都有丰富的工作经验与创业经验。多次带队获得CVPR、AAAI、Kaggle等AI领域顶级竞赛的冠军成绩。发表多篇AI领域论文和专利。
 
-Rocky最新撰写完成10万字的Stable Diffusion 3和FLUX.1系列模型全网最详细讲解文章：[深入浅出完整解析Stable Diffusion 3（SD 3）和FLUX.1系列核心基础知识](https://zhuanlan.zhihu.com/p/684068402)
+Rocky最新持续撰写的10万字深入浅出完整解析AI Agent（AI智能体）的核心基础知识文章：[深入浅出完整解析AI Agent（AI智能体）的核心基础知识](https://zhuanlan.zhihu.com/p/1919046969076195976)
+
+Rocky最新持续撰写的10万字深入浅出完整解析扩散模型DDPM、DDIM、Score-Based、SDE、LDM、Classifier/Classifier-Free Guidance、Rectified Flow核心基础知识文章：[深入浅出完整解析扩散模型DDPM、DDIM、Score-Based、SDE、LDM、Classifier/Classifier-Free Guidance、Rectified Flow核心基础知识](https://zhuanlan.zhihu.com/p/1964029619658261252)
 
 ### 猫先生 副主编
 
@@ -170,7 +172,45 @@ Elliot Qi，互联网大厂AIGC算法工程师，在计算机视觉顶会发表�
 **经验分享**：如果您已经有AIGC领域的求职经验和从业经验，欢迎您分享笔试经验、面试经验、工作经验、岗位需求等相关经验，可直接通过PR和Issue等方式提交！
 
 **参与共建**：您可以通过下面几种方式参与项目共建：
-1. 直接参与建设、维护本项目。
-2. 加入AIGCmagic社区参与更多项目共建。
+1. 进入 [社区共创工作区](workspace/README.md)，了解共创方向、提交标准与长期贡献机制。
+2. 通过 [GitHub Issue 模板](https://github.com/WeThinkIn/AIGC-Interview-Book/issues/new/choose) 投稿面试面经、公司题库、章节纠错、课程内容、招聘信息和章节内容更新等。
+3. 阅读 [共创指南](workspace/CONTRIBUTING.md)，Fork 项目并通过 Pull Request 提交已经整理完成的内容。
+4. 加入AIGCmagic社区参与更多项目共建。
 
 **岗位招聘**：若贵司有AIGC相关招聘、内推信息，欢迎在本项目中发布！
+
+### 共创身份计划：让每一次 Pull Request 提交都提升共建伙伴的个人影响力
+
+我们希望共建伙伴们可以从本项目平台出发，根据自己的学习、求职、工作经验，将其中经过验证、具有通用价值、跨周期本质的面试、课程、AI技术知识等内容通过 PR 回流主仓库时，它就会成为一份可追溯、可复用、能够持续积累的共创记录。
+
+Rocky认为，持续贡献不是零散的AI内容提交，而是参与建设 **AI行业学习、研究、竞赛、求职与职业成长** 的长期身份认同。共建伙伴们的真实面试面经、岗位观察、技术实践和职业生涯经验，会帮助AI行业的后来者们缩短信息差；AIGCmagic社区的持续整理与校验，也会让个人经验沉淀为更可靠的跨周期知识资产。
+
+> **立即参与**：[进入共创工作区](workspace/README.md) ｜ [选择 Issue 投稿模板](https://github.com/WeThinkIn/AIGC-Interview-Book/issues/new/choose) ｜ [查看共创提交规范](workspace/共创提交规范.md) ｜ [查看贡献记录](workspace/贡献记录/README.md)
+
+### 六类共创方向
+
+| 共创方向 | 可以贡献什么 | 推荐产出形式 |
+| --- | --- | --- |
+| 面经投稿 | 真实面试流程、核心问题、经验总结、个人复盘与岗位信息等 | 按公司、岗位、时间、轮次整理的结构化面经 |
+| 公司题库投稿 | 大厂、AI明星公司、国企研究院、创业公司的算法岗与工程岗题目等 | 按公司和岗位归档的题目清单、答案思路与考察重点 |
+| 章节纠错 | 修正技术表述、公式、代码、链接、排版及已经过时的内容等 | 标明问题位置、修正依据和影响范围的 Issue 或 PR |
+| 章节内容更新 | 模型、框架、算法、数据、评测、部署与工程实践等聂荣的更新 | 核心技术知识、系列模型知识、核心基础内容与不同章节关联 |
+| 课程教程共建 | 不同背景、目标岗位与准备周期下的学习顺序和项目教程等 | 校招、社招、转岗等路线补充 |
+| 2026 春招/秋招信息更新 | 招聘时间、官方入口、岗位变化、内推机会与 JD 技术栈 | 可核验的信息来源、岗位摘要、截止时间与投递建议 |
+
+### 月度贡献者榜单
+
+项目平台将每月整理一次 [贡献者榜单](workspace/贡献者榜单/README.md)，持续记录面经投稿、公司题库、章节纠错、课程教程共建、招聘信息更新、章节内容更新等贡献。榜单不只统计提交数量，也关注内容的准确性、完整度、时效性、复用价值以及对其他学习者的实际帮助。
+
+持续贡献者将有机会成为专题共建伙伴或核心板块维护者，在项目贡献记录、专题内容与社区共建活动中获得长期、清晰的个人影响力提升。我们希望伙伴们的持续建设高质量知识被AI行业所看见。
+
+### 季度 AIGC 面试趋势报告
+
+项目平台将每季度发布一次 [**AIGC 面试趋势报告**](workspace/季度AIGC面试趋势报告/README.md)。报告会基于当季新增面经、公司题库、公开岗位 JD、社区反馈和技术演进，重点整理：
+
+- AI高频面试题与核心技术方向发生了哪些变化；
+- 不同公司与岗位的能力要求、项目偏好和技术栈有哪些共性与差异；
+- 校招、社招与转岗人群应该如何调整学习优先级和准备路线；
+- 哪些新技术已经进入真实岗位和面试，哪些仍处于早期观察阶段。
+
+> **共创原则**：尊重安全合规与隐私，不提交受保密协议约束的内容，不披露面试官及候选人的个人信息；涉及招聘、薪资和技术版本等时效信息时，请尽量附上公开、可核验的来源与日期。

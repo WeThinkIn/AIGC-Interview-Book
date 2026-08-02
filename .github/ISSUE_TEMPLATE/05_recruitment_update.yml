@@ -1,0 +1,69 @@
+name: 招聘信息更新
+description: 更新 2026 春招/秋招、校招、社招、实习或内推信息。
+title: "[招聘更新] 公司｜岗位｜招聘类型｜截止时间"
+labels:
+  - 招聘信息
+body:
+  - type: input
+    id: company_role
+    attributes:
+      label: 公司与岗位
+      placeholder: 例如：公司名称｜大模型算法工程师
+    validations:
+      required: true
+  - type: dropdown
+    id: recruitment_type
+    attributes:
+      label: 招聘类型
+      options:
+        - 春招
+        - 秋招
+        - 实习
+        - 校招
+        - 社招
+        - 内推
+    validations:
+      required: true
+  - type: input
+    id: location_deadline
+    attributes:
+      label: 工作地点与截止时间
+      placeholder: 例如：北京/上海｜2026-08-31；长期有效请明确注明
+    validations:
+      required: true
+  - type: textarea
+    id: requirements
+    attributes:
+      label: 岗位职责与核心技术栈
+      description: 提炼公开 JD 中与候选人准备最相关的信息。
+    validations:
+      required: true
+  - type: input
+    id: official_url
+    attributes:
+      label: 官方或可核验链接
+      placeholder: https://...
+    validations:
+      required: true
+  - type: input
+    id: verified_date
+    attributes:
+      label: 信息核验日期
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: 投递说明
+      description: 可选。填写投递批次、岗位编号、公开联系人或其他必要说明。
+  - type: checkboxes
+    id: agreements
+    attributes:
+      label: 提交确认
+      options:
+        - label: 信息来自公开、可核验的招聘来源，且在核验日期仍然有效。
+          required: true
+        - label: 不包含未经同意公开的个人联系方式或收费内推信息。
+          required: true
+

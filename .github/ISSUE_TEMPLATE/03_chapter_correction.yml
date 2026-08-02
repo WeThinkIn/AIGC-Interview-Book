@@ -1,0 +1,59 @@
+name: 章节纠错
+description: 报告技术错误、公式问题、失效链接、排版异常或过时内容。
+title: "[章节纠错] 文件或章节｜问题摘要"
+labels:
+  - 章节纠错
+body:
+  - type: input
+    id: location
+    attributes:
+      label: 文件与问题位置
+      description: 请提供仓库相对路径、章节标题或锚点。
+      placeholder: 例如：大模型基础（精华版）/xx.md｜q-012
+    validations:
+      required: true
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: 问题类型
+      options:
+        - 技术事实或概念错误
+        - 公式或符号错误
+        - 代码或工程实践问题
+        - 内容已经过时
+        - 链接或图片失效
+        - GitHub Markdown / MathJax 渲染问题
+        - 文字、排版或错别字
+    validations:
+      required: true
+  - type: textarea
+    id: current_content
+    attributes:
+      label: 当前内容与问题说明
+      description: 请引用必要的短句并解释问题，避免粘贴整章。
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: 建议修正
+      description: 请给出可直接讨论的修正内容或方向。
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 修正依据
+      description: 优先提供官方文档、论文、源码或其他一手资料，并注明版本或日期。
+    validations:
+      required: true
+  - type: checkboxes
+    id: agreements
+    attributes:
+      label: 提交确认
+      options:
+        - label: 已搜索现有 Issue，确认没有重复报告同一问题。
+          required: true
+        - label: 修正不会无依据地改变原始面试问题的含义。
+          required: true
+

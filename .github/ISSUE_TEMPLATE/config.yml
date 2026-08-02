@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 共创工作区与提交规范
+    url: https://github.com/WeThinkIn/AIGC-Interview-Book/tree/main/workspace
+    about: 提交前请先了解共创方向、内容标准、署名方式与月榜/季报机制。
+

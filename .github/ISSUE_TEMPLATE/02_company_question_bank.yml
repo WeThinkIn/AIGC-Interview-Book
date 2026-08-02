@@ -1,0 +1,74 @@
+name: 公司题库投稿
+description: 共建按公司、岗位和方向归档的高质量面试题库。
+title: "[公司题库] 公司｜岗位｜方向"
+labels:
+  - 公司题库
+body:
+  - type: markdown
+    attributes:
+      value: |
+        公司题库的价值不在题目数量，而在来源边界、考察重点和可复用性。请区分真实面试题、公开题目与个人预测题。
+  - type: input
+    id: company
+    attributes:
+      label: 公司或组织
+      placeholder: 例如：某互联网大厂 / AI 创业公司
+    validations:
+      required: true
+  - type: input
+    id: role
+    attributes:
+      label: 岗位与招聘类型
+      placeholder: 例如：多模态算法岗｜2026 秋招
+    validations:
+      required: true
+  - type: dropdown
+    id: source_type
+    attributes:
+      label: 题目来源类型
+      options:
+        - 本人真实面试
+        - 多位候选人面经归纳
+        - 公司公开招聘或技术资料
+        - 个人预测题（将单独标注）
+    validations:
+      required: true
+  - type: textarea
+    id: questions
+    attributes:
+      label: 题目清单
+      placeholder: |
+        1. 题目：
+           - 考察重点：
+           - 回答思路：
+           - 追问方向：
+        2. 题目：
+           - 考察重点：
+           - 回答思路：
+           - 追问方向：
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 来源边界与适用范围
+      description: 说明时间范围、样本数量、岗位差异及不确定性。
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: 公开参考资料
+      description: 可选。每行一个链接，并注明访问或发布日期。
+  - type: checkboxes
+    id: agreements
+    attributes:
+      label: 投稿确认
+      options:
+        - label: 已明确区分真实题目、公开信息和个人判断。
+          required: true
+        - label: 已移除隐私、业务机密及受保密协议约束的信息。
+          required: true
+        - label: 同意项目进行去重、归档、勘误和结构化整理。
+          required: true
+
