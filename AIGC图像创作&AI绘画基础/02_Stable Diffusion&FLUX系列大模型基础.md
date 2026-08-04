@@ -10,8 +10,6 @@
   - [面试问题：Stable Diffusion 中的 latent scale factor（如 0.18215）有什么作用？为什么不同 SD 版本的 scale factor 不同？](#q-032a)
   - [面试问题：介绍一下针对 Stable Diffusion 的模型融合技术](#q-033)
   - [面试问题：Stable Diffusion 进行模型融合的技巧有哪些？](#q-034)
-  - [面试问题：Stable Diffusion 中是如何添加时间步 timestep 信息的？](#q-035)
-  - [面试问题：Stable Diffusion 训练时需要设置 timesteps=1000，为什么推理时只用几十步就可以生成图片？](#q-036)
   - [面试问题：为什么相同 seed + 相同 prompt 在不同采样器 / 精度 / 框架下结果会有差异？工程上如何保证生成结果可复现？](#q-036a)
   - [面试问题：Stable Diffusion 中的 negative prompt（反向提示词）是如何加入的？](#q-037)
   - [面试问题：Stable Diffusion 中文本条件是如何一步步控制图像生成的？请完整描述从 Prompt 到 Latent 的注入链路](#q-038)
@@ -86,23 +84,23 @@
 ## 第二章 FLUX系列核心高频考点
 
 [1.介绍一下FLUX.1的原理，与Stable Diffusion 3相比有哪些创新点？](#q-flux-001)
+  - [面试问题：FLUX.1 的 VAE 部分有哪些创新？详细分析改进意图](#q-flux-014)
+  - [面试问题：FLUX.1 的 Backbone 部分有哪些创新？详细分析改进意图](#q-flux-015)
+  - [面试问题：FLUX.1 的 Text Encoder 部分有哪些创新？详细分析改进意图](#q-flux-016)
+  - [面试问题：FLUX.1在训练过程中使用了哪些优化技巧？](#q-flux-002)
 
-[2.FLUX.1在训练过程中使用了哪些优化技巧？](#q-flux-002)
-  - [面试问题：FLUX.1模型的微调训练流程一般包含哪几部分核心内容？](#q-flux-003)
-  - [面试问题：FLUX.1模型的微调训练流程中有哪些关键参数？](#q-flux-004)
+[2.FLUX.1有哪些主流的变体与分支模型？介绍一下它们的核心原理](#q-flux-017)
+  - [面试问题：介绍一下FLUX.1 Lite与FLUX.1的异同](#q-flux-005)
+  - [面试问题：介绍一下FLUX.1 Kontext的原理，有哪些创新点？](#q-flux-006)
+  - [面试问题：介绍一下FLUX.1 Krea的原理，有哪些创新点？](#q-flux-008)
 
-[3.介绍一下FLUX.1 Lite与FLUX.1的异同](#q-flux-005)
-
-[4.介绍一下FLUX.1 Kontext的原理，有哪些创新点？](#q-flux-006)
-  - [面试问题：介绍一下FLUX.1 Kontext的原理，FLUX.1 Kontext能够执行哪些AIGC任务？](#q-flux-007)
-
-[5.介绍一下FLUX.1 Krea的原理，有哪些创新点？](#q-flux-008)
-  - [面试问题：介绍一下FLUX.1 Krea的训练策略](#q-flux-009)
-  - [面试问题：介绍一下FLUX.1-Krea中监督微调（SFT）的流程](#q-flux-010)
-  - [面试问题：FLUX.1 Krea的后训练过程中有哪些关键要点？](#q-flux-011)
-  - [面试问题：介绍一下FLUX.1 Krea的后训练过程中使用的Tuned Preference Optimization技术](#q-flux-012)
-
-[6.与FLUX.1相比，FLUX.2有哪些创新点？](#q-flux-013)
+[3.与FLUX.1相比，FLUX.2有哪些创新点？](#q-flux-013)
+  - [面试问题：FLUX.2 相比 FLUX.1 的整体能力边界发生了哪些变化？](#q-flux-018)
+  - [面试问题：FLUX.2 的 Text Encoder 为什么从 CLIP + T5-XXL 切换到 24B VLM？](#q-flux-019)
+  - [面试问题：FLUX.2 的 DiT Backbone 有哪些结构与 Scaling 创新？](#q-flux-020)
+  - [面试问题：FLUX.2 如何用四轴 RoPE 与注意力机制统一文生图和多参考图编辑？](#q-flux-021)
+  - [面试问题：FLUX.2 的 VAE 如何权衡可学习性、重建质量与压缩率？](#q-flux-022)
+  - [面试问题：FLUX.2 在训练、蒸馏和工程部署上有哪些变化？](#q-flux-023)
 
 
 ---
@@ -313,14 +311,6 @@ OUT区影响上采样过程对特征进行还原，层数从00到11，感受野�
 同时如果IN层和OUT层只改变其中的某一层，几乎不会产生影响效果。
 
 M区：影响最大的一层，甚至比IN11层的影响更大，起到了类似IN层的作用，可以看作IN12层，但也只能起到一层的作用，不如IN层中多层叠加后的影响大。该层越大，构图越向该模型靠拢。
-
-
-<h2 id="q-035">面试问题：Stable Diffusion 中是如何添加时间步 timestep 信息的？</h2>
-
-
-<h2 id="q-036">面试问题：Stable Diffusion 训练时需要设置 timesteps=1000，为什么推理时只用几十步就可以生成图片？</h2>
-
-目前扩散模型训练一般使用DDPM（Denoising Diffusion Probabilistic Models）采样方法，但推理时可以使用DDIM（Denoising Diffusion Implicit Models）采样方法，DDIM通过去马尔可夫化，大大减少了扩散模型在推理时的步数。
 
 
 <h2 id="q-036a">面试问题：为什么相同 seed + 相同 prompt 在不同采样器 / 精度 / 框架下结果会有差异？工程上如何保证生成结果可复现？</h2>
@@ -1841,19 +1831,15 @@ FLUX.1 由 Black Forest Labs 团队（包含 Stable Diffusion 原核心作者）
 
 <h1 id="q-flux-001">1.介绍一下FLUX.1的原理，与Stable Diffusion 3相比有哪些创新点？</h1>
 
-FLUX.1系列模型是基于Stable Diffuson 3进行了升级优化，是目前性能最强的开源AI绘画大模型，其主要的创新点如下所示：
+<h2 id="q-flux-014">面试问题：FLUX.1 的 VAE 部分有哪些创新？详细分析改进意图</h2>
 
-1. FLUX.1系列模型将VAE的通道数扩展至64，比SD3的VAE通道数足足增加了4倍（16）。
-2. 目前公布的两个FLUX.1系列模型都是经过指引蒸馏的产物，这样我们就无需使用Classifier-Free Guidance技术，只需要把指引强度当成一个约束条件输入进模型，就能在推理过程中得到带指定指引强度的输出。
-3. FLUX.1系列模型继承了Stable Diffusion 3 的噪声调度机制，对于分辨率越高的图像，把越多的去噪迭代放在了高噪声的时刻上。但和Stable Diffusion 3不同的是，FLUX.1不仅在训练时有这种设计，采样时也使用了这种技巧。
-4. FLUX.1系列模型中在DiT架构中设计了双流DiT结构和单流DiT结构，同时加入了二维旋转式位置编码 (RoPE) 策略。
-5. FLUX.1系列模型在单流的DiT中引入了并行注意力层的设计，注意力层和MLP并联执行，执行速度有所提升。
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-### VAE部分的改进
+FLUX.1 VAE架构依然继承了SD 3 VAE的8倍下采样和输入通道数（16）。在FLUX.1 VAE输出Latent特征，并在Latent特征输入扩散模型前，还进行了Pack_Latents操作，一下子将Latent特征通道数提高到64（16 -> 64）。换句话说，FLUX.1系列的扩散模型部分输入通道数为64，是SD 3的四倍。这也代表FLUX.1要学习拟合的内容比起SD 3增加了4倍，所以官方大幅增加FLUX.1模型的参数量级来提升模型容量（model capacity）。
 
-**FLUX.1系列中，FLUX.1 VAE架构依然继承了SD 3 VAE的8倍下采样和输入通道数（16）。在FLUX.1 VAE输出Latent特征，并在Latent特征输入扩散模型前，还进行了Pack_Latents操作，一下子将Latent特征通道数提高到64（16 -> 64），换句话说，FLUX.1系列的扩散模型部分输入通道数为64，是SD 3的四倍**。这也代表FLUX.1要学习拟合的内容比起SD 3也增加了4倍，所以官方大幅增加FLUX.1模型的参数量级来提升模型容量（model capacity）。下面是Pack_Latents操作的详细代码，让大家能够更好的了解其中的含义：
+Pack_Latents操作的代码如下：
 
-```
+```python
 @staticmethod
 def _pack_latents(latents, batch_size, num_channels_latents, height, width):
     latents = latents.view(batch_size, num_channels_latents, height // 2, 2, width // 2, 2)
@@ -1863,17 +1849,18 @@ def _pack_latents(latents, batch_size, num_channels_latents, height, width):
     return latents
 ```
 
-**可以看到FLUX.1模型的Latent特征Patch化方法是将 $2\times2$ 像素块直接在通道维度上堆叠。这种做法保留了每个像素块的原始分辨率，只是将它们从空间维度移动到了通道维度。与之相对应的，SD 3使用下采样卷积来实现Latent特征Patch化，但这种方式会通过卷积减少空间分辨率从而损失一定的特征信息。**
+可以看到，FLUX.1模型的Latent特征Patch化方法是将 $2\times2$ 像素块直接在通道维度上堆叠。这种做法保留了每个像素块的原始分辨率，只是将它们从空间维度移动到了通道维度。与之相对应的，SD 3使用下采样卷积来实现Latent特征Patch化，但这种方式会通过卷积减少空间分辨率，从而损失一定的特征信息。
 
 Rocky再举一个形象的例子来解释SD 3和FLUX.1的Patch化方法的不同：
+
 1. SD 3（下采样卷积）：想象我们有一个大蛋糕，SD 3的方法就像用一个方形模具，从蛋糕上切出一个 $2\times2$ 的小方块。在这个过程中，我们提取了蛋糕的部分信息，但是由于进行了压缩，Patch块的大小变小了，信息会有所丢失。
 2. FLUX.1（通道堆叠）：FLUX.1 的方法更像是直接把蛋糕的 $2\times2$ 块堆叠起来，不进行任何压缩或者切割。我们仍然保留了蛋糕的所有部分，但是它们不再分布在平面上，而是被一层层堆叠起来，像是三明治的层次。这样一来，蛋糕块的大小没有改变，只是它们的空间位置被重新组织了。
 
-总的来说，**相比SD 3，FLUX.1将 $2\times2$ 特征Patch化操作应用于扩散模型之前**。这也表明FLUX.1系列模型认可了SD 3做出的贡献，并进行了继承与优化。
+总的来说，**相比SD 3，FLUX.1将 $2\times2$ 特征Patch化操作应用于扩散模型之前**。这也表明FLUX.1系列模型认可了SD 3做出的贡献，并在其基础上进行了继承与优化。
 
-目前发布的FLUX.1-dev和FLUX.1-schnell两个版本的VAE结构是完全一致的。**同时与SD 3相比，FLUX.1 VAE并不是直接沿用SD 3的VAE，而是基于相同结构进行了重新训练，两者的参数权重是不一样的**。并且SD 3和FLUX.1的VAE会对编码后的Latent特征做平移和缩放，而之前的SD系列中VAE仅做缩放：
+目前发布的FLUX.1-dev和FLUX.1-schnell两个版本的VAE结构完全一致。**与SD 3相比，FLUX.1 VAE并不是直接沿用SD 3的VAE，而是基于相同结构进行了重新训练，两者的参数权重并不相同**。并且SD 3和FLUX.1的VAE会对编码后的Latent特征做平移和缩放，而之前的SD系列中VAE仅做缩放：
 
-```
+```python
 def encode(self, x: Tensor) -> Tensor:
     z = self.reg(self.encoder(x))
     z = self.scale_factor * (z - self.shift_factor)
@@ -1882,35 +1869,584 @@ def encode(self, x: Tensor) -> Tensor:
 
 平移和缩放操作能将Latent特征分布的均值和方差归一化到0和1，和扩散过程加的高斯噪声在同一范围内，更加严谨和合理。
 
-下面是**Rocky梳理的FLUX.1-dev/schnell系列模型的VAE完整结构图**，希望能让大家对这个从SD系列到FLUX.1系列都持续繁荣的模型有一个更直观的认识，在学习时也更加的得心应手：
+FLUX.1-dev/schnell系列模型的VAE完整结构如下：
+
+<div align="center">
 
 ![FLUX.1-dev/schnell VAE完整结构图](./imgs/FLUX.1-VAE完整结构图.png)
 
-**Rocky认为Stable Diffusion系列和FLUX.1系列中VAE模型的改进历程，为工业界、学术界、竞赛界以及应用界都带来了很多灵感，有很好的借鉴价值。Rocky也相信AI绘画中针对VAE的优化是学术界一个非常重要的论文录用点！**
+*图：FLUX.1-dev/schnell VAE完整结构图*
+
+</div>
+
+分别使用SDXL、SD 3、FLUX.1系列模型进行1024x1024分辨率和2048x2048分辨率图像的压缩和重建，效果如下：
+
+<div align="center">
+
+![SDXL、SD 3与FLUX.1的VAE压缩重建效果对比](./imgs/SDXL-SD3-FLUX.1-VAE重建效果对比.jpg)
+
+*图：SDXL VAE、SD 3 VAE、FLUX.1 VAE压缩和重建效果对比*
+
+</div>
+
+可以看到，SDXL VAE在压缩和重建过程中出现了图像内容和文本的畸变，而SD 3 VAE和FLUX.1 VAE基本看不到明显的重建畸变。
+
+**Rocky认为Stable Diffusion系列和FLUX.1系列中VAE模型的改进历程，为工业界、学术界、竞赛界以及应用界都带来了很多灵感，有很好的借鉴价值。AI绘画中针对VAE的优化，也会是学术研究中一个非常重要的方向。**
+
+<h2 id="q-flux-015">面试问题：FLUX.1 的 Backbone 部分有哪些创新？详细分析改进意图</h2>
+
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+FLUX.1的Transformer模型部分在SD 3的基础上进一步优化，除了和SD 3一样有MM-DiT模块（双流DiT）外，同时还设计了Single-DiT模块（单流DiT）。在Single-DiT Block模块中，文本信息和图像信息拼接融合在一起，再送入Attention机制中处理；同时在额外条件部分会输入完整的Text Embeddings和池化过的Pooled Text Embeddings。
+
+直观地理解，FLUX.1先使用MM-DiT Block实现两个模态的信息融合，然后再接Single-DiT Block加深模型深度，在增强模型整体学习能力的同时，还可以节省一部分参数。FLUX.1系列中MM-Single-DiT架构包含19层MM-DiT Block和38层Single-DiT Block，扩散模型部分的参数量进一步扩展到约12B。
+
+<div align="center">
+
+![FLUX.1-dev/schnell MM-Single-DiT完整结构图](./imgs/FLUX.1-MM-Single-DiT完整结构图.jpg)
+
+*图：FLUX.1-dev/schnell MM-Single-DiT完整结构图*
+
+</div>
+
+MM-Single-DiT架构的核心组件包括：
+
+1. **MM-DiT Block**：由两个AdaLayerNormZero层、一个MM-DiT Attention Structure模块、两个LayerNorm层和两个FeedForward层组成。
+2. **Single-DiT Block**：由一个AdaLayerNormZero层、一个Single-DiT Attention Structure（DiT Attention）模块、两个Linear层和一个GELU激活函数组成。
+3. **MM-DiT Attention Structure**：FLUX.1的MM-DiT Block中的核心组件，和SD 3一样，将文本信息和图像信息以同等重要的级别进行Attention计算。
+4. **Single-DiT Attention Structure**：FLUX.1的Single-DiT Block中的核心组件，将文本信息和图像信息的特征融合后，进行经典的DiT Attention计算。
+5. **FeedForward**：由GELU激活函数、Dropout层和Linear层组成。
+
+和SD 3一样，FLUX.1系列模型将得到的Patch Embedding与Positional Embedding相加后，一起输入Transformer主架构。同时，通过AdaLN-Zero层将文本特征CLIP Pooled Embedding（全局语义信息）和Timestep Embedding相加得到的融合特征作为额外条件，注入Transformer Block中。
+
+### 并行注意力机制
+
+FLUX.1的Transformer架构还引入了并行注意力机制（Parallel Attention-MLP Blocks），主要应用于Single-DiT部分。
+
+<div align="center">
+
+![FLUX.1并行注意力机制示意图](./imgs/FLUX.1并行注意力机制示意图.jpg)
+
+*图：并行注意力机制（Parallel Attention-MLP Blocks）示意图*
+
+</div>
+
+并行注意力机制把注意力和线性层之间的串联结构转变成并联结构。常规注意力机制需要在计算注意力的前后各经过一次线性层的特征提取，转换成并联结构后，注意力在计算完成后与MLP进行Add操作并完成特征融合。这样一来，整体计算并行度更高，AI绘画模型的运行效率也随之提升。
+
+### 三维RoPE位置编码
+
+除了整体模型结构的优化，FLUX.1在位置编码上也有自己的改进。SD 3采用2D Frequency Embeddings，这是一种经典的绝对位置编码方式；FLUX.1则采用了大模型领域中常用的旋转式位置编码（Rotary Positional Embedding，RoPE），RoPE是直接作用在Attention机制上的相对位置编码方式。
+
+Transformer架构中只包含注意力和全连接两种经典计算方式，这两种计算本身都和位置信息无关。为了让Transformer知道图像像素间的空间对应关系，就需要给Transformer中的Token注入额外的位置信息。
+
+经典的正弦编码方式虽然能表示一定的相对位置信息，但经过注意力机制后，其中的相对位置信息几乎会丢失。旋转位置编码使用二维向量来表示每个Token的二维位置编码，经过注意力机制计算后，结果里恰好会出现相对位置关系，从而让注意力计算过程也能感知Token间的相对位置。
+
+总的来说，RoPE使用旋转变换，使每个位置的Token保留了相邻位置的相对关系。相比传统的绝对位置编码，RoPE更注重局部关系建模。这种增强的局部敏感性有助于AI绘画大模型捕获图像局部区域之间的细节关联，从而提升模型的生成质量和泛化性能。
+
+在FLUX.1中，具体操作是将文本的位置编号设为$(0,0,0)$，图像的位置编号设为$(0,i,j)$，之后用标准旋转式位置编码对三个维度的编号编码，再把三组编码拼接起来。
+
+假设位于$(i,j)$的图像像素位置编号是$(0,i,j)$，经过特征编码，位置编号会转换成$[16,56,56]$维度的矩阵，表示第一个维度使用长度16的位置编码，后两维使用长度56的位置编码。再经RoPE函数计算得到旋转式位置编码后，三组结果拼接到一起，最终形成128维的位置编码。编码前16个通道是第一维位置编号的位置编码，中间56个通道知道垂直位置信息，最后56个通道知道水平位置信息。
+
+Rocky认为，第一个维度是为视频生成的Time维度预留的，也就是说Black Forest Labs在架构上已经为后续视频生成能力留下了扩展空间。AI绘画大模型的持续发展正在带动AI视频大模型更新迭代，未来AI绘画与AI视频两个产业会进一步相互融合。
+
+<h2 id="q-flux-016">面试问题：FLUX.1 的 Text Encoder 部分有哪些创新？详细分析改进意图</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+
+Stable Diffusion 3的Text Encoder部分一共使用了CLIP ViT-L、OpenCLIP ViT-bigG、T5-XXL Encoder三个Text Encoder模型。其中，两个CLIP Encoder提取的Pooled Text Embeddings特征拼接在一起后与Time Embedding相加；两个CLIP Encoder的Text Embedding特征也会进行拼接，再在Token维度与T5-XXL的Text Embedding拼接后送入MM-DiT架构中。
+
+FLUX.1在SD 3的基础上对Text Encoder部分进行了精简优化，只使用CLIP ViT-L和T5-XXL Encoder两个Text Encoder模型，并没有使用OpenCLIP ViT-bigG模型。FLUX.1将CLIP ViT-L的Pooled Text Embeddings特征与Time Embedding相加，同时将T5-XXL提取的Text Embedding特征直接送入MM-DiT架构中。
+
+总的来说，**FLUX.1比SD 3更依赖T5-XXL提取的文本特征信息**。SD 3中CLIP Encoder的特征仍有较大的作用，比如SD 3可以去掉T5-XXL，只使用CLIP Encoder提取文本特征信息来生成图像。FLUX.1-dev和FLUX.1-schnell两个版本的Text Encoder部分结构完全一致。
+
+<div align="center">
+
+![FLUX.1-dev/schnell CLIP ViT-L Text Encoder完整结构图](./imgs/FLUX.1-CLIP-ViT-L-Text-Encoder完整结构图.jpg)
+
+*图：FLUX.1-dev/schnell CLIP ViT-L Text Encoder完整结构图*
+
+</div>
+
+<div align="center">
+
+![FLUX.1-dev/schnell T5-XXL Text Encoder完整结构图](./imgs/FLUX.1-T5-XXL-Text-Encoder完整结构图.jpg)
+
+*图：FLUX.1-dev/schnell T5-XXL Text Encoder完整结构图*
+
+</div>
+
+<h2 id="q-flux-002">面试问题：FLUX.1在训练过程中使用了哪些优化技巧？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+
+FLUX.1系列模型和SD 3模型一样，都是根据Rectified Flow采样进行推导的扩散模型。在此基础上，FLUX.1主要通过蒸馏、动态Time Shift和多尺度训练三类策略优化训练与推理效率。
+
+### 指引蒸馏与时间步蒸馏
+
+FLUX.1-dev是在FLUX.1-pro基础上进行指引蒸馏（Guidance Distillation）得到的模型，图像生成质量与文本一致性和FLUX.1-pro非常接近，同时推理效率更高。FLUX.1-schnell则是在指引蒸馏基础上进一步进行时间步蒸馏（Timestep Distillation）得到的模型，仅需1至4步就能完成图像生成过程，代价是无法像常规模型一样自由设置图像生成过程的Classifier-Free Guidance强度。
+
+指引蒸馏的目标是让AI绘画模型直接学习Classifier-Free Guidance（CFG）的生成结果，使模型一次前向就能输出此前通常需要两次前向计算才能得到的指引生成结果，从而节约接近一半的推理耗时。时间步蒸馏则通过加速蒸馏，让模型能够在极少的采样步数内完成图像生成。
+
+### 使用Time Shift平移Timestep
+
+FLUX.1设置了一个Time Shift值来平移Timestep。在Rectified Flow采样中，图像沿着某条高维路线从纯高斯噪声运动到训练集分布，同时标准差用于控制不同时刻图像的不确定性。
+
+时刻为0时，图像为纯噪声，此时标准差为1；时刻为1时，图像趋近训练集中的图像分布，此时标准差要尽可能趋于0。原本对于中间时刻，标准差默认按照时刻线性变化。FLUX.1设置的Time Shift是一个约$0.5\sim1.16$之间的数，用来控制中间时刻的噪声均值。
+
+<div align="center">
+
+![FLUX.1不同Time Shift取值对应的曲线](./imgs/FLUX.1-time-shift曲线.jpg)
+
+*图：FLUX.1不同Time Shift取值对应的曲线*
+
+</div>
+
+当Time Shift值越大时，运动线路逐渐上凸。当输入图像分辨率越大、对应的Token越多时，Time Shift越大，这时要加入的噪声就越多。这与SD 3中的Shift策略一致：对于分辨率越高的图像，需要加入更多噪声来摧毁原图像的分布特征。FLUX.1不仅在训练时使用这种设计，采样时也会根据序列长度调整噪声时间表。
+
+### 多分辨率与多长宽比训练
+
+FLUX.1系列模型能够灵活生成多种图像分辨率和长宽比，适应$0.1\sim2.0\text{MP}$（Megapixels，百万像素）的图像生成任务。总的来说，图像像素数量越多、分辨率越高，细节表现越丰富。
+
+<div align="center">
+
+![FLUX.1多分辨率与多长宽比生成示例](./imgs/FLUX.1多分辨率与长宽比生成示例.jpg)
+
+*图：FLUX.1系列模型生成多种分辨率和长宽比的图像*
+
+</div>
+
+FLUX.1能够适配各种分辨率的图像生成，主要得益于**多尺度训练 + RoPE位置编码 + 动态Time Shift**的组合策略。三者分别解决训练数据尺度覆盖、Token空间关系建模和不同序列长度下噪声调度的问题，共同提升了模型对不同分辨率与长宽比的泛化能力。
+
+<h1 id="q-flux-017">2.FLUX.1有哪些主流的变体与分支模型？介绍一下它们的核心原理</h1>
+
+<h2 id="q-flux-005">面试问题：介绍一下FLUX.1 Lite与FLUX.1的异同</h2>
+
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐ (3/5)**
+
+FLUX.1作为开源AI绘画大模型，其DiT部分参数量达到12B，与之对应的是推理成本也大幅增加。因此，Freepik在FLUX.1-dev的基础上开源了一个更小的蒸馏模型FLUX.1 Lite-8B-alpha：DiT部分的参数量从12B减少到8B，推理所需显存减少约7GB，同时生成图像的速度提升约23%。
+
+<div align="center">
+
+![FLUX.1 Lite模型结构与参数规模](./imgs/FLUX.1-Lite模型结构与参数规模.jpg)
+
+*图：FLUX.1 Lite模型结构与参数规模*
+
+</div>
+
+虽然参数量从12B降低到8B，但整体图像生成质量并未明显降低。使用同样的提示词，FLUX.1 Lite可以得到和FLUX.1-dev质量接近的生成图像。
+
+<div align="center">
+
+![FLUX.1 Lite与FLUX.1-dev图像生成效果对比](./imgs/FLUX.1-Lite与FLUX.1-dev生成效果对比.jpg)
+
+*图：FLUX.1 Lite与FLUX.1-dev图像生成效果对比*
+
+</div>
+
+### FLUX.1 Lite的轻量化原理
+
+FLUX.1 Lite的核心做法是减少FLUX.1-dev中MM-DiT Blocks的数量。FLUX.1-dev一共包含19个MM-DiT Blocks，而FLUX.1 Lite只保留8个，去掉第4至15层共11个MM-DiT Blocks。这本质上是使用模型轻量化领域中的经典技术——模型剪枝——压缩网络，再使用FLUX.1-dev作为教师模型进行蒸馏训练。
+
+Freepik通过固定提示词，分析不同MM-DiT Blocks和Single-DiT Blocks对整个生图结果的贡献。具体方法是计算每个Block输入和输出之间的MSE（Mean Squared Error）：如果MSE很小，说明Latent特征经过该Block后并没有发生太多变化，这一层对最终图像的边际贡献相对有限。
+
+<div align="center">
+
+![FLUX.1不同Blocks对图像生成结果的贡献分析](./imgs/FLUX.1-Blocks贡献MSE分析.jpg)
+
+*图：FLUX.1的MM-DiT Blocks和Single-DiT Blocks贡献分析*
+
+</div>
+
+实验结果表明，FLUX.1前部和后部MM-DiT Block的输入输出变化较大，中间部分MM-DiT Block的变化较小；后部Single-DiT Block的变化较大，而前面大部分Single-DiT Block的变化较小。这说明去掉一部分中间Block，并不会给最终生成质量带来明显改变。
+
+Freepik最终选择去掉第4至15层MM-DiT Blocks，一个重要原因是MM-DiT Blocks的参数规模比Single-DiT Blocks更大，对MM-DiT部分进行剪枝可以获得更高的显存与速度收益。**因此，FLUX.1 Lite不是重新设计一套架构，而是在FLUX.1-dev能力分布分析的基础上，通过结构化剪枝与知识蒸馏完成轻量化。**
+
+<h2 id="q-flux-006">面试问题：介绍一下FLUX.1 Kontext的原理，有哪些创新点？</h2>
+
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+FLUX.1 Kontext一共有三个版本：FLUX.1 Kontext [max]、FLUX.1 Kontext [pro]和FLUX.1 Kontext [dev]。其中FLUX.1 Kontext [max]是性能最强的版本；FLUX.1 Kontext [pro]使用潜在对抗性扩散蒸馏（Latent Adversarial Diffusion Distillation，LADD）训练，能够在提升图像生成质量的同时显著减少采样步数，从而提高生成速度，更适合实时应用。上述两个模型同时支持文生图和图像编辑，但没有开源，可以通过官方API使用。
+
+FLUX.1 Kontext [dev]是开源版本，只支持纯图像编辑，不支持文生图。它可以与FLUX.1 [dev]配合使用，实现文生图和图像编辑的完整流程；其开源协议和FLUX.1 [dev]一样，不支持商用。
+
+<div align="center">
+
+![FLUX.1 Kontext图像编辑效果](./imgs/FLUX.1-Kontext图像编辑效果.jpg)
+
+*图：FLUX.1 Kontext图像编辑效果*
+
+</div>
+
+### 双路径多模态特征处理机制
+
+FLUX.1 Kontext的整体架构基于FLUX.1的DiT（Diffusion Transformer）扩展，通过引入参考图像作为条件输入实现多模态生成能力，**其核心创新在于构建双路径多模态特征处理机制**。
+
+<div align="center">
+
+![FLUX.1 Kontext工作流程](./imgs/FLUX.1-Kontext工作流程.jpg)
+
+*图：FLUX.1 Kontext工作流程*
+
+</div>
+
+**双模态编码解决的是如何将参考图像输入模型的问题。**参考图像首先经过冻结的VAE Encoder编码为Latent Tokens特征 $`z_{\mathrm{ref}}\in\mathbb{R}^{h\times w\times c}`$，输入的初始噪声矩阵为 $`z_{\mathrm{noise}}\in\mathbb{R}^{h\times w\times c}`$。噪声矩阵与参考图Latent沿Token序列维度拼接，形成更长的序列：
+
+```math
+z_{concat}=\mathrm{Concat}(z_{noise},z_{ref})
+\in\mathbb{R}^{2\times h\times w,c}
+```
+
+接着将 $`z_{\mathrm{concat}}`$ 输入FLUX.1 Kontext。这样做简单直接，让模型自己学习区分哪部分是生成目标、哪部分是参考条件，同时支持不同的输入与输出分辨率和宽高比，也可以从结构上扩展到多个参考图像 $`y_1,y_2,\ldots,y_N`$。
+
+实验发现，序列拼接（Sequence Concatenation）的效果优于通道级拼接（Channel-wise Concatenation）。可能的原因是序列拼接保持了每张图像的完整性，可以通过位置编码区分不同图像，同时Transformer架构本身也更适合处理序列信息。
+
+### 三维RoPE区分目标图与参考图
+
+FLUX.1 Kontext还需要知道哪些Tokens属于目标图、哪些属于参考图，因此在DiT位置编码中采用3D RoPE，为目标图像和参考图像赋予不同位置：
+
+1. 训练时为目标图像Tokens赋予位置 $(0,h,w)$，推理时目标图像被替换为初始噪声矩阵。
+2. 为第 $i$ 张参考图像的Tokens赋予位置 $(i,h,w)$，其中 $i=1,\ldots,N$。
+
+第一个维度 $t=0,1,2,\ldots$ 可以理解为一个虚拟时间标签（Virtual Time Step）：$t=0$ 表示“这是要生成的目标图像”，$t=1,2,\ldots$ 表示“这是第1张、第2张参考图像”。这样模型就能清晰地区分不同输入图像的信息和作用。
+
+```math
+\mathrm{RoPE}(x,t)=
+\begin{bmatrix}
+\cos(t\theta)&-\sin(t\theta)\\
+\sin(t\theta)&\cos(t\theta)
+\end{bmatrix}
+\begin{bmatrix}x_0\\x_1\end{bmatrix}
+```
+
+理论上，FLUX.1 Kontext的结构可以支持任意数量的参考图像，但官方实际训练只支持输入一张参考图像，因此标准推理流程也只输入一张图。开源社区常通过先把多张图拼成一张图，再送入Kontext，实现多图像融合效果。
+
+<div align="center">
+
+![FLUX.1 Kontext整体架构](./imgs/FLUX.1-Kontext整体架构.jpg)
+
+*图：FLUX.1 Kontext整体架构*
+
+</div>
+
+<div align="center">
+
+![FLUX.1 Kontext中的DiT Block](./imgs/FLUX.1-Kontext-DiT-Block.jpg)
+
+*图：FLUX.1 Kontext继承自FLUX.1的DiT Block*
+
+</div>
+
+### 统一建模图像生成与图像编辑
+
+FLUX.1 Kontext是原生AIGC图像生成编辑大模型，因此需要建模同时满足图像生成与图像编辑要求的条件分布：
+
+```math
+p_\theta(x\mid y,c)
+```
+
+它表示“在给定参考图像 $y$ 和文字提示词 $c$ 的条件下，生成目标图像 $x$ 的概率”。其中：
+
+1. $x$ 是模型要生成的目标图像（Target Image）。
+2. $y$ 是参考图像（Context Image），可以为空；当 $y\neq\varnothing$ 时执行图像内容编辑，当 $y=\varnothing$ 时执行纯文本到图像生成。
+3. $c$ 是自然语言提示词，例如“把背景变成雪山”。
+
+通过条件分布 $`p_\theta(x\mid y,c)`$ 建模，同一模型可以处理图像生成和图像编辑两类任务。这种混合训练策略正在成为AIGC图像生成编辑大模型的重要训练基石：高质量、高分辨率的T2I数据可以提升高分辨率编辑中的细节还原和复杂场景处理能力，同时保留模型原生的文本生成图像能力，增强模型面对多样化编辑需求时的泛化性。
+
+文本提示词 $c$ 是描述参考图像与目标图像变化关系的桥梁。官方筛选整理了数百万个 $(x,y,c)$ 三元关系对，并从FLUX.1纯图像生成模型开始训练优化。
+
+### Rectified Flow训练目标与损失函数
+
+直接获得高维图像条件分布 $`p_\theta(x\mid y,c)`$ 的解析解非常困难。由于FLUX.1 Kontext和FLUX.1一样采用Rectified Flow，因此可以把分布建模转化为向量场 $`v_\theta`$ 的学习：
+
+1. **前向扩散过程**：从目标图像 $x$ 出发，随时间 $t$ 向纯噪声 $\varepsilon$ 过渡，形成流 $`z_t`$。
+2. **反向去噪过程**：从纯噪声 $\varepsilon$ 出发，沿向量场 $`v_\theta`$ 积分，最终得到目标图像 $x$。
+
+损失函数的作用是让模型预测的向量场尽可能接近真实流变化率：
+
+```math
+\mathcal{L}_\theta=
+\mathbb{E}_{t\sim p(t),x,y,c}
+\left[
+\left\|v_\theta(z_t,t,y,c)-(\varepsilon-x)\right\|_2^2
+\right]
+```
+
+其中，干净目标图像为 $x$，随机高斯噪声满足 $\varepsilon\sim\mathcal{N}(0,1)$；$`z_t`$ 是二者之间的线性插值：
+
+```math
+z_t=(1-t)x+t\varepsilon
+```
+
+$`v_\theta`$ 是模型预测的速度场，训练目标是逼近 $\varepsilon-x$ 的方向。时间步使用Logit-Normal Shift Schedule从 $p(t;\mu,\sigma=1.0)$ 中采样，模式参数 $\mu$ 可以根据训练数据分辨率调整；当 $y=\varnothing$ 时，省略参考图像Tokens，只保留文本生成图像能力。
+
+这一期望本质上同时对三元组 $(x,y,c)$ 的数据分布和时间步分布 $p(t)$ 取期望，可以展开为：
+
+```math
+\mathcal{L}_\theta=
+\int_t\int_{x,y,c}p(t)p(x,y,c)
+\left\|v_\theta(z_t,t,y,c)-(\varepsilon-x)\right\|_2^2
+\,dt\,dx\,dy\,dc
+```
+
+这里 $p(x,y,c)$ 是训练数据的联合分布，模型学习的 $`p_\theta(x\mid y,c)`$ 是对真实条件分布 $`p_{\mathrm{data}}(x\mid y,c)`$ 的近似。当损失最小时，模型预测的向量场会诱导出一个流分布，使其尽可能逼近真实数据分布。
+
+### Logit-Normal时间步采样
+
+Rectified Flow选择连续直线作为噪声添加路径：
+
+```math
+z_t=a_tx_0+b_t\varepsilon=(1-t)x_0+t\varepsilon
+```
+
+其中 $`x_0\sim p_{\mathrm{data}}`$、$\varepsilon\sim\mathcal{N}(0,1)$，并设置 $`a_t=1-t`$、$`b_t=t`$。对应的对数信噪比为：
+
+```math
+\lambda_t=\log\frac{a_t^2}{b_t^2}
+=\log\frac{(1-t)^2}{t^2}
+```
+
+在训练时不会均匀采样混合比例 $t$，而是让模型更多关注特定关键阶段。Logit-Normal分布可以让模型在训练时聚焦特定时间步，从而提升生成图像的质量和细节，是FLUX.1 Kontext实现分辨率自适应训练的重要技术。
+
+时间步 $t$ 的取值范围是 $(0,1)$，而正态分布定义域是整个实数轴。为了用正态分布建模 $t$，需要引入Logit变换及其逆变换：
+
+```math
+Y=\mathrm{logit}(t)=\log\frac{t}{1-t},
+\qquad
+t=\sigma(Y)=\frac{\exp(Y)}{1+\exp(Y)}
+```
+
+当 $Y\in\mathbb{R}$ 时，$t=\sigma(Y)$ 必然落在 $(0,1)$。如果随机变量 $Y=\mathrm{logit}(t)$ 服从正态分布 $\mathcal{N}(\mu,\sigma^2)$，那么 $t$ 服从Logit-Normal分布：
+
+```math
+t\sim\mathrm{Logit\text{-}Normal}(\mu,\sigma^2)
+```
+
+其概率密度函数为：
+
+```math
+p(t)=
+\frac{
+\exp\left(-0.5\cdot(\mathrm{logit}(t)-\mu)^2/\sigma^2\right)
+}{
+\sigma\sqrt{2\pi}\cdot t(1-t)
+}
+```
+
+概率密度 $p(t)$ 可以理解为模型训练时的“注意力分配器”，决定模型把更多训练资源放在哪个噪声阶段。工程实现不直接从复杂密度函数采样，而是先采样正态变量，再进行Logit逆变换：
+
+```python
+import torch
+from torch.distributions import Normal
 
 
-<h1 id="q-flux-002">2.FLUX.1在训练过程中使用了哪些优化技巧？</h1>
+def sample_t(mu, sigma, shape):
+    y = Normal(mu, sigma).sample(shape)
+    return torch.sigmoid(y)
+```
 
-<h2 id="q-flux-003">面试问题：FLUX.1模型的微调训练流程一般包含哪几部分核心内容？</h2>
+<div align="center">
+
+![FLUX.1 Kontext的Logit-Normal分布](./imgs/FLUX.1-Kontext-Logit-Normal分布.jpg)
+
+*图：Logit-Normal分布与时间步采样*
+
+</div>
+
+Logit-Normal分布的形状由均值 $\mu$ 和标准差 $\sigma$ 控制：
+
+1. $\mu=0$ 时，采样重心在中间时间步 $t=0.5$，对应中等噪声阶段。
+2. $\mu>0$ 时，$t$ 偏向1，对应高噪声阶段。
+3. $`\mu<0`$ 时，$t$ 偏向0，对应低噪声阶段。
+4. $\sigma$ 越小，采样越集中在 $\sigma(\mu)$ 附近；$\sigma$ 越大，采样覆盖的时间步越广。
+
+在FLUX.1 Kontext中，$\mu$ 与分辨率自适应因子 $\alpha$ 直接绑定：$\mu=\log\alpha$。处理高分辨率图像时，可以增大 $\alpha$，让采样重心右移，使模型更多训练高噪声阶段，反复学习如何从复杂噪声中恢复细节；处理低分辨率图像时，可以使用 $\alpha=1$、$\mu=0$，在保证质量的同时提高训练效率。通常固定 $\sigma=1.0$，主要通过调整 $\mu$ 实现分辨率自适应。
+
+<div align="center">
+
+![FLUX.1 Kontext中mu与sigma控制时间步采样分布](./imgs/FLUX.1-Kontext-mu-sigma采样分布.jpg)
+
+*图：均值与标准差对时间步采样分布的影响*
+
+</div>
+
+<div align="center">
+
+![FLUX.1 Kontext分辨率自适应时间步采样](./imgs/FLUX.1-Kontext分辨率自适应采样.jpg)
+
+*图：不同分辨率对应的时间步采样重心*
+
+</div>
+
+### Timestep Schedule Shifting
+
+Timestep Schedule Shifting（时间步调度偏移）是FLUX.1 Kontext实现分辨率自适应训练的另一种表达。它通过调整时间步 $t$ 的分布，改变模型对不同噪声阶段的关注程度：高分辨率图像需要更多高噪声阶段训练，以学习从复杂噪声中恢复细节；低分辨率图像则可以聚焦较低噪声阶段，提升训练效率。
+
+对于标准Rectified Flow前向过程，可以定义Log-SNR为：
+
+```math
+\lambda_t^{0,1}=2\log\frac{1-t}{t}
+=-2\mathrm{logit}(t)
+```
+
+<div align="center">
+
+![FLUX.1 Kontext标准Rectified Flow的Log-SNR](./imgs/FLUX.1-Kontext标准LogSNR.jpg)
+
+*图：标准Rectified Flow前向过程的Log-SNR*
+
+</div>
+
+对于任意偏移 $\mu$ 和缩放 $\sigma$，Log-SNR可以一般化为：
+
+```math
+\lambda_t^{\mu,\sigma}
+=-2\left(\sigma\cdot\mathrm{logit}(t)+\mu\right)
+=\sigma\lambda_t^{0,1}-2\mu
+```
+
+$\sigma$ 控制Log-SNR分布范围，$\mu$ 控制均值偏移。引入分辨率自适应的 $\alpha$-Shifted Log-SNR：
+
+```math
+\lambda_t^\alpha=\lambda_t^{0,1}-2\log\alpha
+```
+
+当 $\sigma=1.0$ 时，可以得到关键关系 $\mu=\log\alpha$。进一步求解偏移后的时间步 $t'$：
+
+```math
+t'=\frac{e^\mu}{e^\mu+\left(\frac{1}{t}-1\right)^\sigma}
+```
+
+这个公式把原始时间步 $t$ 映射到新时间步 $t'$，从而改变训练时的Log-SNR分布。当 $\alpha>1$ 时，$t'>t$，模型更多训练高噪声阶段；当 $`\alpha<1`$ 时，$`t'<t`$，模型更多训练低噪声阶段。高分辨率图像通过 $\alpha>1$ 强化高噪声阶段学习，低分辨率图像通过 $`\alpha<1`$ 提升训练效率。相关实验中，$\alpha=3.0$ 在分辨率从 $256^2$ 提升到 $1024^2$ 时取得了较好效果。
+
+<div align="center">
+
+![FLUX.1 Kontext的Timestep Schedule Shifting](./imgs/FLUX.1-Kontext-Timestep-Shift.jpg)
+
+*图：Timestep Schedule Shifting对不同分辨率训练的作用*
+
+</div>
+
+总的来说，Logit-Normal采样与Shifted Timestep是同一策略的两种表达：前者通过调整 $\mu=\log\alpha$ 直接改变时间步采样分布，后者把原始时间步映射为服从偏移分布的新时间步。两者本质上都是改变训练资源在不同噪声阶段之间的分配。
+
+### 经典应用场景
+
+FLUX.1 Kontext可以执行文生图、图像局部编辑、人物一致性保持和风格参考等任务。风格参考并不是复制原图内容，而是提取参考图像的风格，再结合文本提示词生成全新内容，同时保留参考图像中的独特风格。
+
+<div align="center">
+
+![FLUX.1 Kontext风格参考功能](./imgs/FLUX.1-Kontext风格参考.jpg)
+
+*图：FLUX.1 Kontext风格参考功能*
+
+</div>
 
 
-<h2 id="q-flux-004">面试问题：FLUX.1模型的微调训练流程中有哪些关键参数？</h2>
+<h2 id="q-flux-008">面试问题：介绍一下FLUX.1 Krea的原理，有哪些创新点？</h2>
 
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-<h1 id="q-flux-005">3.介绍一下FLUX.1-Lite与FLUX.1的异同</h1>
+FLUX.1 Krea由Black Forest Labs和Krea AI联合研发并开源。Black Forest Labs向Krea AI提供了FLUX.1-dev模型的完整预训练权重`flux-dev-raw`，作为后训练的基座模型。
 
+作为一个输出分布多样、可塑性强的预训练基座，`flux-dev-raw`生成的图像质量还没有达到顶尖基础模型的水准，但它具备成为理想后训练基座的三项优势：
 
-<h1 id="q-flux-006">4.介绍一下FLUX.1 Kontext的原理，有哪些创新点？</h1>
+1. `flux-dev-raw`蕴含丰富的通用知识，已经掌握常见物体、动物、人物、拍摄视角和媒介等视觉概念。
+2. 它已经具备可观的基础能力，能够生成结构连贯的图像、完成基本构图并进行文字渲染。
+3. 最重要的是，它尚未“定型”，没有固化的“AI审美定式”，能够生成从粗糙到精美的多样化图像。
 
-<h2 id="q-flux-007">面试问题：介绍一下FLUX.1 Kontext的原理，FLUX.1 Kontext能够执行哪些AIGC任务？</h2>
+<div align="center">
 
+![flux-dev-raw模型图像生成效果](./imgs/FLUX.1-Krea-flux-dev-raw生成效果.jpg)
 
-<h1 id="q-flux-008">5.介绍一下FLUX.1 Krea的原理，有哪些创新点？</h1>
+*图：flux-dev-raw模型图像生成效果*
 
-<h2 id="q-flux-009">面试问题：介绍一下FLUX.1 Krea的训练策略</h2>
+</div>
 
+经过微调训练后，FLUX.1 Krea [dev]展现出较高的审美水平和图像质量，特别是在照片级写实场景中表现突出，整体具备以下特性：
 
-<h2 id="q-flux-010">面试问题：介绍一下FLUX.1-Krea中监督微调（SFT）的流程</h2>
+1. **聚焦美学摄影**：擅长生成具有较强美学感的摄影风格图像，缓解常见的“AI感”，提升真实感和图像质量。
+2. **提示词理解能力较强**：具备较好的提示词跟随能力，可以处理复杂的内容描述。
+3. **采用引导蒸馏技术**：在生成图像时计算效率更高，速度更快。
+4. **兼容开源生态**：兼容FLUX.1 [dev]架构及其对应的开源生态系统。
+
+<div align="center">
+
+![FLUX.1 Krea dev图像生成效果](./imgs/FLUX.1-Krea-dev生成效果.jpg)
+
+*图：FLUX.1 Krea [dev]图像生成效果*
+
+</div>
+
+与大多数AIGC图像生成大模型不同，FLUX.1 Krea融入了鲜明的主观审美取向和“美学偏好”（Opinionated），专注于呈现独特审美：减少“AI痕迹”和过曝高光，保留自然细腻的细节。其训练目标是生成更真实、更多样的图像，并避免图像生成中常见的过度饱和和蜡质纹理。
+
+### FLUX.1 Krea如何破除“AI感”
+
+Black Forest Labs和Krea AI在分析文生图大模型的“AI感”时引用了古德哈特定律：**“当一个衡量标准变成目标时，它就不再是一个好的衡量标准。”**
+
+从GAN时代生成猫狗花卉的早期阶段至今，图像生成技术已经取得很大进步。当今模型不仅能生成结构准确的人脸、肢体与手掌，还能理解精确数量关系、渲染复杂字体排版，甚至完成“宇航员骑马”这类复杂场景。
+
+然而，AIGC大模型生成的图像通常具有一种容易被识别的“味道”：过度模糊的背景、蜡质般的皮肤纹理、乏味单调的构图等，这些问题共同构成了所谓的“AI感”。
+
+<div align="center">
+
+![AIGC图像生成大模型的AI感](./imgs/FLUX.1-Krea-AI感示例.jpg)
+
+*图：AIGC图像生成大模型常见的“AI感”*
+
+</div>
+
+业界长期过度关注模型的“智能程度”，并通过基准测试衡量空间关系、属性绑定、物体计数、文字渲染等能力。研究界在推进生成模型发展方面取得了显著成果，但在追逐技术能力和基准优化的过程中，早期图像模型的原生质感、风格多样性和创作灵性反而容易被边缘化。
+
+在预训练阶段，FID和CLIP Score等指标对于衡量模型总体性能很有用；预训练之后，DPG、GenEval、T2I-CompBench和GenAI-Bench等评估基准主要衡量提示词遵循、空间关系、属性绑定和物体计数。它们并不能完整描述图像的主观审美质量。
+
+在美学评估方面，LAION-Aesthetics、PickScore、ImageReward和HPSv2等评分模型多数是基于CLIP的微调变体，处理分辨率通常较低、参数量也相对有限。随着图像生成大模型能力提升，这类旧有美学评分模型已经很难独立承担高质量审美评估。
+
+例如，常被用于筛选训练图像的LAION-Aesthetics模型存在明显偏好：更容易选择女性形象、模糊背景、柔化纹理和高亮度图像。美学评分器与图像质量过滤器可以有效筛除劣质图像，但依赖它们筛选训练数据，也会给模型先验注入隐性的审美偏差。
+
+<div align="center">
+
+![LAION Aesthetics高分图像的审美偏差](./imgs/FLUX.1-Krea-LAION审美偏差.jpg)
+
+*图：LAION-Aesthetics评分前5%的图像示例*
+
+</div>
+
+尽管基于视觉语言模型的新一代美学评分器正在出现，核心问题仍然是：**人类偏好与美学判断具有高度主观性，无法被简单压缩为一个数字。**要在提升模型能力的同时避免滑向“AI感”，需要精细的数据策划，以及对模型输出进行充分校准与微调。
+
+### “模式坍缩”的艺术
+
+训练一个AIGC图像生成模型主要分为预训练和后训练两个阶段。模型绝大部分美学特质是在后训练阶段学习的，但模型能力和风格多样性的上限首先由预训练基座决定。
+
+<div align="center">
+
+![FLUX.1 Krea的预训练与后训练分工](./imgs/FLUX.1-Krea预训练与后训练.jpg)
+
+*图：预训练与后训练的目标分工*
+
+</div>
+
+**预训练阶段的重点是“模式覆盖”（Mode Coverage）和“世界理解”（World Understanding）。**模型需要充分吸收视觉世界中的各类风格、物体场景、地域风貌与人物形象，目标是最大化生成多样性。
+
+预训练模型甚至应该接触“劣质”数据，只要这些不良特征能够被条件机制准确描述。除了让模型知道“何为优秀”，也需要让模型理解“何为糟粕”。当前很多图像生成工作流会使用“手指畸形、面部扭曲、画面模糊、色彩过饱和”等负面提示词；如果模型从未见过这些不良特征，负面条件就无法有效引导模型避开对应的数据分布区域。
+
+**后训练阶段的核心任务，是转移并剔除数据分布中的不良成分。**预训练模型可以生成多样图像、理解广泛概念，但由于尚未形成明确的美学偏向，往往难以稳定输出高质量图像。此时需要主动利用“模式坍缩”（Mode Collapse）：通过后训练让模型持续偏向期望的优质数据分布区间，而不是平均保留所有类型的输出。
+
+<div align="center">
+
+![FLUX.1 Krea通过后训练完成模式聚焦](./imgs/FLUX.1-Krea模式坍缩示意图.jpg)
+
+*图：FLUX.1 Krea通过后训练将生成分布聚焦到优质区域*
+
+</div>
+
+### 监督微调（SFT）流程
+
+<div align="center">
+
+![FLUX.1 Krea的SFT与RLHF后训练流程](./imgs/FLUX.1-Krea-SFT-RLHF流程.jpg)
+
+*图：FLUX.1 Krea的监督微调与偏好优化流程*
+
+</div>
 
 FLUX.1 Krea模型中的监督微调（SFT）是其摆脱“AI感”，生成具有照片级真实感和独特美学图像的关键步骤。
 
@@ -1959,7 +2495,7 @@ SFT微调并非孤立的环节，它为后续的RLHF阶段打下了坚实的基�
 | **RLHF** | **对齐人类偏好**与**风格强化** | 小规模、带有明确艺术导向的人类偏好数据 | 进一步校准输出，使风格更鲜明，更稳健地符合人类审美 |
 
 
-<h2 id="q-flux-011">面试问题：FLUX.1 Krea的后训练过程中有哪些关键要点？</h2>
+### 后训练过程中的关键要点
 
 在监督微调阶段，FLUX.1 Krea精心筛选构建了一个符合官方审美标准的、最高质量的图像数据集。同时在训练FLUX.1 Krea大模型的过程中，还加入了来自Krea-1模型的高质量合成图像数据，这些图像被用于增强 SFT 阶段的模型训练效果。
 
@@ -1974,8 +2510,21 @@ SFT微调并非孤立的环节，它为后续的RLHF阶段打下了坚实的基�
 
 Krea官方认为，在”全局”用户偏好上微调训练的模型在审美质量上并非最优。对于像文本渲染、解剖结构、物体结构和提示词遵循度这样有客观事实依据的目标，数据的多样性和规模确实是很有帮助的。然而，对于像美学质量这样主观的目标，将不同的审美品味混合在一起几乎是相互抵触的。
 
+例如，一个用户喜欢高端时尚摄影，另一个用户钟情于极简主义绘画。如果分别获得聚焦、明确的偏好标注，模型很容易对齐并擅长相应风格；但把两种分布合并后，得到的往往是一个边缘化的“中庸”偏好分布，最终模型难以让任何一方满意。
 
-<h2 id="q-flux-012">面试问题：介绍一下FLUX.1 Krea的后训练过程中使用的Tuned Preference Optimization技术</h2>
+<div align="center">
+
+![不同用户审美偏好融合后的中庸分布](./imgs/FLUX.1-Krea偏好分布融合.jpg)
+
+*图：不同审美偏好融合后形成的“中庸”分布*
+
+</div>
+
+这个问题可以通过设计提示词部分缓解，但不是一个充分的解决方案。很多用户最终需要配合LoRA才能获得所需的风格化水平。用户通常希望模型具备合理的默认输出，而不是每次都需要堆叠大量修饰词才能获得具有审美水准的图像。
+
+受此直觉启发，Krea以主观明确的方式收集偏好数据，使其符合团队自身的审美品味和清晰艺术方向。对于美学这种主观目标，将模型有意识地“过拟合”到一种特定风格，往往效果更好、实现也更直接。
+
+### Tuned Preference Optimization技术
 
 在SFT阶段之后，FLUX.1 Krea模型的**图像质量**已经很高了，但**美学风格和鲁棒性**还未达到理想状态。团队发现，使用现有的开源偏好数据集进行优化会导致模型出现“审美中庸”、风格倒退（回归“AI感”）等问题。
 
@@ -2049,10 +2598,16 @@ flowchart TD
 
 **总而言之，TPO是FLUX.1 Krea成功的关键技术之一。它代表了一种新一代模型优化的理念：从追求“什么都会一点”的通用模型，转向在特定领域或风格上做到极致的“专家型”模型。这种“主观明确”的优化路径，很可能成为未来顶级AI模型竞争的核心。**
 
-<h1 id="q-flux-013">6.与FLUX.1相比，FLUX.2有哪些创新点？</h1>
+<h1 id="q-flux-013">3.与FLUX.1相比，FLUX.2有哪些创新点？</h1>
+
+<h2 id="q-flux-018">面试问题：FLUX.2 相比 FLUX.1 的整体能力边界发生了哪些变化？</h2>
+
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+FLUX.2 系列最本质的变化，不只是把 FLUX.1 的文生图质量继续做高，而是把**文生图、单图编辑和多参考图编辑统一到同一套模型能力中**，使模型从“生成一张好看的图片”进一步走向可重复、可组合、可约束的生产工作流。
 
 FLUX.2系列更新的新特性与核心优化亮点，具体如下：
-1. **支持参考图生成**：最多可输入 10 张参考图像，在角色、产品及风格一致性上达到当前最佳水平。支持显式图像索引，用户可在提示词中通过编号引用特定图像，例如“将图 2 中的衣服穿在图 1 的角色身上”。
+1. **支持参考图生成**：FLUX.2 产品界面最多可输入 10 张参考图像，在角色、产品及风格一致性上达到当前最佳水平。支持显式图像索引，用户可在提示词中通过编号引用特定图像，例如“将图 2 中的衣服穿在图 1 的角色身上”。需要注意，不同部署形态的上限并不完全相同：BFL 当前 API 的 [max]、[pro]、[flex] 最多支持 8 张，Playground 最多支持 10 张，开源 [dev] 建议最多使用 6 张。
 2. **图像细节与照片级真实感**：生成图像具备更丰富的细节、更清晰的纹理与更自然的光照表现，适用于产品摄影、可视化及类似专业摄影场景。
 3. **文本渲染能力提升**：可稳定生成复杂排版、信息图表、表情包及含细小文字的 UI 界面模型，支持中文输入与中文文字渲染，已具备生产环境可用性。
 4. **增强的提示词遵循**：能够更准确地理解并执行复杂的结构化指令（支持 JSON 格式），包括多部分提示词及构图约束。
@@ -2060,21 +2615,35 @@ FLUX.2系列更新的新特性与核心优化亮点，具体如下：
 6. **更高分辨率与灵活的宽高比**：支持最高 4MP（例如 1920×1920）的图像编辑分辨率，并允许灵活的输入与输出比例。
 7. **支持十六进制颜色描述**：可通过如 #DDC57A 的十六进制代码精准描述对象颜色，在色彩控制方面表现优异。
 
+这些能力并不是彼此孤立的功能点。多参考图提供可复用的角色、商品和风格条件，结构化 Prompt 与十六进制颜色提高控制精度，4MP 编辑和更强文字渲染则让输出更接近设计、广告、电商与 UI 原型等真实生产物料。换句话说，FLUX.2 的主要升级方向是把“生成能力”变成“可进入工作流的视觉智能能力”。
 
-### FLUX.2的Text Encoder部分的优化
+<h2 id="q-flux-019">面试问题：FLUX.2 的 Text Encoder 为什么从 CLIP + T5-XXL 切换到 24B VLM？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
 在Text Encoder部分，FLUX.2的文本编码器不再使用T5和CLIP，而是改用了**Mistral-3-24B视觉语言大模型**（VLM大模型，Mistral-Small-3.2-24B-Instruct-2506），视觉语言大模型提供真实世界知识和上下文理解，增强了对世界、材质、空间关系和构图的建模能力。同时使用单个文本编码器极大地简化了Prompt Embeddings的计算过程。
 
+这项变化的改进意图，可以从三个层面理解：
 
-### FLUX.2的DiT Backbone部分的优化
+1. **从“文本相似度”走向“指令与世界知识”**：CLIP擅长学习图文对齐，T5-XXL擅长长文本语义，但二者都不是为复杂视觉指令理解而统一训练的VLM。24B VLM能够把实体关系、材质属性、空间逻辑、文字内容与构图约束组织到同一上下文中，更适合处理结构化Prompt和多对象组合任务。
+2. **减少异构编码器之间的语义拼接**：FLUX.1需要同时协调CLIP与T5产生的不同表征；FLUX.2使用单个VLM作为主要文本条件来源，Prompt Embeddings的计算和条件接口更统一，避免多个编码空间在尺度与语义侧重点上的额外对齐成本。
+3. **把Prompt扩写纳入同一语言模型能力**：官方开源推理代码可以复用 `Mistral-Small-3.2-24B-Instruct-2506` 对原始Prompt做Prompt Upsampling，再用同一模型提取条件特征。这样，短提示词可以先被整理成更完整的场景描述，再进入生成模型。
+
+这里还要区分两个容易混淆的概念：**VLM负责提供具有视觉知识的文本条件表征，不代表参考图像直接由Mistral编码后送入DiT**。在FLUX.2开源实现中，参考图仍先经过新版VAE编码为图像Latent Token，再与文本Token、目标图像Token在DiT中交互。
+
+它的工程代价也很明确：24B文本编码器显著增加显存和加载成本。因此，官方与Hugging Face提供了远程Text Encoder、量化和分模块卸载路径。面试中不能只回答“换成VLM后语义更强”，还要指出它本质上是用更大的条件模型换取世界知识、指令理解和统一的多模态语义接口。
+
+<h2 id="q-flux-020">面试问题：FLUX.2 的 DiT Backbone 有哪些结构与 Scaling 创新？</h2>
+
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
 在DiT Backbone部分，**FLUX.2沿用了与FLUX.1相同的MM-DiT + 并行DiT相结合的整体架构**。简言之，MM-DiT模块首先在独立处理图像潜变量和条件文本，仅在注意力计算环节将二者融合，因此被称为“双流”块。随后的并行DiT模块则对拼接后的图像与文本流进行操作，可视为“单流”块。
 
 从FLUX.1到FLUX.2，DiT架构的核心改进如下：
 
-1. 对DiT部分进行了Scaling，参数量从FLUX.1的12B增加32B。
+1. 对DiT部分进行了Scaling，开源FLUX.2 [dev]的参数量从FLUX.1的12B增加到32B。官方实现的隐藏维度为6144，使用48个注意力头。
 2. 时间与引导信息（Timestep and Guidance Scale，以 AdaLayerNorm-Zero 调制参数的形式）分别在所有双流块和所有单流块间共享，而非如FLUX.1中为每个块单独设置调制参数，从而降低整体参数量。
-3. 模型中所有层均不再使用偏置参数。具体而言，两种变换器块中的注意力子块与前馈子块在其任何层中均未使用偏置参数。
+3. DiT中的主要线性投影与调制层不再使用偏置参数。具体而言，两种变换器块中的注意力子块与前馈子块在其线性层中均未使用偏置参数。这里不能扩大为“整个FLUX.2所有层都无偏置”，因为VAE中的卷积层仍然包含偏置参数。
 4. 在FLUX.1中，单流变换器块将注意力输出投影与前馈网络输出投影进行了融合。FLUX.2的单流块进一步将注意力QKV投影与前馈网络的输入投影相融合，从而实现了完全并行的Transformer块结构：
 
 ![FLUX.2的DiT部分模块示意图](./imgs/FLUX.2的DiT部分模块示意图.png)
@@ -2083,12 +2652,31 @@ FLUX.2系列更新的新特性与核心优化亮点，具体如下：
 
 FLUX.2 中单流模块的比例显著提高（双流块与单流块的数量比为 8:48，而 FLUX.1 为 19:38）。这意味着单流模块在 DiT 参数中所占比例更大：FLUX.1-12B 约有 54% 的参数位于双流块中，而 FLUX.2-32B 仅有约 24% 的参数在双流模块内（约 73% 的参数集中在单流模块中）。
 
-最后，FLUX.2 在位置编码设计上也进行了调整。FLUX.1 采用 3D RoPE，其中前两维分别编码图像的宽（w）和高（h），第三维为时间维度 t，在生成时固定为 0；而在 FLUX.1 Kontext 版本中，该 t 值对于输入条件图像设为 1，以区分目标图像与条件图像。
+这组调整的核心意图是：把参数和计算容量更多放到图文Token已经合流后的统一建模阶段。双流块负责建立模态内表征和早期图文对齐，数量更多的单流块则负责对象关系、空间组合、文字布局与参考图融合。共享调制、无偏置线性层和并行QKV/MLP投影，又抵消了32B Scaling带来的部分参数与执行开销。
+
+<h2 id="q-flux-021">面试问题：FLUX.2 如何用四轴 RoPE 与注意力机制统一文生图和多参考图编辑？</h2>
+
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+
+FLUX.2 在位置编码设计上也进行了调整。FLUX.1 采用 3D RoPE，其中前两维分别编码图像的宽（w）和高（h），第三维为时间维度 t，在生成时固定为 0；而在 FLUX.1 Kontext 版本中，该 t 值对于输入条件图像设为 1，以区分目标图像与条件图像。
 
 FLUX.2 则升级为 4D RoPE 编码：第一维为 t，用于区分目标图像与条件图像——目标图像（对应噪声潜变量 token）的 t 设为 0，而条件图像的 t 则以 10 为间隔依次递增（如 10、20……）；第二维和第三维仍分别对应图像宽高（w 和 h）；第四维为 l，专门用于编码文本 token 的序列位置，对于图像潜变量则固定为 0。因此，新增的第四维主要作用是为文本 token 赋予位置信息，而此前 FLUX.1 中所有文本 token 的位置编码均固定为 0，并未区分其顺序。
 
+官方实现可以把四轴位置ID写成 `(t, h, w, l)`：
 
-### FLUX.2的VAE部分的优化
+- **目标图像Token**使用 `t=0`、实际二维空间坐标 `(h,w)`、`l=0`；
+- **第n张参考图Token**使用相互错开的时间轴编号，例如 `t=10、20……`，同时保留各自的 `(h,w)`；
+- **文本Token**固定图像相关坐标，只沿 `l` 轴递增，从而显式保留文本序列顺序。
+
+这套设计解决的不是普通意义上的“时间建模”，而是**在一条统一Token序列中建立模态、图像身份与空间位置的坐标系**。不同参考图即使具有相同的二维坐标，也会因为t轴编号不同而保持来源可区分；文本Token则通过l轴获得顺序信息，避免所有文本位置都退化为同一个坐标。
+
+在条件注入流程上，参考图先由VAE编码为Latent Token，再与目标图像Token进入图像流。双流块让文本流和图像流保留独立参数，但在Joint Attention中交换信息；单流块随后对合并后的文本、参考图和目标图Token进行统一建模。开源实现还让参考图Token仅在参考图Token集合内部做注意力，不读取文本和目标图像的Key/Value；文本Token和目标图Token则可以读取全部条件。这样可以避免固定参考条件在去噪过程中被目标图像状态反向改写。由此，文生图可以看作“参考图集合为空”的特例，单图编辑和多图编辑则只是增加一个或多个带独立t轴编号的条件图像，三类任务不再需要三套独立Backbone。
+
+**面试中可以这样收束**：FLUX.2的四轴RoPE不是简单地多加一个位置维度，而是为“文本顺序 + 二维空间 + 多张图像身份”建立统一坐标系，再通过Joint Attention把生成与编辑统一成同一个条件流匹配问题。
+
+<h2 id="q-flux-022">面试问题：FLUX.2 的 VAE 如何权衡可学习性、重建质量与压缩率？</h2>
+
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
 在VAE部分，FLUX.2也进行了重要升级。**新版VAE在可学习性、重建质量与压缩率三者间实现了更优的平衡**。
 
@@ -2100,7 +2688,35 @@ FLUX.2 则升级为 4D RoPE 编码：第一维为 t，用于区分目标图像�
 
 **这三项目标本质上相互制约**：提高压缩率通常会损害重建质量与可学习性；追求完美重建则需降低压缩程度；而为提升语义层面的可学习性，又可能不得不放弃部分底层感知细节。因此，理想的权衡策略是剔除人眼不可感知的信息，同时保留富含语义、利于生成模型高效学习的结构特征——这也正是FLUX.2 VAE的核心设计目标。
 
-相较于FLUX.1 VAE，FLUX.2 VAE在保持重建质量的同时，显著提升了可学习性。具体改进包括：**在保持空间压缩率为8倍的前提下，进一步增加潜在特征的维度（SD-VAE为4维，FLUX.1 VAE为16维，FLUX.2 VAE提升至32维）。潜在维度的增加并未改变DiT处理的token数量，因此不会带来额外计算负担**。此外，在训练过程中引入了语义正则化机制，进一步优化了潜在空间的语义组织结构与可学习性。
+相较于FLUX.1 VAE，FLUX.2 VAE在保持重建质量的同时，显著提升了可学习性。具体改进包括：**在保持空间压缩率为8倍的前提下，进一步增加潜在特征的维度（SD-VAE为4维，FLUX.1 VAE为16维，FLUX.2 VAE提升至32维）。潜在维度的增加并未改变DiT处理的token数量，因此不会增加注意力序列长度和二次复杂度**。此外，在训练过程中引入了语义正则化机制，进一步优化了潜在空间的语义组织结构与可学习性。
+
+不过，“token数量不变”不等于“完全没有额外计算”。FLUX.2仍会把每个 `2×2` 的VAE Latent块打包成一个DiT Token，因此32个VAE通道经过Pack后形成128维输入，而FLUX.1的16通道对应64维输入。增加的主要是输入/输出投影维度与局部表示容量，真正昂贵的Transformer序列长度保持不变。这是一种用较小线性开销换取更强Latent表达能力的设计。
+
+BFL将这项工作概括为“Learnability-Quality-Compression Trilemma”：只追求像素重建会把大量生成模型难以学习的高频细节塞进Latent，只追求语义可学习性又可能牺牲纹理与文字还原，而过度压缩会同时伤害两者。FLUX.2选择重新训练整个Latent Space，并通过32通道表示与语义正则化，让DiT面对的是更平滑、更有语义组织、同时仍能被Decoder高保真还原的生成空间。
+
+<h2 id="q-flux-023">面试问题：FLUX.2 在训练、蒸馏和工程部署上有哪些变化？</h2>
+
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+
+FLUX.2的公开资料并没有披露完整的训练数据配方、损失组合和系统性消融实验，因此这部分需要严格区分**已经公开的工程事实**与**不能从能力表现反推的训练细节**。目前可以确认的关键点主要有以下五项：
+
+1. **统一任务建模**：FLUX.2把文生图、单参考图编辑和多参考图编辑收敛到同一套Rectified Flow Transformer中。任务差异主要由是否存在参考图Token及其位置ID表达，而不是切换不同模型。公开资料可以确认统一架构与能力，但没有公开足够细节来还原完整的多任务采样比例和训练课程。
+2. **FLUX.2 [dev]采用Guidance Distillation**：模型卡明确标注[dev]经过引导蒸馏，但没有做少步数的Step Distillation。推理时模型接收Guidance Embedding，可以用一次条件前向传播近似传统CFG的引导效果，避免每一步都分别计算有条件和无条件分支。它仍通常使用几十步采样，与4步蒸馏模型不是一回事。
+3. **Prompt Upsampling成为官方推荐的可选推理环节**：官方代码可以先让Mistral把短Prompt扩写为包含对象、关系、光照、镜头和构图约束的长描述，再编码为条件特征。它不是修改扩散方程，而是在进入DiT前提高条件信息密度，尤其适合FLUX.2的大型VLM Text Encoder。
+4. **参考图KV Cache降低多图编辑的重复计算**：最新开源实现可以在首个去噪步骤提取参考图Token的Key/Value，并在后续步骤复用。参考图内容在一次采样过程中固定，因此缓存它们不会改变条件语义，却可以减少多参考图带来的重复注意力计算。
+5. **模型家族和部署路径进一步分层**：32B的FLUX.2 [dev]面向最高质量的开放权重研究与开发；[pro]、[flex]、[max]提供不同质量、控制和在线服务能力；[klein]则通过4B/9B与4步蒸馏把统一生成编辑能力压到实时和消费级硬件。NVIDIA与ComfyUI提供的FP8版本把[dev]显存占用和推理耗时各降低约40%，而4-bit量化、远程Text Encoder和CPU Offload进一步降低了本地运行门槛。
+
+因此，与FLUX.1相比，FLUX.2的跨周期价值不只是参数从12B扩到32B，而是把**更强的VLM条件、更可学习的Latent Space、统一生成编辑架构、多参考图坐标系以及分层蒸馏部署**组合成一套完整系统。它也说明图像基础模型的竞争重点正在从单次出图质量，转向条件理解、身份一致性、结构化控制、工作流可靠性和单位算力下的可部署能力。
+
+### 参考资料
+
+- [BFL：FLUX.2 Frontier Visual Intelligence](https://bfl.ai/blog/flux-2)
+- [BFL：FLUX.2 VAE 专项技术报告](https://bfl.ai/research/representation-comparison)
+- [BFL：FLUX.2 官方文档与模型规格](https://docs.bfl.ai/flux_2/flux2_overview)
+- [BFL：FLUX.2 官方开源推理代码](https://github.com/black-forest-labs/flux2)
+- [BFL：FLUX.2 dev 模型卡](https://huggingface.co/black-forest-labs/FLUX.2-dev)
+- [ComfyUI：FLUX.2 Day-0 Support 与本地工作流](https://blog.comfy.org/p/flux2-state-of-the-art-visual-intelligence)
+- [NVIDIA：FLUX.2 FP8 与 RTX 部署优化](https://blogs.nvidia.com/blog/rtx-ai-garage-flux.2-comfyui)
 
 
 ---
