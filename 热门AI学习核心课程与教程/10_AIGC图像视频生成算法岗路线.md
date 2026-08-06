@@ -18,7 +18,7 @@
 
 - [AIGC 图像创作 & AI 绘画基础总入口](<../AIGC图像创作&AI绘画基础/README.md>)
 - [Stable Diffusion 系列大模型基础](<../AIGC图像创作&AI绘画基础/01_Stable%20Diffusion系列大模型基础.md>)
-- [FLUX 系列大模型基础](<../AIGC图像创作&AI绘画基础/02_FLUX系列大模型基础.md>)
+- [Stable Diffusion & FLUX 系列大模型基础](<../AIGC图像创作&AI绘画基础/02_Stable Diffusion&FLUX系列大模型基础.md>)
 - [类 LoRA 技术基础](<../AIGC图像创作&AI绘画基础/03_类LoRA技术基础.md>)
 - [ControlNet 以及 AIGC 主流可控生成技术基础](<../AIGC图像创作&AI绘画基础/04_ControlNet以及AIGC主流可控生成技术基础.md>)
 - [AIGC 图像生成领域的训练 & 性能优化技术](<../AIGC图像创作&AI绘画基础/07_AIGC图像生成领域的训练&性能优化技术.md>)

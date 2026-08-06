@@ -24,7 +24,7 @@
 - [后训练：微调与对齐](<../大模型基础（精华版）/04_后训练：微调与对齐.md>)
 - [AIGC 图像创作 & AI 绘画基础总入口](<../AIGC图像创作&AI绘画基础/README.md>)
 - [Stable Diffusion 系列大模型基础](<../AIGC图像创作&AI绘画基础/01_Stable%20Diffusion系列大模型基础.md>)
-- [FLUX 系列大模型基础](<../AIGC图像创作&AI绘画基础/02_FLUX系列大模型基础.md>)
+- [Stable Diffusion & FLUX 系列大模型基础](<../AIGC图像创作&AI绘画基础/02_Stable Diffusion&FLUX系列大模型基础.md>)
 - [类 LoRA 技术基础](<../AIGC图像创作&AI绘画基础/03_类LoRA技术基础.md>)
 - [ControlNet 以及 AIGC 主流可控生成技术基础](<../AIGC图像创作&AI绘画基础/04_ControlNet以及AIGC主流可控生成技术基础.md>)
 - [模型部署基础总入口](<../模型部署基础/readme.md>)
