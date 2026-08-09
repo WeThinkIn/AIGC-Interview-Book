@@ -780,6 +780,47 @@ section[id] {
   margin-top: 16px;
 }
 
+.judgment-callout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  margin-top: 16px;
+  padding: 20px 22px;
+  border: 1px solid rgba(14, 165, 233, 0.22);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(110deg, rgba(224, 242, 254, 0.76), rgba(255, 255, 255, 0.84) 58%, rgba(250, 245, 255, 0.78)),
+    var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.judgment-callout-main {
+  min-width: 0;
+}
+
+.judgment-callout h3 {
+  margin: 10px 0 6px;
+  color: #18243a;
+  font-size: clamp(1.16rem, 2vw, 1.48rem);
+  line-height: 1.35;
+}
+
+.judgment-callout p {
+  max-width: 92ch;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.75;
+  text-align: justify;
+  text-align-last: left;
+}
+
+.judgment-callout .button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .positioning-band strong {
   display: block;
   margin-top: 8px;
@@ -1701,6 +1742,7 @@ section[id] {
   .author-grid,
   .community-layout,
   .positioning-band,
+  .judgment-callout,
   .social-grid,
   .frontier-benefit-grid,
   .site-footer {
@@ -1741,6 +1783,14 @@ section[id] {
 
   .hero-description {
     text-align: left;
+  }
+
+  .judgment-callout {
+    gap: 14px;
+  }
+
+  .judgment-callout .button {
+    width: 100%;
   }
 
   .hero-meta {
