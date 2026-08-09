@@ -112,7 +112,7 @@
 <a href="imgs/WeThinkIn公众号.jpg"><img src="https://img.shields.io/badge/WeThinkIn-公众号-brightgreen"></a>
 <a href="https://rockyding.blog.csdn.net"><img src="https://img.shields.io/badge/Rocky Ding-CSDN-red"></a>
 
-Rocky Ding，AI行业技术实战派KOL，AIGCmagic社区创始人，知乎AI领域知名博主（同名Rocky Ding），公众号《WeThinkIn》主理人，全网文章阅读量800万+。资深AIGC算法专家，头部投资机构FA合作伙伴，专注于AIGC产品与AI算法解决方案的商业应用。在互联网大厂、AI独角兽、传统科技公司以及国企研究院都有丰富的工作经验与创业经验。多次带队获得CVPR、AAAI、Kaggle等AI领域顶级竞赛的冠军成绩。发表多篇AI领域论文和专利。
+Rocky Ding，AI行业技术实战派KOL，AIGCmagic社区创始人，知乎AI领域知名博主（同名Rocky Ding），公众号《WeThinkIn》主理人，全网文章阅读量800万+。资深AIGC算法专家，头部投资机构FA合作伙伴，专注于AI产品与AI算法解决方案的商业化落地。在互联网大厂、AI独角兽、传统科技公司以及国企研究院都有丰富的工作经验与创业经验。多次带队获得CVPR、AAAI、Kaggle等AI领域顶级竞赛的冠军成绩。发表多篇AI领域论文和专利。
 
 Rocky最新持续撰写的10万字深入浅出完整解析AI Agent（AI智能体）的核心基础知识文章：[深入浅出完整解析AI Agent（AI智能体）的核心基础知识](https://zhuanlan.zhihu.com/p/1919046969076195976)
 
@@ -124,7 +124,7 @@ Rocky最新持续撰写的10万字深入浅出完整解析扩散模型DDPM、DDI
 <a href="https://blog.csdn.net/m_aigc2022?type=blog"><img src="https://img.shields.io/badge/猫先生-CSDN-red"></a>
 <a href="https://zhihu.com/people/m_aigc2022"><img src="https://img.shields.io/badge/猫先生-知乎-blue"></a>
 
-猫先生，公众号“魔方AI空间”主理人，资深AIGC算法专家，具有丰富AI模型部署及落地经验，多次参加赛事取得冠军成绩，专注于AIGC技术探索与商业案例应用。
+猫先生，公众号“魔方AI空间”主理人，AI算法与工程化实践者，现就职于国内头部科技企业，主要从事AI模型部署、算力平台建设及相关技术落地工作，在模型工程化和业务应用方面具有丰富经验。长期关注大模型推理部署、AI Agent、具身智能、AI视频、AIGC应用及AI基础设施等技术方向，曾参加多项AI相关赛事，多次获得冠军或进入前十，并持续探索前沿AI技术的产业应用。
 
 猫先生近期撰写的关于主流智能体框架和大模型推理部署框架的系统性讲解文章：
 - [一文梳理主流热门智能体框架：Dify、Coze、n8n、AutoGen、LangChain、CrewAI](https://mp.weixin.qq.com/s/5zLnArJcI0TDxL-iiuikPg)
@@ -132,7 +132,10 @@ Rocky最新持续撰写的10万字深入浅出完整解析扩散模型DDPM、DDI
 
 ### 张一凡 副主编
 
-张一凡，资深AIGC算法专家，曾就职于国内top安防公司，专注于AIGC算法实现与落地部署，目前在国内某研究所主要从事AI大模型相关的研究。
+<a href="https://blog.csdn.net/weixin_31588979?type=blog"><img src="https://img.shields.io/badge/张一凡AI-CSDN-red"></a>
+<a href="https://www.zhihu.com/people/wang-xiao-xiang-85-24"><img src="https://img.shields.io/badge/张一凡AI-知乎-blue"></a>
+
+张一凡，资深AIGC算法专家，曾就职于国内top安防公司，专注于AIGC算法实现与落地部署，目前在国内某研究所主要从事AI大模型、具身智能相关的研究。
 
 ### 徐晨轩 副主编
 
@@ -144,7 +147,7 @@ Rocky最新持续撰写的10万字深入浅出完整解析扩散模型DDPM、DDI
 
 ### 玉箫然 副主编
 
-玉箫然，资深高级算法工程师，在CV、AIGC、大模型等多个领域经验丰富，在国内头部金融投顾公司任职，主要从事大模型相关的应用落地、性能优化。
+玉箫然，资深高级算法工程师，在CV、AIGC、大模型、InFra等多个领域经验丰富，目前在国内头部GPU公司任职，主要从事大模型相关的应用落地、性能优化。
 
 ### 更多共建伙伴
 
