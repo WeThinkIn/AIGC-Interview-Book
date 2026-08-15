@@ -13,38 +13,27 @@
   - [面试问题：Stable Diffusion 中的 Inpaint 和 Outpaint 分别是什么？](#q-040)
 
 [2.介绍一下 Stable Diffusion 中 VAE 的架构、原理和作用](#q-041)
-  - [面试问题：VAE 为什么会导致图像变模糊？](#q-042)
-  - [面试问题：为什么 VAE 单独做生成效果不好，但是 VAE + Diffusion 的图像生成效果就很好？](#q-043)
   - [面试问题：Stable Diffusion 模型中的 VAE 和单纯的 VAE 生成模型的区别是什么？](#q-044)
   - [面试问题：从 SD 1.x → SDXL → SD 3 → FLUX.1，VAE 在通道数、下采样率、训练目标上的演进路线是怎样的？](#q-044a)
   - [面试问题：VAE 编码后为什么要乘以 scale_factor？SD 各版本的 scale_factor 是如何确定的？](#q-044b)
+  - [面试问题：VAE / Tokenizer / Latent 空间为什么会影响图像生成质量和训练效率？](#q-044e)
   - [面试问题：SDXL VAE 在 fp16 下出现"白图 / NaN"问题的原因是什么？工业上常见的修复方案有哪些？](#q-044c)
   - [面试问题：大分辨率推理时如何降低 VAE 解码显存？VAE Tiling 与 TAESD 各自的取舍是什么？](#q-044d)
-  - [面试问题：VAE / Tokenizer / Latent 空间为什么会影响图像生成质量和训练效率？](#q-044e)
 
 [3.介绍一下 Stable Diffusion 中 Backbone 的架构、原理和作用](#q-045)
-  - [面试问题：Stable Diffusion 是如何在 U-Net 内部把文本与图像两种模态的语义对齐的？](#q-046)
-  - [面试问题：介绍一下 Stable Diffusion 中的交叉注意力机制](#q-047)
-  - [面试问题：Stable Diffusion 中 cross attention 的 Q / K / V 分别是什么？为什么图像隐变量作为 Q，文本 Prompt 作为 K / V？](#q-048)
+  - [面试问题：介绍一下 Stable Diffusion 中的自注意力机制和交叉注意力机制](#q-047)
   - [面试问题：为什么使用 U-Net 作为 Stable Diffusion 模型的核心架构？介绍一下 U-Net 架构](#q-049)
-  - [面试问题：为什么 SD U-Net 中 Self-Attention 与 Cross-Attention 主要放在中、低分辨率层？高分辨率层为何以卷积为主？](#q-049a)
   - [面试问题：U-Net 与 DiT / MM-DiT 在 Backbone 设计哲学上的本质差异是什么？SD 系列从 U-Net 演进到 DiT 的根本原因是什么？](#q-049b)
-  - [面试问题：Stable Diffusion 中常见的注意力加速技术（xFormers、SDPA、FlashAttention、Token Merging / ToMe）的核心思想与适用场景是什么？](#q-049c)
   - [面试问题：SD Backbone 中 GroupNorm + SiLU + 残差连接的设计为何对训练稳定性很关键？换成 LayerNorm / BatchNorm 会有什么问题？](#q-049d)
 
 [4.介绍一下 Stable Diffusion 中 Text Encoder 的架构、原理和作用](#q-050)
-  - [面试问题：举例介绍一下 Stable Diffusion 模型进行文本编码的全过程](#q-051)
-  - [面试问题：Stable Diffusion 如何通过文本来实现对图像生成内容的控制？SD 中是如何注入文本信息的？](#q-052)
+  - [面试问题：Text Encoder 和 VLM 条件编码器在图像生成模型中起什么作用？举例介绍一下 Stable Diffusion 模型进行文本编码的全过程](#q-051)
   - [面试问题：Negative Prompt 实现的原理是什么？](#q-053)
-  - [面试问题：Stable Diffusion 中文本条件是如何一步步控制图像生成的？请完整描述从 Prompt 到 Latent 的注入链路](#q-038)
-  - [面试问题：Stable Diffusion 中的 negative prompt（反向提示词）是如何加入的？](#q-037)
   - [面试问题：CLIP Text Encoder 的 77 tokens 长度限制对长 Prompt 的实际影响是什么？工程上如何突破（chunking、weighted prompt、T5 等长上下文编码器）？](#q-053a)
   - [面试问题：Prompt 中的权重语法（(word:1.2)、[word]）的实现原理是什么？A1111 / ComfyUI / Compel 三种 Prompt 解析方式有何差异？](#q-053b)
-  - [面试问题：CLIP skip 是什么？为什么社区在 SD 1.5 上常用 clip_skip=2，但 SDXL / SD 3 不再推荐？](#q-053c)
   - [面试问题：为什么 SD 1.x 选用 CLIP ViT-L 而 SD 2.x 切换为 OpenCLIP ViT-H？这一切换给生成效果带来了哪些可观察的差异？](#q-053d)
-  - [面试问题：Text Encoder 和 VLM 条件编码器在图像生成模型中起什么作用？](#q-053e)
   - [面试问题：如何处理 Prompt 和生成的图像不对齐的问题？](#q-054)
-  - [面试问题：扩散模型是如何引入控制条件的？](#q-055)
+  - [面试问题：扩散模型通常是如何引入各种控制条件的？](#q-055)
 
 [5.Stable Diffusion XL 有哪些创新点？](#q-056)
   - [面试问题：Stable Diffusion XL 的 VAE 部分有哪些创新？详细分析改进意图](#q-058)
@@ -117,18 +106,58 @@ Stable Diffusion对原始LDM框架的具体改进主要体现在以下几个方�
 
 <h2 id="q-030">面试问题：介绍一下 Stable Diffusion 的训练 / 推理过程（正向扩散过程和反向去噪过程）</h2>
 
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+Stable Diffusion 的训练与推理都围绕同一个核心目标展开：**在低维 Latent 隐空间中学习如何加噪和去噪，并用文本条件控制去噪方向**。训练阶段让 U-Net 学会预测不同噪声强度下的噪声残差；推理阶段再把这个能力反过来使用，从随机高斯噪声或加噪后的参考图出发，逐步还原图像 Latent Feature。
+
+### 1. Stable Diffusion 的训练过程
+
+Stable Diffusion 的完整训练逻辑可以概括为：
+
+1. 从数据集中随机选择一组图像—文本样本；
+2. 使用 VAE Encoder 将图像压缩为低维 Latent Feature；
+3. 从噪声时间步中随机采样一个 timestep $t$，并向 Latent Feature 加入该强度的高斯噪声；
+4. 使用 CLIP Text Encoder 将文本标签编码为 Text Embeddings；
+5. 把 noisy latent、timestep 对应的 Time Embedding 和 Text Embeddings 输入 U-Net；
+6. U-Net 通过 Cross-Attention 持续注入文本语义，并预测本次实际加入的噪声；
+7. 计算预测噰声和真实噪声之间的回归损失，反向传播并更新 U-Net 参数。
+
+<div align="center"><img src="./imgs/sd-training-epoch-timestep.jpg" alt="Stable Diffusion 训练中跨 Epoch 随机采样时间步" /></div>
+
+每个样本只随机训练一个 timestep，并不意味着模型只学习某一个去噪阶段。随着 Epoch 不断迭代，同一图像会对应不同的噪声强度；在整个数据集和训练周期上，模型最终覆盖从接近原图到接近纯噪声的完整噪声分布。Time Embedding 则让同一个 U-Net 知道当前位于哪一个去噪阶段，从而根据噪声强度调整预测策略。
+
+### 2. Stable Diffusion 的推理过程
+
+文生图与图生图的主要区别只在于初始 Latent Feature 的来源：
+
+- **文生图（txt2img）**：从随机高斯噪声 Latent 开始；
+- **图生图（img2img）**：先用 VAE Encoder 把输入图像压缩成 Latent，再根据 denoising strength 加入一定量的噪声。
+
+随后二者都会进入相同的反向去噪链路：CLIP Text Encoder 将 Prompt 编码为 Text Embeddings；U-Net 在每个 timestep 预测噪声残差，Scheduler 根据当前采样算法和时间步更新 Latent；经过多次迭代后，纯噪声逐渐减少，图像语义信息和文本语义信息逐渐增加；最后由 VAE Decoder 将去噪后的 Latent Feature 重建为像素级图像。
+
+<div align="center"><img src="./imgs/sd-txt2img-img2img-inference-flow.jpg" alt="Stable Diffusion 文生图和图生图前向推理流程" /></div>
+
+面试中可以把完整链路收束为：**Prompt → CLIP Text Encoder → Text Embeddings；图像或高斯噪声 → Latent Feature；U-Net + Scheduler 在 Cross-Attention 条件下反复去噪；VAE Decoder 将最终 Latent 重建为图像。**
+
 <h2 id="q-039">面试问题：介绍 Stable Diffusion 核心网络结构</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-1.CLIP：CLIP模型是一个基于对比学习的多模态模型，主要包含Text Encoder和Image Encoder两个模型。在Stable Diffusion中主要使用了Text Encoder部分。CLIP Text Encoder模型将输入的文本Prompt进行编码，转换成Text Embeddings（文本的语义信息），通过的U-Net网络的CrossAttention模块嵌入Stable Diffusion中作为Condition条件，对生成图像的内容进行一定程度上的控制与引导。
+Stable Diffusion 整体上是一个端到端的 Latent Diffusion 系统，主要由 **VAE、U-Net、CLIP Text Encoder 和 Scheduler** 组成。其中 VAE 负责连接像素空间与 Latent 隐空间，CLIP Text Encoder 负责把自然语言转换成语义条件，U-Net 负责预测噪声残差，Scheduler 负责按照既定采样轨迹更新 Latent。
 
-2.VAE：基于Encoder-Decoder架构的生成模型。VAE的Encoder（编码器）结构能将输入图像转换为低维Latent特征，并作为U-Net的输入。VAE的Decoder（解码器）结构能将低维Latent特征重建还原成像素级图像。在Latent空间进行diffusion过程可以大大减少模型的计算量。
-U-Net
+<div align="center"><img src="./imgs/stable-diffusion-overall-architecture.jpg" alt="Stable Diffusion 整体架构及条件扩散流程" /></div>
 
-3.U-net:进行Stable Diffusion模型训练时，VAE部分和CLIP部分都是冻结的，主要是训练U-net的模型参数。U-net结构能够预测噪声残差，并结合Sampling method对输入的特征进行重构，逐步将其从随机高斯噪声转化成图像的Latent Feature。训练损失函数与DDPM一致：
+1.CLIP：CLIP模型是一个基于对比学习的多模态模型，主要包含Text Encoder和Image Encoder两个模型。在Stable Diffusion中主要使用了Text Encoder部分。CLIP Text Encoder模型将输入的文本Prompt进行编码，转换成Text Embeddings（文本的语义信息），通过U-Net网络的CrossAttention模块嵌入Stable Diffusion中作为Condition条件，对生成图像的内容进行一定程度上的控制与引导。
+
+2.VAE：基于Encoder-Decoder架构的生成模型。VAE的Encoder（编码器）结构能将输入图像转换为低维Latent特征，并作为U-Net的输入。VAE的Decoder（解码器）结构能将低维Latent特征重建还原成像素级图像。在Latent空间进行diffusion过程可以大大减少模型的计算量。对于 $512\times512$ 的图像，SD 1.x 通常把它压缩为 $4\times64\times64$ 的 Latent，使后续去噪过程避开高成本的像素空间计算。
+
+3.U-Net：进行Stable Diffusion模型训练时，VAE部分和CLIP部分通常都是冻结的，主要训练U-Net的模型参数。U-Net结构能够预测噪声残差，并结合Sampling method对输入的特征进行重构，逐步将其从随机高斯噪声转化成图像的Latent Feature。训练损失函数与DDPM一致：
 
 <div align="center"><img src="./imgs/DDPM_loss.png" alt="训练损失函数" /></div>
+
+4.Scheduler：Scheduler 本身通常没有需要学习的神经网络参数，但它决定每一步如何根据 U-Net 的输出更新 Latent。训练阶段常使用 DDPM 噪声调度，推理阶段则可以选择 DDIM、Euler、DPM++、UniPC 等采样方法，以不同的速度、随机性和数值轨迹完成反向去噪。
+
+四个模块之间的职责边界非常清晰：**CLIP 决定“听懂什么”，U-Net 决定“如何去噪”，Scheduler 决定“沿什么轨迹去噪”，VAE 决定“以什么压缩表示学习并最终还原出什么细节”。**
 
 
 <h2 id="q-031">面试问题：Stable Diffusion 的优化策略有哪些？</h2>
@@ -137,11 +166,11 @@ U-Net
 
 ### 1. 面试问题：Stable Diffusion 训练时为什么要为每个样本随机采样一个时间步？该采样策略对模型质量有什么影响？
 
-Stable Diffusion 在每个训练 step 中，对一个 batch 内的每个样本**独立、均匀地**从 $\{1, 2, \dots, T\}$（通常 $T=1000$）中采样一个时间步 $t$，再用 $x_t = \sqrt{\bar\alpha_t} x_0 + \sqrt{1-\bar\alpha_t}\epsilon$ 一步加噪、预测噪声。这是 **Monte Carlo 估计变分下界（ELBO）** 的工程实现。
+Stable Diffusion 在每个训练 step 中，对一个 batch 内的每个样本**独立、均匀地**从 $\{1, 2, \dots, T\}$（通常 $T=1000$）中采样一个时间步 $t$，再用 $`x_t = \sqrt{\bar\alpha_t} x_0 + \sqrt{1-\bar\alpha_t}\epsilon`$ 一步加噪、预测噪声。这是 **Monte Carlo 估计变分下界（ELBO）** 的工程实现。
 
 **1. 为什么要随机采样而不是顺序遍历**
 
-- **理论上**：DDPM 的训练损失是对所有时间步 $t$ 求期望 $\mathbb{E}_{t, x_0, \epsilon}[\|\epsilon - \epsilon_\theta(x_t, t)\|^2]$，逐 step 随机采样是这个期望的无偏估计。
+- **理论上**：DDPM 的训练损失是对所有时间步 $t$ 求期望 $`\mathbb{E}_{t, x_0, \epsilon}[\|\epsilon - \epsilon_\theta(x_t, t)\|^2]`$，逐 step 随机采样是这个期望的无偏估计。
 - **工程上**：若顺序遍历 $t$，模型在某段连续 step 内只学某个噪声水平，梯度方向被局部时间步主导，**优化方向震荡、收敛慢**；随机采样使 batch 内同时覆盖低、中、高噪声段，梯度方向更稳定。
 - **数据高效**：同一张图在不同 epoch 中会被随机匹配到不同的 $t$，等价于做了**隐式的数据增强**。
 
@@ -157,13 +186,11 @@ Stable Diffusion 在每个训练 step 中，对一个 batch 内的每个样本**
 
 ### 2. 面试问题：Stable Diffusion 中的 ε-prediction、x0-prediction、v-prediction 三种参数化方式有何差异？SD 各版本分别采用了哪种？为什么？
 
-**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
-
 扩散模型在数学上等价的三种「网络要预测什么」的选择，但在**数值稳定性、信噪比覆盖、与采样器/CFG 的兼容性**上差异巨大，是 SD 系列代际演进的关键技术点。
 
 **1. 三种参数化的数学定义**
 
-记加噪公式 $x_t = \sqrt{\bar\alpha_t}x_0 + \sqrt{1-\bar\alpha_t}\epsilon$，定义信噪比 $\text{SNR}(t) = \bar\alpha_t / (1-\bar\alpha_t)$。三种预测目标的关系为：
+记加噪公式 $`x_t = \sqrt{\bar\alpha_t}x_0 + \sqrt{1-\bar\alpha_t}\epsilon`$，定义信噪比 $`\text{SNR}(t) = \bar\alpha_t / (1-\bar\alpha_t)`$。三种预测目标的关系为：
 
 ```math
 v_t = \sqrt{\bar\alpha_t}\,\epsilon - \sqrt{1-\bar\alpha_t}\,x_0
@@ -197,8 +224,6 @@ x_0 = \sqrt{\bar\alpha_t}\,x_t - \sqrt{1-\bar\alpha_t}\,v_t
 
 
 ### 3. 面试问题：Stable Diffusion 中的 latent scale factor（如 0.18215）有什么作用？为什么不同 SD 版本的 scale factor 不同？
-
-**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
 `scale_factor` 是把 VAE Encoder 输出的 latent 喂给扩散模型之前，要乘以的一个标量常数；推理时 VAE Decoder 之前再除回去。它的核心作用是：**让 latent 的统计分布近似单位方差的标准正态**，从而与扩散模型的噪声 schedule 相匹配。
 
@@ -234,15 +259,13 @@ x_0 = \sqrt{\bar\alpha_t}\,x_t - \sqrt{1-\bar\alpha_t}\,v_t
 
 ### 4. 面试问题：Stable Diffusion 训练 / 推理为什么需要 EMA（指数滑动平均）权重？常见 EMA decay 的取值与权衡是什么？
 
-**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐ (3/5)**
-
 EMA（Exponential Moving Average）是在训练过程中**用滑动平均的方式维护一份「平滑版」权重**：
 
 ```math
 \theta_{\text{ema}}^{(t)} = \mu \cdot \theta_{\text{ema}}^{(t-1)} + (1 - \mu) \cdot \theta^{(t)}
 ```
 
-最终发布与推理时使用的是 $\theta_{\text{ema}}$，而不是优化器最后一步的 $\theta$。
+最终发布与推理时使用的是 $`\theta_{\text{ema}}`$，而不是优化器最后一步的 $\theta$。
 
 **1. 为什么扩散模型几乎必上 EMA**
 
@@ -273,6 +296,21 @@ EMA（Exponential Moving Average）是在训练过程中**用滑动平均的方�
 
 **面试金句**：EMA 不是「锦上添花」而是扩散模型的**事实标准**——它把损失景观中高频抖动滤掉，逼近平坦最优点，对 FID 与采样稳定性都有显著收益；decay 的选择与训练 step 数挂钩，大模型大数据集需要更大的 decay 与更长的等效平均窗口。
 
+### 5. Stable Diffusion 官方训练与推理中的工程优化
+
+Stable Diffusion 1.x 的官方训练采用了典型的多阶段策略：先在 $256\times256$ 分辨率上预训练，再在筛选后的高分辨率、美学质量更高的数据子集上以 $512\times512$ 分辨率继续训练。SD 1.3、1.4 和 1.5 还在训练时以一定概率丢弃文本条件，使同一个 U-Net 同时学会有条件与无条件噪声预测，为推理阶段的 Classifier-Free Guidance（CFG）提供基础。
+
+在优化器与训练资源层面，官方使用 AdamW、学习率 warmup、梯度累积和大规模数据并行。这里真正值得迁移到工程实践中的不是某一组固定超参数，而是三条原则：**先低分辨率建立分布能力，再高分辨率强化细节；用条件丢弃训练统一有条件/无条件分支；用梯度累积与混合精度扩大有效 batch。**
+
+推理和部署阶段还可以从四个层面继续优化：
+
+1. **数值精度**：使用 FP16 或 BF16 降低显存和计算成本；支持 Tensor Core 的硬件可评估 TF32。低精度是否可用要分别验证 U-Net、Text Encoder 与 VAE，不能只看 Pipeline 是否能够启动。
+2. **分块与切片**：Attention Slicing 逐头计算注意力，VAE Slicing 按样本串行编码/解码，VAE Tiling 按空间块解码；本质都是用更多时延换取更低峰值显存。
+3. **权重卸载与内存布局**：Model CPU Offload 以模块为单位在 CPU/GPU 间切换，Sequential CPU Offload 进一步细化到子模块，显存更低但传输开销更大；Channels Last 是否加速则取决于硬件、算子和编译后端。
+4. **算子与图编译优化**：xFormers、SDPA、FlashAttention 减少 Attention 的显存读写；`torch.compile`、TensorRT 等通过算子融合和计算图编译降低推理开销；Token Merging（ToMe）通过合并相似 token 进一步加速，但属于可能影响细节的有损优化。
+
+这些优化没有统一的“最快配置”。生产环境应同时记录 **生成质量、峰值显存、冷启动时间、单图时延和吞吐量**，再根据交互式生成、批量生产或低显存部署选择组合。
+
 
 <h2 id="q-033">面试问题：介绍一下针对 Stable Diffusion 的模型融合技术</h2>
 
@@ -300,7 +338,7 @@ Stable Diffusion的U-Net包含多个功能模块：
 W_{\text{merged}}^{(i)} = \alpha \cdot W_A^{(i)} + (1 - \alpha) \cdot W_B^{(i)}
 ```
 
-其中 $W_A^{(i)}$ 和 $W_B^{(i)}$ 是待融合模型在模块 $i$ 的权重， $\alpha$ 为该模块的融合系数（0~1）。
+其中 $`W_A^{(i)}`$ 和 $`W_B^{(i)}`$ 是待融合模型在模块 $i$ 的权重， $\alpha$ 为该模块的融合系数（0~1）。
 
 ### 二、技术实现流程
 
@@ -358,15 +396,15 @@ M区：影响最大的一层，甚至比IN11层的影响更大，起到了类似
 
 「同 seed + 同 prompt 但出图不同」是 SD 工程化中最常被反复追问的问题。Seed **只决定初始噪声**；从初始噪声到最终图像的链路上还有大量额外的「随机源」与「数值不一致源」。
 
-#### 1. seed 真正决定了什么
+### 1. seed 真正决定了什么
 
-- 初始 latent $z_T \sim \mathcal{N}(0, I)$ 的具体采样值；
+- 初始 latent $`z_T \sim \mathcal{N}(0, I)`$ 的具体采样值；
 - 训练 / 推理过程中所有调用 `torch.randn`、`torch.rand` 的随机数序列；
 - 如果 sampler 是随机型（如 ancestral / SDE 系），每一步注入的噪声序列。
 
 **seed 不决定**：模型权重、采样器算法、时间步离散化方式、CFG scale、CFG 形式（cond/uncond batch 顺序）、attention 实现、数值精度、GPU/CPU 后端、cudnn benchmark。
 
-#### 2. 出现差异的常见原因
+### 2. 出现差异的常见原因
 
 <div align="center">
 
@@ -384,7 +422,7 @@ M区：影响最大的一层，甚至比IN11层的影响更大，起到了类似
 
 </div>
 
-#### 3. 可复现性的工程做法
+### 3. 可复现性的工程做法
 
 1. **冻结环境**：固定 PyTorch、CUDA、xFormers / SDPA、diffusers、模型权重哈希，最好打成镜像。
 2. **统一 seed 设定**：`torch.manual_seed(seed)`、`torch.cuda.manual_seed_all(seed)`、`numpy.random.seed(seed)`、`random.seed(seed)`。
@@ -402,19 +440,21 @@ M区：影响最大的一层，甚至比IN11层的影响更大，起到了类似
 
 img2img 是 SD 最常用的二次创作能力，本质是 **在前向扩散链上选一个中间时刻 $t^*$ 作为起点，从这个加噪后的 latent 开始反向去噪**，而不是从纯噪声 $\mathcal{N}(0, I)$ 开始。
 
-#### 1. 完整流程
+<div align="center"><img src="./imgs/sd-img2img-denoising-flow.png" alt="Stable Diffusion 图生图与去噪强度控制流程" /></div>
 
-1. **VAE 编码**：把输入参考图编码为 latent $z_0$。
-2. **加噪到中间步**：根据 denoising strength $s \in [0, 1]$ 计算起始时间步 $t^* = \lfloor s \cdot T \rfloor$，然后对 $z_0$ 一步加噪：
+### 1. 完整流程
 
-   ```math
-   z_{t^*} = \sqrt{\bar\alpha_{t^*}}\,z_0 + \sqrt{1 - \bar\alpha_{t^*}}\,\epsilon,\quad \epsilon\sim\mathcal{N}(0,I)
-   ```
+1. **VAE 编码**：把输入参考图编码为 latent $`z_0`$。
+2. **加噪到中间步**：根据 denoising strength $s \in [0, 1]$ 计算起始时间步 $`t^* = \lfloor s \cdot T \rfloor`$，然后对 $`z_0`$ 一步加噪。
 
-3. **从 $t^*$ 反向去噪**：以 $z_{t^*}$ 为起点、文本条件为引导，跑剩余的 $\lceil s \cdot \text{steps} \rceil$ 个采样步。
+```math
+z_{t^*} = \sqrt{\bar\alpha_{t^*}}\,z_0 + \sqrt{1 - \bar\alpha_{t^*}}\,\epsilon,\quad \epsilon\sim\mathcal{N}(0,I)
+```
+
+3. **从 $t^*$ 反向去噪**：以 $`z_{t^*}`$ 为起点、文本条件为引导，跑剩余的 $`\lceil s \cdot \text{steps} \rceil`$ 个采样步。
 4. **VAE 解码**：把最终 latent 解码回像素。
 
-#### 2. denoising strength 的作用与直觉
+### 2. denoising strength 的作用与直觉
 
 - $s = 0$：不加噪，模型基本「拷贝」原图。
 - $s$ 较小（0.2 ~ 0.4）：保留原图大结构与构图，仅做「细节修饰、风格轻调」。常用于细节增强、轻微风格转绘、局部替换的边界融合。
@@ -422,7 +462,7 @@ img2img 是 SD 最常用的二次创作能力，本质是 **在前向扩散链�
 - $s$ 较大（0.8 ~ 0.95）：仅保留原图的极低频信息（大体明暗、轮廓），生成结果与原图差异显著。
 - $s = 1$：等价于 txt2img（从纯噪声开始）。
 
-#### 3. 工程要点
+### 3. 工程要点
 
 - denoising strength 同时控制「起始 $t^*$」和「实际跑的步数」，因此 strength 越小推理越快。
 - img2img 与 **Inpaint、ControlNet、IP-Adapter** 是正交能力，可以叠加使用：strength 控制原图保留度，ControlNet 控制结构，IP-Adapter 控制风格 / ID。
@@ -440,13 +480,34 @@ img2img 是 SD 最常用的二次创作能力，本质是 **在前向扩散链�
 
 两者均基于 Stable Diffusion 的潜在扩散模型，但目标不同：Inpaint 聚焦于“内部修正”，而 Outpaint 致力于“外部延展”，共同拓展了生成式 AI 在图像编辑中的灵活性。
 
+### Inpaint 的完整处理链路
+
+Inpaint 整体上仍然是 img2img，但增加了 Mask 作为空间约束。输入图像先经 VAE Encoder 得到 Latent Feature，Mask 同步缩放到 Latent 分辨率；在每一个去噪步骤中，只更新 Mask 指定的区域，Mask 之外则持续回填对应时间步的原图 Latent，使未编辑区域尽量保持不变。
+
+<div align="center"><img src="./imgs/sd-inpainting-mask-flow.jpg" alt="Stable Diffusion Inpainting 的 Mask 约束去噪流程" /></div>
+
+普通 SD Pipeline 可以在采样过程中用 Mask 做混合；专门训练的 Inpainting 模型则会把 noisy latent、masked image latent 和 mask 在通道维拼接后送入 U-Net。以 SD 1.x 为例，三者通常分别为 4、4、1 个通道，合计 9 个输入通道，因此它比仅在采样器外部混合 Mask 更能理解缺失区域与周围上下文。
+
+Outpaint 可以看作 Mask 位于原图边界之外的 Inpaint：先扩展画布，把新增区域标为需要生成的 Mask，再通过相同的条件去噪补全内容。它的关键不是单独的生成公式，而是让扩展区域在透视、光照、纹理和语义上延续原图。
+
 
 <h1 id="q-041">2.介绍一下 Stable Diffusion 中 VAE 的架构、原理和作用</h1>
 
-<h2 id="q-042">面试问题：VAE 为什么会导致图像变模糊？</h2>
+<h2 id="q-044">面试问题：Stable Diffusion 模型中的 VAE 和单纯的 VAE 生成模型的区别是什么？</h2>
 
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-<h2 id="q-043">面试问题：为什么 VAE 单独做生成效果不好，但是 VAE + Diffusion 的图像生成效果就很好？</h2>
+Stable Diffusion 中的 VAE 是连接像素空间与 Latent 隐空间的桥梁，核心职责是**图像压缩与图像重建**：Encoder 把图像压缩成低维空间特征供扩散模型学习，Decoder 再把去噪后的 Latent Feature 还原为像素级图像。
+
+<div align="center"><img src="./imgs/stable-diffusion-vae-architecture.jpg" alt="Stable Diffusion VAE Encoder Decoder 与基础模块结构" /></div>
+
+### 1. 面试问题：VAE 为什么会导致图像变模糊？
+
+VAE 出现模糊，根因不是“变分”三个字本身，而是**有损压缩与重建目标之间的取舍**。图像先被压缩到低维 latent，细小纹理、高频边缘和文字笔画如果在编码阶段丢失，Decoder 只能依据 latent 中保留下来的统计信息进行重建；当 L1/MSE 等像素损失面对多个合理细节时，模型倾向输出平均解，于是边缘变软、纹理变平。
+
+在 Stable Diffusion 中，VAE 的下采样率、latent 通道数、感知损失（Perceptual loss）和对抗损失共同决定重建上限。VAE 不是负责凭空恢复已经丢失的信息，而是尽量在压缩率与重建质量之间取得平衡；后续 Diffusion 主要在 latent 空间建模，也不能稳定补回 VAE 完全没有编码进去的细节。
+
+### 2. 面试问题：为什么 VAE 单独做生成效果不好，但是 VAE + Diffusion 的图像生成效果就很好？
 
 **这个问题最本质的回答是：传统深度学习时代的VAE是单独作为生成模型；而在AIGC时代，VAE只是作为特征编码器，提供特征给Diffusion用于图像的生成。其实两者的本质作用已经发生改变。**
 
@@ -454,22 +515,38 @@ img2img 是 SD 最常用的二次创作能力，本质是 **在前向扩散链�
 
 上述的差别都导致了传统深度学习时代的VAE生成效果不佳。
 
+### 3. Stable Diffusion 模型中的 VAE 和单纯的 VAE 生成模型有何区别？
 
-<h2 id="q-044">面试问题：Stable Diffusion 模型中的 VAE 和单纯的 VAE 生成模型的区别是什么？</h2>
-
-#### 传统VAE生成模型
+**传统 VAE 生成模型**
 
 - **完整的生成系统**：从噪声直接生成数据
 - **核心机制**：变分推断 + 重参数化技巧
 - **目标**：学习数据分布，实现无条件生成
 - **挑战**：生成质量与多样性的平衡
 
-#### Stable Diffusiuon模型中的VAE
+**Stable Diffusiuon模型中的 VAE**
 
 - **功能组件**：数据压缩器和重建器
 - **核心作用**：将图像压缩到潜在空间，降低计算成本
 - **目标**：高保真度重建，为扩散过程提供高效空间
 - **优势**：专注重建质量，与扩散模型协同工作
+
+### 4. Stable Diffusion VAE 的结构与训练目标
+
+SD 1.x 的 VAE Encoder 由卷积、DownBlock、ResNetBlock、MidBlock 和 Self-Attention 等模块组成，将输入图像转换为 Gaussian Latent Distribution；Decoder 使用对称的 UpBlock、ResNetBlock 与 MidBlock 将 Latent 重建为像素图。下采样率 $f=8$、Latent 通道数 $c=4$ 是压缩效率与重建质量之间的折中： $f$ 太小会让扩散主干承担过高计算成本， $f$ 太大又会丢失过多细节。
+
+训练时并不只使用像素误差，而是组合多种目标：
+
+- **L1/重建损失**约束像素级整体一致性；
+- **感知损失（LPIPS）** 比较预训练视觉网络不同层的特征，使重建图在高层语义上接近原图；
+- **PatchGAN 对抗损失**关注局部 Patch 的真实性，用于增强纹理和清晰度；
+- **弱 KL 正则**约束 Latent 不要偏离正态分布过远，但使用较小权重以避免牺牲重建质量。
+
+这也解释了为什么 Stable Diffusion VAE 与传统“单独承担生成任务”的 VAE 不同：它不需要独自学习从标准正态分布生成所有图像内容，而是为 Diffusion 提供一个信息密度高、空间结构仍然完整、又足够低维的工作空间。
+
+原始 SD VAE 在压缩和重建时仍然存在信息损失，尤其容易影响小尺寸人脸、文字、细线条和高频纹理。工程上切换微调后的 VAE，通常会改变生成图像的颜色、对比度和局部细节，但不会像切换 U-Net 那样大幅改变主体构图；这说明 VAE 决定的是成像与重建上限，而 U-Net 决定主要生成分布。
+
+<div align="center"><img src="./imgs/sd-vae-reconstruction-comparison.jpg" alt="Stable Diffusion VAE 在不同图像尺寸下的压缩重建效果" /></div>
 
 
 <h2 id="q-044a">面试问题：从 SD 1.x → SDXL → SD 3 → FLUX.1，VAE 在通道数、下采样率、训练目标上的演进路线是怎样的？</h2>
@@ -478,7 +555,7 @@ img2img 是 SD 最常用的二次创作能力，本质是 **在前向扩散链�
 
 VAE 是连接「像素世界」与「扩散世界」的桥梁，是 SD 系列代际跃迁中持续被升级的核心组件。整体演进可以概括为三条主线：**通道数从 4 → 16、下采样率稳定在 8x、训练目标从「像素重建」走向「感知 + 对抗 + 多尺度」**。
 
-#### 1. 主流 SD 系列 VAE 演进对比
+### 1. 主流 SD 系列 VAE 演进对比
 
 <div align="center">
 
@@ -492,13 +569,13 @@ VAE 是连接「像素世界」与「扩散世界」的桥梁，是 SD 系列代
 
 </div>
 
-#### 2. 演进背后的三条主线
+### 2. 演进背后的三条主线
 
 1. **通道数升级（4 → 16）**：4 通道 latent 在 64×64（对应 512×512 像素）上信息密度有限，对人眼、文字、手指、纹理等细粒度区域容易出现「重建塌缩」。SD 3 论文通过消融实验明确证明 16 通道 VAE 的 PSNR / SSIM / LPIPS 都显著优于 4 通道，这是 SD3、FLUX 高质量生成的底层支撑。
 2. **下采样率稳定在 8x**：保留这个压缩率是为了在「计算量降低 64 倍」与「重建上限不至于过低」之间取平衡；继续提高（16x、32x）会让重建质量崩塌。
 3. **训练目标的丰富化**：从单纯像素 L1，演化到「L1 + LPIPS + KL + 对抗」这一**多目标组合**——L1 提供像素一致性、LPIPS 提供感知质量、KL 约束 latent 分布近高斯（便于扩散）、对抗损失抑制模糊和棋盘效应。
 
-#### 3. 为什么 SD 3 选择「通道数翻倍」而不是「下采样率减半」
+### 3. 为什么 SD 3 选择「通道数翻倍」而不是「下采样率减半」
 
 - 下采样率减半（8x → 4x）会让 latent token 数量 4 倍化，所有扩散计算成本随之 4 倍化（attention 是 16 倍化），代价过大；
 - 通道数翻倍只增加每个 token 的 channel 维度，扩散网络的整体计算量增长可控，且能直接提升重建上限。
@@ -512,11 +589,11 @@ VAE 是连接「像素世界」与「扩散世界」的桥梁，是 SD 系列代
 
 > 该问题与 [面试问题：Stable Diffusion 的优化策略有哪些？](#q-031) 中的 latent scale factor 子问题形成「VAE 视角 vs 扩散视角」互补，本节侧重 VAE 侧的统计估计与跨版本切换实操。
 
-#### 1. 从 VAE 输出到扩散输入的「分布对齐」
+### 1. 从 VAE 输出到扩散输入的「分布对齐」
 
-VAE Encoder 训练时只优化 $\text{Recon} + \text{KL} + \text{LPIPS} + \text{Adv}$，**并没有显式约束输出 latent 的方差恰好为 1**。当扩散模型以这个 latent 作为输入做 $x_t = \sqrt{\bar\alpha_t}x_0 + \sqrt{1-\bar\alpha_t}\epsilon$ 加噪时，`scale_factor` 的作用是把 latent 的标准差缩放到接近 1，让噪声调度公式背后的「数据分布近似 $\mathcal{N}(0, I)$」假设近似成立。
+VAE Encoder 训练时只优化 $`\text{Recon} + \text{KL} + \text{LPIPS} + \text{Adv}`$，**并没有显式约束输出 latent 的方差恰好为 1**。当扩散模型以这个 latent 作为输入做 $`x_t = \sqrt{\bar\alpha_t}x_0 + \sqrt{1-\bar\alpha_t}\epsilon`$ 加噪时，`scale_factor` 的作用是把 latent 的标准差缩放到接近 1，让噪声调度公式背后的「数据分布近似 $\mathcal{N}(0, I)$」假设近似成立。
 
-#### 2. 各版本 scale_factor 的统计估计方式
+### 2. 各版本 scale_factor 的统计估计方式
 
 ```python
 with torch.no_grad():
@@ -539,7 +616,7 @@ shift_factor = latents.mean()
 
 </div>
 
-#### 3. 跨版本切换时的注意事项
+### 3. 跨版本切换时的注意事项
 
 - 切换 VAE 必须**同步切换 scale_factor**；不切会出现整体偏色 / 饱和度异常，严重时直接塌缩。
 - SD 3 / FLUX 的 latent 公式为 `z = (raw_latent - shift_factor) * scaling_factor`，再喂给扩散网络；解码时反操作。漏掉 shift 是迁移代码时的高频踩坑点。
@@ -548,6 +625,29 @@ shift_factor = latents.mean()
 
 **面试金句**：scale_factor 是「VAE 实际输出方差」的倒数，目的是让 latent 分布近似 $\mathcal{N}(0, I)$，与扩散模型的噪声调度匹配；它和扩散网络是绑定的一对常量，跨版本切换 VAE 必须同步更新；SD 3 / FLUX 还引入了 shift_factor，是 16 通道 VAE 的额外 mean 校正。
 
+<h2 id="q-044e">面试问题：VAE / Tokenizer / Latent 空间为什么会影响图像生成质量和训练效率？</h2>
+
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+
+VAE、Tokenizer 和 Latent 空间决定了图像从像素空间进入生成模型训练空间的方式。它们不是 Stable Diffusion pipeline 里的辅助模块，而是现代高分辨率图像生成模型的底层信息瓶颈。
+
+Stable Diffusion、SDXL、SD 3、FLUX、Qwen-Image、Z-Image 这类模型通常不直接在像素空间训练，而是先用 VAE 或图像 Tokenizer 把图像压缩到 latent 空间，再由 U-Net / DiT / Flow 模型学习 latent 分布，最后再解码回像素图。这样做能显著降低计算成本，但也带来一个关键代价：**被 VAE 压缩丢掉的信息，后面的扩散主干很难稳定恢复。**
+
+它对模型质量和效率的影响主要体现在四个方面：
+
+1. **训练效率。**
+   压缩率越高，latent token 越少，U-Net / DiT 的计算量越低。对于 DiT 来说，token 数会直接影响 Attention 成本，所以 Z-Image 的紧凑 VAE、高压缩 latent 路线，本质上是在降低训练和推理成本。
+
+2. **细节上限。**
+   如果 VAE 不能重建小字、笔画、边缘、纹理和细线结构，生成主干即使理解了 prompt，最终解码也会糊。Qwen-Image-VAE-2.0 这类面向富文本场景优化的 VAE，核心就是解决“语义知道了，但细节还原不出来”的问题。
+
+3. **编辑保真。**
+   图像编辑要求保留原图身份、结构、背景和未编辑区域。VAE 重建质量不足时，即使编辑指令很简单，也可能出现人脸漂移、商品变形、背景纹理改变等问题。
+
+4. **高分辨率支持。**
+   分辨率越高，latent token 越多。VAE 的压缩率、通道数、latent 尺度、scale_factor、shift_factor 和 tiling 策略，会共同决定模型能否稳定支持 2K、4K 甚至更大尺寸输出。
+
+面试中可以这样总结：**VAE 决定“模型看见什么”和“最终能还原什么”。扩散/Flow 主干决定生成能力，VAE / Tokenizer 决定信息瓶颈；文字渲染、细节保真、编辑稳定性和推理成本，都绕不开 latent 空间设计。**
 
 <h2 id="q-044c">面试问题：SDXL VAE 在 fp16 下出现"白图 / NaN"问题的原因是什么？工业上常见的修复方案有哪些？</h2>
 
@@ -555,13 +655,13 @@ shift_factor = latents.mean()
 
 SDXL 官方 VAE 在 fp16 推理下经常出现整张白图、整张黑图或 NaN，是 SDXL 工业部署最知名的踩坑点之一。
 
-#### 1. 根因分析
+### 1. 根因分析
 
 - **fp16 数值范围只有约 $\pm 6.5\times 10^4$**。SDXL VAE 在解码过程中，某些中间激活值（尤其在带有 GroupNorm + 大尺寸卷积的层）会出现峰值绝对值非常大的 outlier，**超出 fp16 上限触发 inf**；inf 经过 GroupNorm / LayerNorm / sigmoid 这类算子后产生 NaN，再扩散到全图。
 - 这一现象在 SD 1.x / 2.x VAE 上很少见，但 SDXL VAE 的训练数据更广、参数更新后激活分布更长尾，导致问题集中爆发。
 - bf16 的范围与 fp32 同级，所以同一份 VAE 在 bf16 下几乎不会出现这个问题。
 
-#### 2. 工业上常见的修复方案
+### 2. 工业上常见的修复方案
 
 <div align="center">
 
@@ -575,7 +675,7 @@ SDXL 官方 VAE 在 fp16 推理下经常出现整张白图、整张黑图或 NaN
 
 </div>
 
-#### 3. 工程经验
+### 3. 工程经验
 
 - 生产部署中**默认搭配 sdxl-vae-fp16-fix 或 bf16**，避免单点故障导致整张白图。
 - 若使用 ComfyUI / A1111，绝大多数发行版都已自动选择 fp16-fix VAE 或在 VAE 层面做 upcast，不需要额外配置。
@@ -591,7 +691,7 @@ SDXL 官方 VAE 在 fp16 推理下经常出现整张白图、整张黑图或 NaN
 
 VAE Decoder 的显存随分辨率呈 $\mathcal{O}(H \cdot W)$ 增长，是 SDXL / SD 3 / FLUX 在 1024×1024 及以上分辨率下的「显存最后一公里」。两种主流压缩方案有各自适用场景。
 
-#### 1. VAE Tiling（分块解码）
+### 1. VAE Tiling（分块解码）
 
 - **思路**：把 latent 切成多个空间小块，每块独立通过 Decoder 解码，再用**重叠 + 加权融合**策略拼接成完整像素图。
 - **优势**：完全无损（与一次性解码视觉一致，仅有亚像素级别的拼接差异）；不改变 VAE 权重，所有 SD 系列通用。
@@ -599,14 +699,14 @@ VAE Decoder 的显存随分辨率呈 $\mathcal{O}(H \cdot W)$ 增长，是 SDXL 
 - **diffusers 用法**：`pipe.vae.enable_tiling()`、可配 `tile_sample_min_size` 等参数。
 - **适用场景**：1536 / 2048 / 4K 等大尺寸生成、Outpaint、超分辨率图像 latent 解码。
 
-#### 2. TAESD / TAESDXL（Tiny AutoEncoder for SD）
+### 2. TAESD / TAESDXL（Tiny AutoEncoder for SD）
 
 - **思路**：训练一个**比官方 VAE 小一个数量级的微型 Encoder/Decoder**（通常只有几百万参数），用蒸馏方式逼近官方 VAE 的 latent 分布与重建。
 - **优势**：解码极快（数倍于官方 VAE）；显存占用极小；非常适合 **Live Preview**（边采样边解码预览）和 ComfyUI 的实时小图反馈。
 - **代价**：重建质量比官方 VAE 略低，**不能用于最终输出**——细节、文字、人脸的清晰度低于官方 VAE。
 - **适用场景**：交互式预览、采样过程中的中间帧可视化、低端硬件的非最终输出。
 
-#### 3. 选型建议
+### 3. 选型建议
 
 <div align="center">
 
@@ -623,39 +723,13 @@ VAE Decoder 的显存随分辨率呈 $\mathcal{O}(H \cdot W)$ 增长，是 SDXL 
 **面试金句**：VAE Tiling 用「时间换空间」做无损降显存，是大分辨率最终输出的标准方案；TAESD 用「画质换速度」做轻量解码，是实时预览与端侧的首选；二者本质是「精度优先 vs 时延优先」的不同取舍，可以叠加使用。
 
 
-<h2 id="q-044e">面试问题：VAE / Tokenizer / Latent 空间为什么会影响图像生成质量和训练效率？</h2>
-
-**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
-
-VAE、Tokenizer 和 Latent 空间决定了图像从像素空间进入生成模型训练空间的方式。它们不是 Stable Diffusion pipeline 里的辅助模块，而是现代高分辨率图像生成模型的底层信息瓶颈。
-
-Stable Diffusion、SDXL、SD 3、FLUX、Qwen-Image、Z-Image 这类模型通常不直接在像素空间训练，而是先用 VAE 或图像 Tokenizer 把图像压缩到 latent 空间，再由 U-Net / DiT / Flow 模型学习 latent 分布，最后再解码回像素图。这样做能显著降低计算成本，但也带来一个关键代价：**被 VAE 压缩丢掉的信息，后面的扩散主干很难稳定恢复。**
-
-它对模型质量和效率的影响主要体现在四个方面：
-
-1. **训练效率。**  
-   压缩率越高，latent token 越少，U-Net / DiT 的计算量越低。对于 DiT 来说，token 数会直接影响 Attention 成本，所以 Z-Image 的紧凑 VAE、高压缩 latent 路线，本质上是在降低训练和推理成本。
-
-2. **细节上限。**  
-   如果 VAE 不能重建小字、笔画、边缘、纹理和细线结构，生成主干即使理解了 prompt，最终解码也会糊。Qwen-Image-VAE-2.0 这类面向富文本场景优化的 VAE，核心就是解决“语义知道了，但细节还原不出来”的问题。
-
-3. **编辑保真。**  
-   图像编辑要求保留原图身份、结构、背景和未编辑区域。VAE 重建质量不足时，即使编辑指令很简单，也可能出现人脸漂移、商品变形、背景纹理改变等问题。
-
-4. **高分辨率支持。**  
-   分辨率越高，latent token 越多。VAE 的压缩率、通道数、latent 尺度、scale_factor、shift_factor 和 tiling 策略，会共同决定模型能否稳定支持 2K、4K 甚至更大尺寸输出。
-
-面试中可以这样总结：**VAE 决定“模型看见什么”和“最终能还原什么”。扩散/Flow 主干决定生成能力，VAE / Tokenizer 决定信息瓶颈；文字渲染、细节保真、编辑稳定性和推理成本，都绕不开 latent 空间设计。**
-
-
 <h1 id="q-045">3.介绍一下 Stable Diffusion 中 Backbone 的架构、原理和作用</h1>
 
-<h2 id="q-046">面试问题：Stable Diffusion 是如何在 U-Net 内部把文本与图像两种模态的语义对齐的？</h2>
+<h2 id="q-047">面试问题：介绍一下 Stable Diffusion 中的自注意力机制和交叉注意力机制</h2>
 
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-<h2 id="q-047">面试问题：介绍一下 Stable Diffusion 中的交叉注意力机制</h2>
-
-#### 1. 简介
+### 1. 自注意力机制与交叉注意力机制的核心区别
 
 属于Transformer常见Attention机制，用于合并两个不同的sequence embedding。两个sequence是：Query、Key/Value。
 
@@ -663,17 +737,59 @@ Stable Diffusion、SDXL、SD 3、FLUX、Qwen-Image、Z-Image 这类模型通常�
 
 Cross-Attention和Self-Attention的计算过程一致，区别在于输入的差别，通过上图可以看出，两个embedding的sequence length 和embedding_dim都不一样，故具备更好的扩展性，能够融合两个不同的维度向量，进行信息的计算交互。而Self-Attention的输入仅为一个。
 
-#### 2. 作用
+在 Stable Diffusion U-Net 中，Self-Attention 和 Cross-Attention 并不是孤立模块，而是被组织进 Spatial Transformer：图像特征先经 GroupNorm 与投影变成图像 token，随后依次执行 Self-Attention、Cross-Attention 和 FeedForward，并通过残差连接写回卷积特征。Self-Attention 负责建立不同图像位置之间的全局联系，Cross-Attention 则负责把 Prompt 对应的文本语义写入这些图像位置。
+
+### 2. Stable Diffusion 是如何在 U-Net 内部把文本与图像两种模态的语义对齐的？
 
 Cross-Attention可以用于将图像与文本之间的关联建立，在stable-diffusion中的Unet部分使用Cross-Attention将文本prompt和图像信息融合交互，控制U-Net把噪声矩阵的某一块与文本里的特定信息相对应。
 
+在每一个交叉注意力层中，空间位置对应的图像 latent token 会根据当前图像特征查询文本 token：描述主体、属性、风格和空间关系的文本特征被写回相应图像位置。这个过程会在多次 U-Net 去噪步骤和多个尺度上重复，因此文本不是只在输入端控制一次，而是持续参与从噪声到图像 latent 的逐步重建。
 
-<h2 id="q-048">面试问题：Stable Diffusion 中 cross attention 的 Q / K / V 分别是什么？为什么图像隐变量作为 Q，文本 Prompt 作为 K / V？</h2>
+<div align="center"><img src="./imgs/sd-cross-attention-text-injection.jpg" alt="Stable Diffusion 中文本特征通过 Cross-Attention 注入 U-Net" /></div>
 
+### 3. Stable Diffusion 中 Cross-Attention 的 Q / K / V 分别是什么？为什么图像隐变量作为 Q，文本 Prompt 作为 K / V？
+
+在 Stable Diffusion 的 Cross-Attention 中：
+
+- **Q（Query）来自图像 latent feature**：U-Net 当前层的二维特征先展平为空间 token，再经过线性投影得到 Q；
+- **K（Key）和 V（Value）来自文本 Prompt 的 embedding**：CLIP Text Encoder 输出的文本 token 分别投影为 K 和 V；
+- 注意力权重由 $QK^\top$ 计算，表示每一个图像位置应该关注哪些文本 token；再用该权重对 V 加权求和，把相关文本语义写回图像特征。
+
+图像隐变量作为 Q，是因为 Stable Diffusion 的直接优化对象是图像 latent：模型需要针对“当前图像位置缺少什么语义信息”向文本进行查询。文本作为 K/V，则相当于一个稳定的条件记忆库，用于提供主体、属性、关系和风格信息。如果反过来让文本作为 Q，得到的输出会以文本 token 为主，不能直接与 U-Net 的空间特征逐位置融合。
+
+### 4. 为什么 SD U-Net 中 Self-Attention 与 Cross-Attention 主要放在中、低分辨率层？高分辨率层为何以卷积为主？
+
+SD U-Net 是「卷积 + 注意力」的混合架构，注意力的放置位置不是随便选的，而是**在显存 / 计算成本与语义建模能力之间的精妙折中**。
+
+**1. 注意力的计算复杂度是分辨率的二次方**
+
+对于空间形状为 $H \times W$ 的特征图，自注意力的复杂度是：
+
+```math
+\mathcal{O}\bigl((HW)^2 \cdot d\bigr)
+```
+
+在 SD 1.5（latent 64×64，VAE 8x 下采样）中，U-Net 的各下采样层分辨率依次为 $64 \to 32 \to 16 \to 8$。如果在 64×64 层就放 Self-Attention，序列长度是 4096，attention 矩阵需要 $4096^2 \approx 1.6\text{M}$ 个元素；而 16×16 层的序列长度只有 256，attention 矩阵只需 $\sim 65\text{K}$ 个元素，**计算量差 256 倍**。
+
+**2. 中、低分辨率更适合做语义对齐**
+
+- **高分辨率层（64×64、32×32）感受野小、语义弱**，主要承担「纹理、边缘」这类局部信息，用卷积已经足够；
+- **中、低分辨率层（16×16、8×8）感受野大、语义强**，每个 token 已经聚合了较大的图像区域，正适合与文本 token 做 cross-attention 进行「语义对齐」；
+- 高 / 低分辨率的注意力放置规律也符合人类视觉的「先局部纹理后整体语义」直觉。
+
+**3. SD 1.x / 2.x / SDXL / SD 3 在 attention 放置上的差异**
+
+- **SD 1.x / 2.x**：U-Net 的 32×32、16×16、8×8 三个分辨率层都有 Self-Attention + Cross-Attention block，64×64 层只有卷积。
+- **SDXL**：把更多的 Transformer Block 集中到中分辨率（U-Net 中部更深的 attention stack），16×16 / 8×8 层 attention 数量从 SD 1.5 的 1 个增加到多个，主要为了提升大模型容量与高分辨率细节质量。
+- **SD 3 / FLUX（MM-DiT）**：彻底放弃多尺度 U-Net，改为单尺度 patchify + 全局 attention；本质上把整张图压成一个 token 序列做 Transformer，分辨率与 attention 解耦，但需要更大算力。
+
+**面试金句**：U-Net 把 Cross-Attention 集中在中、低分辨率，是因为「语义对齐 + 二次方复杂度」两个事实必须妥协；卷积负责高分辨率局部细节，注意力负责低分辨率全局语义，这是 SD 1 / SD 2 / SDXL 共享的设计哲学。SD 3 / FLUX 通过 MM-DiT 把这条妥协推翻，但代价是显著的算力上涨。
 
 <h2 id="q-049">面试问题：为什么使用 U-Net 作为 Stable Diffusion 模型的核心架构？介绍一下 U-Net 架构</h2>
 
-#### 1. U-Net的结构具有以下特点
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+### 1. U-Net的结构具有以下特点
 
 - **整体结构**：U-Net由多个大层组成。在每个大层中，特征首先通过下采样变为更小尺寸的特征，然后通过上采样恢复到原来的尺寸，形成一个U形的结构。
 - **特征通道变化**：在下采样过程中，特征图的尺寸减半，但通道数翻倍；上采样过程则相反。
@@ -687,36 +803,17 @@ Stable Diffusion的U-Net 能够通过交叉注意力层在文本嵌入上调节�
 
 <div align="center"><img src="./imgs/LDMs.png" alt="Latent Diffusion Models 架构示意图" /></div>
 
+### 2. Stable Diffusion U-Net 相比经典 U-Net 增加了什么？
 
-<h2 id="q-049a">面试问题：为什么 SD U-Net 中 Self-Attention 与 Cross-Attention 主要放在中、低分辨率层？高分辨率层为何以卷积为主？</h2>
+Stable Diffusion 沿用了经典 U-Net 的 Encoder、Decoder、多尺度特征和 Skip Connection，但为扩散生成增加了三类关键组件：
 
-**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+1. **ResNetBlock + Time Embedding**：每个去噪阶段的噪声强度不同，Time Embedding 会告诉共享 U-Net 当前处于哪个 timestep，使网络能在早期优先恢复轮廓和低频结构，在后期补充纹理与高频细节。
+2. **Spatial Transformer**：由 Self-Attention、Cross-Attention 和 FeedForward 组成。Self-Attention 建模图像内部的长程关系，Cross-Attention 将 Text Embeddings 作为条件注入图像特征。
+3. **CrossAttnDownBlock / CrossAttnUpBlock / CrossAttnMidBlock**：把卷积 ResNetBlock 与 Spatial Transformer 组合在不同分辨率层中，使多尺度视觉建模与文本条件控制能够同时进行。
 
-SD U-Net 是「卷积 + 注意力」的混合架构，注意力的放置位置不是随便选的，而是**在显存 / 计算成本与语义建模能力之间的精妙折中**。
+<div align="center"><img src="./imgs/stable-diffusion-unet-architecture.jpg" alt="Stable Diffusion U-Net 及 ResNetBlock Spatial Transformer 完整结构" /></div>
 
-#### 1. 注意力的计算复杂度是分辨率的二次方
-
-对于空间形状为 $H \times W$ 的特征图，自注意力的复杂度是：
-
-```math
-\mathcal{O}\bigl((HW)^2 \cdot d\bigr)
-```
-
-在 SD 1.5（latent 64×64，VAE 8x 下采样）中，U-Net 的各下采样层分辨率依次为 $64 \to 32 \to 16 \to 8$。如果在 64×64 层就放 Self-Attention，序列长度是 4096，attention 矩阵需要 $4096^2 \approx 1.6\text{M}$ 个元素；而 16×16 层的序列长度只有 256，attention 矩阵只需 $\sim 65\text{K}$ 个元素，**计算量差 256 倍**。
-
-#### 2. 中、低分辨率更适合做语义对齐
-
-- **高分辨率层（64×64、32×32）感受野小、语义弱**，主要承担「纹理、边缘」这类局部信息，用卷积已经足够；
-- **中、低分辨率层（16×16、8×8）感受野大、语义强**，每个 token 已经聚合了较大的图像区域，正适合与文本 token 做 cross-attention 进行「语义对齐」；
-- 高 / 低分辨率的注意力放置规律也符合人类视觉的「先局部纹理后整体语义」直觉。
-
-#### 3. SD 1.x / 2.x / SDXL / SD 3 在 attention 放置上的差异
-
-- **SD 1.x / 2.x**：U-Net 的 32×32、16×16、8×8 三个分辨率层都有 Self-Attention + Cross-Attention block，64×64 层只有卷积。
-- **SDXL**：把更多的 Transformer Block 集中到中分辨率（U-Net 中部更深的 attention stack），16×16 / 8×8 层 attention 数量从 SD 1.5 的 1 个增加到多个，主要为了提升大模型容量与高分辨率细节质量。
-- **SD 3 / FLUX（MM-DiT）**：彻底放弃多尺度 U-Net，改为单尺度 patchify + 全局 attention；本质上把整张图压成一个 token 序列做 Transformer，分辨率与 attention 解耦，但需要更大算力。
-
-**面试金句**：U-Net 把 Cross-Attention 集中在中、低分辨率，是因为「语义对齐 + 二次方复杂度」两个事实必须妥协；卷积负责高分辨率局部细节，注意力负责低分辨率全局语义，这是 SD 1 / SD 2 / SDXL 共享的设计哲学。SD 3 / FLUX 通过 MM-DiT 把这条妥协推翻，但代价是显著的算力上涨。
+U-Net 适合 Stable Diffusion 的根本原因，是它同时满足了扩散去噪的三类需求：**多尺度结构用于先轮廓后细节，Skip Connection 保留高频空间信息，Time Embedding 与 Cross-Attention 分别注入噪声阶段和文本条件。**
 
 
 <h2 id="q-049b">面试问题：U-Net 与 DiT / MM-DiT 在 Backbone 设计哲学上的本质差异是什么？SD 系列从 U-Net 演进到 DiT 的根本原因是什么？</h2>
@@ -725,7 +822,7 @@ SD U-Net 是「卷积 + 注意力」的混合架构，注意力的放置位置�
 
 从 SDXL 到 SD 3 / FLUX 的最大跃迁就是 Backbone 从 U-Net 切换到 MM-DiT。这不只是「换模型」，而是**整个生成范式的演进**：从「卷积归纳偏置 + 局部 attention」走向「无归纳偏置 + 全局 token Transformer」。
 
-#### 1. 设计哲学对比
+### 1. 设计哲学对比
 
 <div align="center">
 
@@ -742,14 +839,14 @@ SD U-Net 是「卷积 + 注意力」的混合架构，注意力的放置位置�
 
 </div>
 
-#### 2. SD 系列从 U-Net 演进到 DiT 的根本原因
+### 2. SD 系列从 U-Net 演进到 DiT 的根本原因
 
 1. **Scaling Law 驱动**：Transformer 在 NLP、ViT、视频生成上反复证明「越大越好」；U-Net 在 SDXL 这一规模（≈2.6B）已经接近边际收益拐点，继续加宽 / 加深收益不显著。DiT 论文（W. Peebles, S. Xie）首次系统性地证明 Transformer 在扩散模型上同样有清晰的 Scaling Law。
 2. **多模态联合建模**：MM-DiT 让文本与图像 token 在同一序列里做 self-attention，对**长 prompt、强语义、文字渲染**都更友好；U-Net 的 Cross-Attention 只能让图像 query 文本，缺乏「文本反向 query 图像」的双向信息流。
 3. **统一架构、便于跨任务复用**：DiT 与视频生成（DiT for Video / Sora-类）、3D / 多模态生成（W.A.L.T、MMDiT）共用一套 Transformer 范式，更容易被复用与扩展。
 4. **去除卷积的硬约束**：卷积假设平移等变性，但生成模型未必需要严格平移等变（不同分辨率、不同长宽比都要支持）；纯 Transformer + 位置编码反而更灵活。
 
-#### 3. 代价与权衡
+### 3. 代价与权衡
 
 - DiT / MM-DiT 推理算力随分辨率快速上升，需要 FlashAttention、SDPA、序列并行等系统优化；
 - 弱归纳偏置带来更高的数据需求，SD 3 / FLUX 都使用了远比 SDXL 更大的训练数据；
@@ -758,71 +855,31 @@ SD U-Net 是「卷积 + 注意力」的混合架构，注意力的放置位置�
 **面试金句**：U-Net 强归纳偏置 + 多尺度、DiT 弱归纳偏置 + 单尺度全局 attention；演进的根本动力是**扩散模型也开始遵循 Transformer 的 Scaling Law**，加上多模态联合建模的需求，这两点共同推动 SD 系列从 SDXL 的 U-Net 走向 SD 3 / FLUX 的 MM-DiT。
 
 
-<h2 id="q-049c">面试问题：Stable Diffusion 中常见的注意力加速技术（xFormers、SDPA、FlashAttention、Token Merging / ToMe）的核心思想与适用场景是什么？</h2>
-
-**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
-
-注意力是 SD 显存与时延的主要瓶颈，几种主流加速技术覆盖了「IO 优化、内存优化、token 削减」三种不同思路。
-
-#### 1. xFormers Memory-Efficient Attention
-
-- **核心思想**：FAIR 早期提出的 attention 内存优化，**分块计算 attention，避免显式存储完整的 $N\times N$ attention 矩阵**，把显存从 $\mathcal{O}(N^2)$ 降到 $\mathcal{O}(N)$。
-- **适用场景**：A1111 / ComfyUI / diffusers 长期默认加速器；对老一代 GPU（V100、T4、3090）有显著提速；近年逐渐被 SDPA / FlashAttention-2 替代。
-- **代价**：与 PyTorch 原生 attention 在数值上有微小差异，可能影响逐像素复现性。
-
-#### 2. PyTorch SDPA（`torch.nn.functional.scaled_dot_product_attention`）
-
-- **核心思想**：PyTorch 2.0 引入的统一接口，**根据硬件与输入自动 dispatch 到 FlashAttention、Memory-Efficient Attention 或 Math Backend**，无需安装额外库。
-- **优势**：官方维护、API 稳定、长期支持；diffusers ≥ 0.20 默认启用。
-- **适用场景**：所有新代码的首选；H100 / 4090 等支持 FlashAttention-2 的硬件几乎与 xFormers / FlashAttention-2 等价。
-
-#### 3. FlashAttention / FlashAttention-2 / FlashAttention-3
-
-- **核心思想**：**IO-aware 算法**，把 Q / K / V 切成 SRAM 友好的块，融合 softmax 与矩阵乘的访存，减少 HBM 读写次数；FA-2 改进 work partitioning，FA-3 利用 H100 的异步 TMA / WGMMA 进一步提速。
-- **优势**：在新一代硬件（A100、H100、MI300）上提供数倍于原生 attention 的吞吐；与 SDPA 兼容。
-- **适用场景**：训练或大批量推理时；在消费级 30 / 40 系卡上需 FA-2 + 编译。
-
-#### 4. Token Merging（ToMe-SD）
-
-- **核心思想**：在 self-attention 之前**把视觉相似的 token 合并为一个**，attention 序列长度变短，再在 attention 之后还原。来自 ICLR 2023 ToMe；ToMe-SD 是其在 SD 上的工程化实现。
-- **优势**：不改权重、不需要重训，可叠加在 xFormers / SDPA 之上；典型设置下 SDXL 提速 ≈30-50%、轻微画质损失。
-- **代价**：质量轻微下降，对细节、文字、人脸的影响比对纹理更明显；对 ControlNet / IP-Adapter 等条件控制偶尔会有副作用。
-- **适用场景**：对画质要求中等的批量生成、Live Preview、移动端等。
-
-#### 5. 其他延伸
-
-- **DeepCache**：缓存 U-Net 中间层特征，跨多步采样复用；与 attention 加速正交。
-- **SDPA + torch.compile**：PyTorch 2.x 推荐组合，能为 SDXL / FLUX 再提速 20-50%。
-- **TensorRT / ONNX Runtime**：把 attention 融合进图编译，工业部署常用。
-
-**面试金句**：xFormers / SDPA / FlashAttention 三者本质都是**「同语义、不同实现」的 IO 优化**，属于「不损画质换显存与速度」；Token Merging 是**「主动丢信息」的真减法**，属于「轻微损画质换大幅提速」。生产部署的最佳实践是 **SDPA（FlashAttention 后端） + ToMe（可选） + torch.compile**。
-
-
 <h2 id="q-049d">面试问题：SD Backbone 中 GroupNorm + SiLU + 残差连接的设计为何对训练稳定性很关键？换成 LayerNorm / BatchNorm 会有什么问题？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐ (3/5)**
 
 SD U-Net 中的每一个 ResBlock 都是「GroupNorm → SiLU → Conv → GroupNorm → SiLU → Conv → 残差加法 + timestep / 文本调制」。这套组合不是任意选择，而是扩散模型训练稳定性的「最小刚需配方」。
 
-#### 1. 为什么是 GroupNorm 而不是 BatchNorm
+### 1. 为什么是 GroupNorm 而不是 BatchNorm
 
 - **BatchNorm 依赖 batch 内统计**，扩散模型训练时同一 batch 内不同样本对应**不同的时间步 $t$**，统计分布差异巨大；BN 会把高噪样本与低噪样本混在一起做归一化，引入严重的统计偏置。
 - BN 在小 batch / 推理 batch=1 时表现差；扩散模型推理常常 batch=1（CFG 时 batch=2），BN 不友好。
 - **GroupNorm 只在通道维做分组归一化，与 batch 无关**，对任意 batch size 表现一致；与 timestep / 噪声水平也解耦。
 - 工业中也有人使用 **AdaGN / AdaLN-Zero**（让 timestep 调制 GroupNorm 的 scale / bias），是 ADM、DiT、SD 3 的常见做法。
 
-#### 2. 为什么是 SiLU 而不是 ReLU
+### 2. 为什么是 SiLU 而不是 ReLU
 
 - ReLU 在负区间梯度恒为 0，深层网络训练易出现「dead ReLU」；
 - **SiLU（Swish）= $x \cdot \sigma(x)$**：在负区间有非零梯度，平滑可导，与扩散模型「连续噪声水平」的特性更匹配；
 - DDPM 原论文消融显示 SiLU 比 ReLU、GELU 都更稳定；ADM / SD 系列沿用至今。
 
-#### 3. 残差连接的双重价值
+### 3. 残差连接的双重价值
 
 - **梯度传播**：扩散网络往往很深（SDXL U-Net 有数十个 ResBlock），残差连接保证梯度能直通到深层；
 - **保留高频信号**：去噪过程要求网络能处理「输入 ≈ 输出」的极端情况（高 SNR 时几乎是恒等映射），残差连接提供了这种「恒等近似」的捷径。
 
-#### 4. 为什么不是 LayerNorm
+### 4. 为什么不是 LayerNorm
 
 - LayerNorm 对每个空间位置独立做归一化，破坏空间相关性，对卷积视觉任务不友好；
 - 但在 **DiT / MM-DiT** 中由于 Backbone 已经是 Transformer 范式（每个位置就是一个 token），LayerNorm（含 AdaLN-Zero）反而是默认选择；这进一步说明「归一化层 ↔ Backbone 范式」存在强绑定关系。
@@ -832,25 +889,69 @@ SD U-Net 中的每一个 ResBlock 都是「GroupNorm → SiLU → Conv → Group
 
 <h1 id="q-050">4.介绍一下 Stable Diffusion 中 Text Encoder 的架构、原理和作用</h1>
 
-<h2 id="q-051">面试问题：举例介绍一下 Stable Diffusion 模型进行文本编码的全过程</h2>
-
-
-<h2 id="q-052">面试问题：Stable Diffusion 如何通过文本来实现对图像生成内容的控制？SD 中是如何注入文本信息的？</h2>
-
-
-<h2 id="q-053">面试问题：Negative Prompt 实现的原理是什么？</h2>
-
-<h2 id="q-038">面试问题：Stable Diffusion 中文本条件是如何一步步控制图像生成的？请完整描述从 Prompt 到 Latent 的注入链路</h2>
+<h2 id="q-051">面试问题：Text Encoder 和 VLM 条件编码器在图像生成模型中起什么作用？举例介绍一下 Stable Diffusion 模型进行文本编码的全过程</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-1.文本编码：CLIP Text Encoder模型将输入的文本Prompt进行编码，转换成Text Embeddings（文本的语义信息），由于预训练后CLIP模型输入配对的图片和标签文本，Text Encoder和Image Encoder可以输出相似的embedding向量，所以这里的Text Embeddings可以近似表示所要生成图像的image embedding。
+### 1. Text Encoder 和 VLM 条件编码器在图像生成模型中的作用
+
+Text Encoder 或 VLM 条件编码器决定模型如何理解用户输入。早期 Stable Diffusion 主要依赖 CLIP 文本编码器，把 prompt 编码成可供 U-Net cross-attention 使用的文本特征；Imagen、DALL-E 3、SD 3、FLUX 则说明，更强的 T5 / LLM 级文本编码器会显著提升复杂 prompt following；Qwen-Image、Qwen-Image-Edit 进一步把 VLM 作为语义入口，用于理解图像、文字、布局和编辑意图。
+
+它们的作用可以拆成五层：
+
+1. **把 prompt 转成语义条件。**
+   文本编码器负责把自然语言 prompt 映射成条件向量或 token 序列，再通过 cross-attention、AdaLN、joint attention、MMDiT 等机制注入生成主干。没有稳定的文本条件，扩散模型只能学无条件图像分布。
+
+2. **理解长 prompt 和复杂关系。**
+   CLIP 擅长短文本图文对齐，但对长描述、多对象关系、空间逻辑、段落级排版和复杂否定约束较弱。T5、LLM 和 VLM 可以补足这部分能力，这也是 SD 3、FLUX、Qwen-Image 这类模型强化文本/多模态编码器的重要原因。
+
+3. **支持图像编辑和多模态输入。**
+   图像编辑不仅要理解“把什么改成什么”，还要理解源图里已有的主体、身份、结构和布局。Qwen-Image-Edit 这类路线通常会同时利用 VAE Encoder 保留外观结构、利用 VLM 条件编码器理解图像语义，从而让模型既知道“要改什么”，也知道“原图长什么样”。
+
+4. **支持文字渲染、排版和知识图像。**
+   海报、菜单、PPT、流程图、信息图、地图和公式图不只是“画出类似图案”，还要求文字内容、布局层级和逻辑关系正确。强文本编码器/VLM 能把文字、OCR、版式和对象关系以更高密度送入生成主干，是富文本图像生成能力提升的关键。
+
+5. **影响生态兼容和模型代际差异。**
+   SD 1.x、SD 2.x、SDXL、SD 3、FLUX 在 prompt 行为上的差异，很大一部分来自 Text Encoder 的差异。换编码器不是简单换模块，而是换掉模型对自然语言的理解空间，也会影响 LoRA、prompt 模板、clip_skip、长 prompt 处理和社区工作流兼容性。
+
+一句话总结：**现代图像生成模型越来越像“语言/多模态理解模型 + 视觉生成模型”的组合。Text Encoder / VLM 决定模型听不听得懂，U-Net / DiT / Flow 主干决定模型画不画得出来。**
+
+### 2. Stable Diffusion 模型进行文本编码的全过程
+
+Stable Diffusion 1.x 使用 CLIP ViT-L/14 的 Text Encoder。完整编码过程可以拆成以下步骤：
+
+1. **Tokenization**：Tokenizer 先把 Prompt 切分为 token 序列，并加入起止标记；不足固定长度时 padding，超过长度时截断或由上层框架进行分块。
+2. **Token Embedding + Position Embedding**：每个 token 被映射为向量，并加入位置信息，使相同词语位于不同位置时仍能被区分。
+3. **Transformer 编码**：特征依次经过多层 CLIP Encoder Layer，每层包含 Self-Attention、MLP、LayerNorm 和残差连接，在文本序列内部建立上下文关系。
+4. **输出 Text Embeddings**：以 SD 1.x 为例，最终得到 $77\times768$ 的序列特征，作为 U-Net Cross-Attention 的 Context Embeddings。CLIP 在基础 SD 训练中通常冻结，主要更新 U-Net 参数。
+
+<div align="center"><img src="./imgs/stable-diffusion-clip-text-encoder-architecture.jpg" alt="Stable Diffusion CLIP Text Encoder 完整结构" /></div>
+
+CLIP Text Encoder模型将输入的文本Prompt进行编码，转换成Text Embeddings（文本的语义信息），由于预训练后CLIP模型输入配对的图片和标签文本，Text Encoder和Image Encoder可以输出相似的embedding向量，所以这里的Text Embeddings可以近似表示所要生成图像的image embedding。
 
 2.CrossAttention模块：在U-net的corssAttention模块中Text Embeddings用来生成K和V，Latent Feature用来生成Q。因为需要文本信息注入到图像信息中里，所以用图片token对文本信息做 Attention实现逐步的文本特征提取和耦合。
 
-<h2 id="q-037">面试问题：Stable Diffusion 中的 negative prompt（反向提示词）是如何加入的？</h2>
+<h2 id="q-053">面试问题：Negative Prompt 实现的原理是什么？</h2>
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
+
+Negative Prompt 并不是训练一个额外的“负向模型”，而是复用 Classifier-Free Guidance（CFG）的无条件分支。标准 CFG 会同时计算有条件噪声预测和无条件噪声预测，再放大两者的差异：
+
+```math
+\epsilon_{\mathrm{cfg}}
+=\epsilon_{\mathrm{uncond}}
++w\left(\epsilon_{\mathrm{cond}}-\epsilon_{\mathrm{uncond}}\right)
+```
+
+训练和普通推理中，unconditional branch 通常输入空字符串；使用 Negative Prompt 时，只需把这个空字符串替换成反向提示词。于是模型不再单纯远离“无条件分布”，而是沿着“负向提示词预测”到“正向提示词预测”的差分方向更新：
+
+```math
+\epsilon_{\mathrm{cfg}}
+=\epsilon_{\mathrm{negative}}
++w\left(\epsilon_{\mathrm{positive}}-\epsilon_{\mathrm{negative}}\right)
+```
+
+这正是 Negative Prompt 能够削弱不希望出现的主体、风格、缺陷和属性，同时仍然只需要两次 U-Net 噪声预测的原因。
 
 **1. 假想方案**
 
@@ -868,6 +969,8 @@ stable diffusion webui 文档中看到了 negative prompt 真正的[实现方法
 
 就是这么简单，其实也很说得通，虽说设计上预期是无 prompt 的，但是没有人拦着你加上 prompt（反向的），公式上可以看出在正向强化positive prompt的同时也反方向强化——也就是弱化了 negative prompt。同时这个方法相对于我想的那个方法还有一个优势就是只需预测 2 个而不是 3 个噪声。可以减少时间复杂度。
 
+需要注意的是，Negative Prompt 只能调整模型已经学到的语义方向，不能保证彻底删除某个概念。权重过强或 CFG 过高还可能带来过饱和、细节僵硬和构图异常，因此仍需结合底模能力、正向 Prompt、采样器与 CFG Scale 一起调节。
+
 
 <h2 id="q-053a">面试问题：CLIP Text Encoder 的 77 tokens 长度限制对长 Prompt 的实际影响是什么？工程上如何突破（chunking、weighted prompt、T5 等长上下文编码器）？</h2>
 
@@ -875,16 +978,16 @@ stable diffusion webui 文档中看到了 negative prompt 真正的[实现方法
 
 CLIP Text Encoder 的位置编码上限是 77 tokens（包含起止符 `<|startoftext|>`、`<|endoftext|>`），这是 SD 1.x / 2.x / SDXL 的硬约束，也是「用户写了一段长 prompt 但模型只听了前面几句」的根因。
 
-#### 1. 77 tokens 限制的实际影响
+### 1. 77 tokens 限制的实际影响
 
 - **直接截断**：超过 77 token 的 prompt 默认被截断，后半段完全丢失，模型生成的图像与用户预期不符；
-- **CLIP token ≠ 单词数**：CLIP 的 BPE 分词使一个英文单词常占 1~2 token，中文单字常占 2~3 token，**77 token 实际只够 30~50 个英文单词或 25~30 个中文字**；
+- **CLIP token ≠ 单词数**：CLIP 的 BPE 分词使一个英文单词常占 1-2 token，中文单字常占 2-3 token，**77 token 实际只够 30-50 个英文单词或 25-30 个中文字**；
 - **写复杂场景受限**：多角色、多物体、多风格描述无法在 77 token 内充分表达；
 - **对 SD 3 / FLUX 仍然部分受影响**：SD 3 同时使用了 CLIP-L、CLIP-G（77 token）+ T5-XXL（最大 512 token），但 CLIP 部分仍受 77 token 限制，T5 才是长上下文的承载者。
 
-#### 2. 三类主流的工程突破方案
+### 2. 三类主流的工程突破方案
 
-##### (1) Prompt Chunking（A1111 / ComfyUI 通用）
+**(1) Prompt Chunking（A1111 / ComfyUI 通用）**
 
 - 把长 prompt 按 75 个有效 token 分块（每块再加起止符变 77）；
 - 每块独立过 CLIP Text Encoder 得到 77×768 / 77×1280 的 embedding；
@@ -892,19 +995,19 @@ CLIP Text Encoder 的位置编码上限是 77 tokens（包含起止符 `<|starto
 - U-Net 的 cross-attention 直接接受任意长度的文本序列（attention 对序列长度本来就没限制）。
 - 优势：实现简单、无需训练；劣势：跨块语义关联较弱，且 CLIP 没在长序列上训练过，超过几块后效果会衰退。
 
-##### (2) Prompt Weighting（权重语法）
+**(2) Prompt Weighting（权重语法）**
 
 - 通过 `(word:1.3)` / `[word]` 等语法对特定 token 的 embedding 做缩放或插值；
 - 不增加 token 数，而是在有限长度下「加重重要部分」。
 - 见 [面试问题：Prompt 中的权重语法](#q-053b) 详细解析。
 
-##### (3) 切换到 T5 / 长上下文 LLM 编码器
+**(3) 切换到 T5 / 长上下文 LLM 编码器**
 
 - **T5-XXL**：DALL-E 3、Imagen、SD 3、FLUX.1 都引入了 T5-XXL 作为辅助 Text Encoder，最长支持 512 token，能容纳长 prompt 的细节；
 - **PixArt-α / PixArt-Σ**：直接只用 T5-XXL，单一编码器处理长 prompt；
 - **未来趋势**：FLUX.2、Stable Diffusion 3.5 Large 等已实验性引入更长上下文 LLM 作为编码器。
 
-#### 3. 工程经验
+### 3. 工程经验
 
 - A1111 / ComfyUI 默认开启 chunking，普通用户感受不到 77 限制；
 - 对极长 prompt，SDXL 的实际「有效信息上限」其实在 100~150 token 左右；超过部分的细节被稀释；
@@ -920,7 +1023,7 @@ CLIP Text Encoder 的位置编码上限是 77 tokens（包含起止符 `<|starto
 
 「权重语法」是社区在 SD 1.x 时代发明的事实标准，用于在不增加 token 数的前提下放大某段文本的影响力。它的实现并不在模型权重里，而在 **「prompt → embedding」这一步的 embedding 加工层**。
 
-#### 1. 主流权重语法
+### 1. 主流权重语法
 
 <div align="center">
 
@@ -935,7 +1038,7 @@ CLIP Text Encoder 的位置编码上限是 77 tokens（包含起止符 `<|starto
 
 </div>
 
-#### 2. 实现原理：在 token embedding 上做缩放或插值
+### 2. 实现原理：在 token embedding 上做缩放或插值
 
 A1111 / ComfyUI 的核心做法都遵循以下三步：
 
@@ -945,7 +1048,7 @@ A1111 / ComfyUI 的核心做法都遵循以下三步：
    - **均值偏移法（A1111 默认）**：`emb = mean + weight * (emb - mean)`，保持整个 prompt 的全局均值不变，避免单段权重过大导致全局偏色；
    - **直接缩放法（早期实现）**：`emb = emb * weight`，简单但容易让某段过强而压制其它部分。
 
-#### 3. 三种实现的差异
+### 3. 三种实现的差异
 
 <div align="center">
 
@@ -957,7 +1060,7 @@ A1111 / ComfyUI 的核心做法都遵循以下三步：
 
 </div>
 
-#### 4. 工程经验
+### 4. 工程经验
 
 - **A1111 与 ComfyUI 的 prompt 不能直接互换**：同一段 `(masterpiece:1.3)` 在两边的视觉效果会有差异，迁移工作流时需要重新调权重；
 - **极端权重危险**：`(word:0)` 可能让该 token embedding 远离 mean，干扰其它 token 的归一化；建议权重区间 `[0.5, 1.5]`；
@@ -967,53 +1070,13 @@ A1111 / ComfyUI 的核心做法都遵循以下三步：
 **面试金句**：权重语法是「在 prompt → embedding 阶段对 token embedding 做缩放或与均值插值」的工程技巧；A1111 / ComfyUI / Compel 在解析与缩放策略上的差异，导致同 prompt 跨实现不可逐像素复现，但思路一致。
 
 
-<h2 id="q-053c">面试问题：CLIP skip 是什么？为什么社区在 SD 1.5 上常用 clip_skip=2，但 SDXL / SD 3 不再推荐？</h2>
-
-**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐ (3/5)**
-
-CLIP skip 是 SD 社区的一个流传度极高、但很多人「只会用不知原理」的参数。它指的是**在使用 CLIP Text Encoder 时跳过最后 N 层 Transformer，使用倒数第 N+1 层的隐藏态作为文本条件**。
-
-#### 1. CLIP Text Encoder 的层级结构
-
-CLIP Text Encoder 是一个 12 层（ViT-L）或 23 层（ViT-H、ViT-bigG）的 Transformer：
-
-- **越靠近最后一层**，特征越偏「**判别性 / 对齐对比学习目标的语义特征**」（CLIP 训练目标是文本-图像对齐）；
-- **倒数第二层**保留更多「**语言细节、近词关系、语法结构**」，对生成模型更友好。
-
-#### 2. clip_skip 的具体含义
-
-- `clip_skip=1`：使用最后一层输出（默认行为）；
-- `clip_skip=2`：使用倒数第二层输出，跳过最后一层；
-- `clip_skip=N`：使用倒数第 N 层。
-
-社区上 SD 1.5 二次元 / NovelAI 系模型（如 Anything-V3、AbyssOrangeMix）默认推荐 `clip_skip=2`，因为：
-
-- NovelAI 早期发布时**就是用 `clip_skip=2` 训练的**，匹配训练时的特征层即可获得最佳效果；
-- 倒数第二层的特征更细，对动漫人物的服饰、姿势细节描述更敏感；
-- 在 prompt 中包含大量描述词时，倒数第二层对每个词的响应更均衡。
-
-#### 3. 为什么 SDXL / SD 3 不再推荐 clip_skip
-
-- **SDXL 的训练**：SDXL 训练时**默认使用最后一层**（CLIP-L 与 OpenCLIP-bigG 的最后一层 + Pooled embedding），架构与训练目标都已围绕这一选择优化；强行 clip_skip=2 会让推理特征与训练分布错位，反而画质下降；
-- **SD 3 的训练**：SD 3 用 CLIP-L、OpenCLIP-bigG 的**倒数第二层 hidden state** 作为细粒度特征 + 各自的 Pooled embedding 作为全局特征 + T5-XXL 最后一层的 hidden state，整套设计已经把「层选择」固定了，用户无需也不应该额外做 clip_skip；
-- **SDXL / SD 3 的训练数据更多更高质量**：CLIP 最后一层在足够大的训练样本下也能学到细节，clip_skip 的「画质收益」就没了。
-
-#### 4. 工程经验
-
-- 用 SD 1.5 二次元模型时，先看模型卡片是否标注「clip_skip=2」；A1111 / ComfyUI 默认值常为 1，不切换会有明显画风偏差；
-- 用 SDXL / SD 3 系列时**保持默认**（clip_skip=1 / N/A），不要听信「调 clip_skip 提升画质」的旧经验；
-- 训练 LoRA / Dreambooth 时**训练用什么 clip_skip，推理就要用什么**，否则训练目标与推理 pipeline 不匹配。
-
-**面试金句**：clip_skip 的本质是「选用 CLIP 第几层的隐藏态作为文本条件」，**层选择必须与训练时一致**；SD 1.5 二次元社区因 NovelAI 历史原因常用 clip_skip=2，但 SDXL / SD 3 由官方训练范式决定了固定的层选择，clip_skip 不再是用户应该调的参数。
-
-
 <h2 id="q-053d">面试问题：为什么 SD 1.x 选用 CLIP ViT-L 而 SD 2.x 切换为 OpenCLIP ViT-H？这一切换给生成效果带来了哪些可观察的差异？</h2>
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐ (3/5)**
 
 SD 1.x 与 SD 2.x 在生成效果上「人物画风差异巨大」，背后最直接的原因不是 U-Net 改了多少，而是 **Text Encoder 从 CLIP ViT-L/14 切换到了 OpenCLIP ViT-H/14**。这一切换是 SD 系列历史上最有争议、也最有教育意义的一次代际选择。
 
-#### 1. 两者的核心差异
+### 1. 两者的核心差异
 
 <div align="center">
 
@@ -1027,21 +1090,21 @@ SD 1.x 与 SD 2.x 在生成效果上「人物画风差异巨大」，背后最�
 
 </div>
 
-#### 2. SD 2.x 切换 OpenCLIP 的根本原因
+### 2. SD 2.x 切换 OpenCLIP 的根本原因
 
 - **可商用 / 开源合规**：OpenAI 的 CLIP 权重虽公开，但许可与训练数据不完全开放；OpenCLIP 在 LAION 上完全可重训、可商用；
 - **可重训 / 可复现**：Stability 希望整个 pipeline 都是「可由社区独立训练」的，OpenCLIP 与 LAION 数据天然兼容；
 - **更大模型容量**：ViT-H/14 比 ViT-L/14 更深更宽，理论上文本理解更强；
 - **更好的多语言潜力**：OpenCLIP 的多语言版本（XLM-CLIP）也是 Stability 后续布局的一部分。
 
-#### 3. 切换后的可观察差异
+### 3. 切换后的可观察差异
 
 - **画风偏差大**：很多 SD 1.5 时代沉淀的 prompt 在 SD 2.x 上效果完全不同，甚至「画不出某些 artist 风格」（数据过滤所致）；
 - **NSFW / 人物 / 名人能力下降**：训练数据过滤更严，SD 2.x 在人物面部、名人脸的生成能力相比 1.5 有所下降，是社区诟病的主因；
 - **构图与色调改变**：因为 cross-attention 接收到的语义信号分布改变了，模型对同一 prompt 的语义响应也变了；
 - **生态断层**：SD 1.5 上的 LoRA / 模型与 SD 2.x 不通用，导致 SD 2.x 时代社区生态远不如 SD 1.5 繁荣，**这一现象直接影响了 SDXL 的设计——SDXL 没有放弃 CLIP-L，而是 CLIP-L + OpenCLIP bigG「双 Text Encoder」并存以兼容旧 prompt**。
 
-#### 4. 经验教训
+### 4. 经验教训
 
 - **Text Encoder 是 SD 系列的「DNA 层」**：换 Text Encoder 不只是换模型，而是换掉了模型对自然语言的理解空间；
 - **数据过滤策略**比模型容量对生成内容覆盖范围影响更大；
@@ -1050,47 +1113,44 @@ SD 1.x 与 SD 2.x 在生成效果上「人物画风差异巨大」，背后最�
 **面试金句**：SD 1 → SD 2 切换 OpenCLIP 是出于**开源合规 + 可重训 + 更大容量**的考虑，但带来了「画风断层 + 生态断层」的副作用；SDXL 的双 Text Encoder、SD 3 的三 Text Encoder 都是这一历史经验的工程化反思。
 
 
-<h2 id="q-053e">面试问题：Text Encoder 和 VLM 条件编码器在图像生成模型中起什么作用？</h2>
+<h2 id="q-054">面试问题：如何处理 Prompt 和生成的图像不对齐的问题？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Text Encoder 或 VLM 条件编码器决定模型如何理解用户输入。早期 Stable Diffusion 主要依赖 CLIP 文本编码器，把 prompt 编码成可供 U-Net cross-attention 使用的文本特征；Imagen、DALL-E 3、SD 3、FLUX 则说明，更强的 T5 / LLM 级文本编码器会显著提升复杂 prompt following；Qwen-Image、Qwen-Image-Edit 进一步把 VLM 作为语义入口，用于理解图像、文字、布局和编辑意图。
+Prompt 与生成图像不对齐，不能只靠“继续堆 Prompt”解决。应先判断问题发生在 **文本编码、训练数据、条件注入、采样引导还是模型能力边界**，再选择对应手段。
 
-它们的作用可以拆成五层：
+### 1. 先判断不对齐发生在哪一层
 
-1. **把 prompt 转成语义条件。**  
-   文本编码器负责把自然语言 prompt 映射成条件向量或 token 序列，再通过 cross-attention、AdaLN、joint attention、MMDiT 等机制注入生成主干。没有稳定的文本条件，扩散模型只能学无条件图像分布。
+1. **文本编码层**：Prompt 超过 CLIP 的有效长度而被截断，关键词被 BPE 拆分，或 SD 1.x/2.x 使用不同 Text Encoder 导致同一词语落在不同语义空间。
+2. **数据与模型层**：训练集中缺少某个概念、人物关系或构图组合，或者 Caption 本身噪声很大，模型就没有形成稳定的“词语—视觉模式”映射。
+3. **Cross-Attention 层**：多个主体、属性和空间关系同时出现时，Text Embeddings 可能在不同图像区域发生语义串扰，出现属性绑定错误或 concept bleeding。
+4. **CFG 与采样层**：guidance scale 太低时文本约束不足，太高时又可能过饱和、构图僵化并偏离数据流形；采样步数过少也可能尚未完成语义与细节收敛。
 
-2. **理解长 prompt 和复杂关系。**  
-   CLIP 擅长短文本图文对齐，但对长描述、多对象关系、空间逻辑、段落级排版和复杂否定约束较弱。T5、LLM 和 VLM 可以补足这部分能力，这也是 SD 3、FLUX、Qwen-Image 这类模型强化文本/多模态编码器的重要原因。
+### 2. 对应的工程处理方法
 
-3. **支持图像编辑和多模态输入。**  
-   图像编辑不仅要理解“把什么改成什么”，还要理解源图里已有的主体、身份、结构和布局。Qwen-Image-Edit 这类路线通常会同时利用 VAE Encoder 保留外观结构、利用 VLM 条件编码器理解图像语义，从而让模型既知道“要改什么”，也知道“原图长什么样”。
+- **压缩并前置关键信息**：把主体、动作、空间关系和关键属性放在 Prompt 前部，删除重复风格词；长 Prompt 可使用 chunking，但跨块语义关系通常不如短而密的 Prompt 稳定。
+- **调整关键词权重与顺序**：使用 `(word:weight)` 强化关键 token，但避免极端权重；复杂场景可以拆成多次生成、区域提示或分层编辑，而不是让一个 Prompt 同时承担所有约束。
+- **合理设置 CFG 和采样步数**：SD 1.x 常从 CFG 7～8.5、20～50 步作为起点，再根据模型和采样器调整；更高 CFG 不等于更高质量。
+- **增加结构条件**：当 Prompt 无法稳定描述姿态、边缘、深度、布局或身份时，使用 ControlNet、IP-Adapter、区域控制、参考图或 Inpainting，把纯语义约束转成空间或视觉条件。
+- **选择匹配的底模与 Text Encoder**：写实、二次元、文字渲染、长文本和多角色关系对应不同模型能力边界；换模型往往比继续修 Prompt 更有效。
+- **训练侧提升对齐**：使用更准确、更密集的 Caption，清理水印和错配数据；训练时通过条件丢弃学习 CFG，并用 CLIP score、人工偏好与组合关系测试同时评估，不只观察 FID。
 
-4. **支持文字渲染、排版和知识图像。**  
-   海报、菜单、PPT、流程图、信息图、地图和公式图不只是“画出类似图案”，还要求文字内容、布局层级和逻辑关系正确。强文本编码器/VLM 能把文字、OCR、版式和对象关系以更高密度送入生成主干，是富文本图像生成能力提升的关键。
+面试中可以这样总结：**Prompt 对齐是“数据—Text Encoder—Cross-Attention—Guidance—生成 Backbone”的系统问题。Prompt 工程只能修正表达，不能补齐模型从未学过的概念和关系；当语义控制达到上限时，应增加结构条件或更换模型。**
 
-5. **影响生态兼容和模型代际差异。**  
-   SD 1.x、SD 2.x、SDXL、SD 3、FLUX 在 prompt 行为上的差异，很大一部分来自 Text Encoder 的差异。换编码器不是简单换模块，而是换掉模型对自然语言的理解空间，也会影响 LoRA、prompt 模板、clip_skip、长 prompt 处理和社区工作流兼容性。
+<h2 id="q-055">面试问题：扩散模型通常是如何引入各种控制条件的？</h2>
 
-一句话总结：**现代图像生成模型越来越像“语言/多模态理解模型 + 视觉生成模型”的组合。Text Encoder / VLM 决定模型听不听得懂，U-Net / DiT / Flow 主干决定模型画不画得出来。**
-
-
-<h2 id="q-054">面试问题：如何处理 Prompt 和生成的图像不对齐的问题？</h2>
-
-
-<h2 id="q-055">面试问题：扩散模型是如何引入控制条件的？</h2>
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
 在现代扩散模型中，引入控制条件的方式主要分为两大类：**采样阶段的引导（Guidance）与网络结构级的条件融合（Architectural Conditioning）**。前者通过调整去噪过程中的梯度方向，在不改动模型参数的前提下实现条件控制；后者则在模型内部直接注入额外信息，包括跨注意力（Cross‐Attention）和时间嵌入（Time Embedding）的多路拼接。下面我们将从这两大类出发，详细介绍包括交叉注意力注入、时间步嵌入拼接、类别嵌入拼接以及 ControlNet 等多种常见的条件引入技术。
 
-#### 一、采样阶段的引导方法
+### 一、采样阶段的引导方法
 
-##### 1.1 分类器引导（Classifier Guidance）
+**1.1 分类器引导（Classifier Guidance）**
 
 - **原理**：额外训练一个图像分类器，对去噪过程中的中间图像计算类别概率梯度 $\nabla\log p(y\mid x)$ ，并将其与扩散模型的去噪梯度相加，以朝着目标类别 $y$ 的方向更强地去噪。
 - **特点**：无需改变原扩散模型结构，可后期直接应用；但需额外训练分类器，且计算开销较大。
 
-##### 1.2 无分类器引导（Classifier-Free Guidance）
+**1.2 无分类器引导（Classifier-Free Guidance）**
 
 - **原理**：在同一模型中联合训练"有条件"（带 $y$ 输入）与"无条件"（不带 $y$ ）的分支，采样时按比例 $s$ 调整两者的去噪预测：
 
@@ -1102,29 +1162,29 @@ Text Encoder 或 VLM 条件编码器决定模型如何理解用户输入。早�
 
 - **优势**：无需单独训练分类器，已成为文本到图像任务的主流引导策略。
 
-#### 二、网络结构级的条件融合
+### 二、网络结构级的条件融合
 
-##### 2.1 跨注意力（Cross-Attention）注入
+**2.1 跨注意力（Cross-Attention）注入**
 
 - **文本到图像**：在每个 U-Net 模块的中间，使用跨注意力层将文本嵌入（如 CLIP 编码）作为键/值，图像特征作为查询，实现与自然语言条件的交互。
 - **多模态扩展**：可将其它概念 token（如布局、分割图等）也作为条件序列，通过相同机制注入，支持更灵活的条件输入。
 
-##### 2.2 时间步嵌入（Time Embedding）拼接
+**2.2 时间步嵌入（Time Embedding）拼接**
 
 - **位置编码**：采用类似 Transformer 的正余弦编码映射时间步 $t$ 到向量 $\text{pos}(t)$ ，然后通过线性层得到时间嵌入。
 - **融合方式**：除常见的**加法融合**外，也可将时间嵌入与其它条件（如类别 embedding 或空间特征）在通道维度上**拼接**，再一起输入至卷积层或注意力模块中。
 
-##### 2.3 类别嵌入（Class Embedding）拼接
+**2.3 类别嵌入（Class Embedding）拼接**
 
 - **方法**：将类别 embedding（CEN）在每层噪声估计器（noise estimator）中与特征张量**串联**（concatenate），使得扩散的重建过程同时感知图像内容与类别信息。
 - **效果**：在多类别生成任务中，可显著提升类别一致性，同时保持图像质量。
 
-##### 2.4 ControlNet：条件分支并行注入
+**2.4 ControlNet：条件分支并行注入**
 
 - **原理**：在预训练 U-Net 的每个编码器层复制一份"可训练"分支，并通过零初始化卷积（ZeroConv）接收额外条件（如边缘图、深度图），其输出再**加回**主干层，确保不破坏原模型能力。
 - **应用**：广泛用于 Stable Diffusion，为图像生成提供细粒度空间控制，如姿态、分割或布局指令。
 
-#### 三、其他控制技术
+### 三、其他控制技术
 
 - **Cross-Attention Score 调整**：在生成时对跨注意力分数进行训练无关的修改，以强化局部概念在图像中的表现，同时避免语义混合（concept bleeding）。
 - **CFG++等高级引导**：在无分类器引导基础上优化 off-manifold 轨迹，提升高引导尺度下的可逆性与样本质量。
@@ -1758,7 +1818,7 @@ x_t = (1 - t)\, x_0 + t\, \epsilon,\quad t \in [0, 1]
 - **CFG 仍然有效**：RF 与 CFG 完全兼容，CFG 公式形式不变；
 - **不能直接复用 DDPM 的预训练权重**：训练目标不同，权重不通用，需要从头训或用 RF 重训。
 
-**面试金句**：RF 把数据-噪声路径**显式定义为直线**，把网络从「预测噪声」升级为「预测速度场」，让**少步采样精度**与**二次蒸馏（reflow）**两项工程能力都成为天然属性；这是 SD 3 / FLUX 在 4 步出图质量上跨越式提升的根本原因。
+**面试金句**：RF 把数据-噪声路径**显式定义为直线**，把网络从「预测噪声」升级为「预测速度场」，让**少步采样精度**与**二次蒸馏（reflow）** 两项工程能力都成为天然属性；这是 SD 3 / FLUX 在 4 步出图质量上跨越式提升的根本原因。
 
 
 ### 2. SD 3 / SD 3.5 在高分辨率训练中对 timestep schedule 做的 shift 具体是怎么做的？为什么对大尺寸训练至关重要？
@@ -1807,7 +1867,7 @@ SD 3 论文实验得到的经验值（base 训练分辨率 1024×1024）：
 z_t=(1-t)c\mathbf{1}+t\epsilon
 ```
 
-其中 $\mathbf{1}\in\mathbb{R}^{n}$ 是全 1 向量，$\epsilon\in\mathbb{R}^{n}$ 的各分量是独立标准正态随机变量。将每个像素写成 $Y=(1-t)c+t\eta$，其中 $\eta$ 服从标准正态分布，则 $Y$ 的均值为 $\mathbb{E}(Y)=(1-t)c$，标准差为 $\sigma(Y)=t$。根据观测值可以用所有像素的均值估计原始常量：
+其中 $\mathbf{1}\in\mathbb{R}^{n}$ 是全 1 向量， $\epsilon\in\mathbb{R}^{n}$ 的各分量是独立标准正态随机变量。将每个像素写成 $Y=(1-t)c+t\eta$，其中 $\eta$ 服从标准正态分布，则 $Y$ 的均值为 $\mathbb{E}(Y)=(1-t)c$，标准差为 $\sigma(Y)=t$。根据观测值可以用所有像素的均值估计原始常量：
 
 ```math
 \hat{c}=\frac{1}{1-t}\mathbb{E}(Y)=\frac{1}{1-t}\frac{1}{n}\sum_{i=1}^{n}z_{t,i}
@@ -2163,7 +2223,7 @@ FLUX.1设置了一个Time Shift值来平移Timestep。在Rectified Flow采样中
 
 ### 多分辨率与多长宽比训练
 
-FLUX.1系列模型能够灵活生成多种图像分辨率和长宽比，适应$0.1\sim2.0\text{MP}$（Megapixels，百万像素）的图像生成任务。总的来说，图像像素数量越多、分辨率越高，细节表现越丰富。
+FLUX.1系列模型能够灵活生成多种图像分辨率和长宽比，适应 $0.1\sim2.0\text{MP}$ （Megapixels，百万像素）的图像生成任务。总的来说，图像像素数量越多、分辨率越高，细节表现越丰富。
 
 <div align="center">
 
@@ -2247,7 +2307,7 @@ FLUX.1 Kontext的整体架构基于FLUX.1的DiT（Diffusion Transformer）扩展
 
 </div>
 
-**双模态编码解决的是如何将参考图像输入模型的问题。**参考图像首先经过冻结的VAE Encoder编码为Latent Tokens特征 $`z_{\mathrm{ref}}\in\mathbb{R}^{h\times w\times c}`$，输入的初始噪声矩阵为 $`z_{\mathrm{noise}}\in\mathbb{R}^{h\times w\times c}`$。噪声矩阵与参考图Latent沿Token序列维度拼接，形成更长的序列：
+**双模态编码解决的是如何将参考图像输入模型的问题。** 参考图像首先经过冻结的VAE Encoder编码为Latent Tokens特征 $`z_{\mathrm{ref}}\in\mathbb{R}^{h\times w\times c}`$，输入的初始噪声矩阵为 $`z_{\mathrm{noise}}\in\mathbb{R}^{h\times w\times c}`$。噪声矩阵与参考图Latent沿Token序列维度拼接，形成更长的序列：
 
 ```math
 z_{concat}=\mathrm{Concat}(z_{noise},z_{ref})
@@ -2356,7 +2416,7 @@ Rectified Flow选择连续直线作为噪声添加路径：
 z_t=a_tx_0+b_t\varepsilon=(1-t)x_0+t\varepsilon
 ```
 
-其中 $`x_0\sim p_{\mathrm{data}}`$、$\varepsilon\sim\mathcal{N}(0,1)$，并设置 $`a_t=1-t`$、$`b_t=t`$。对应的对数信噪比为：
+其中 $`x_0\sim p_{\mathrm{data}}`$、 $\varepsilon\sim\mathcal{N}(0,1)$ ，并设置 $`a_t=1-t`$、$`b_t=t`$。对应的对数信噪比为：
 
 ```math
 \lambda_t=\log\frac{a_t^2}{b_t^2}
@@ -2373,7 +2433,7 @@ Y=\mathrm{logit}(t)=\log\frac{t}{1-t},
 t=\sigma(Y)=\frac{\exp(Y)}{1+\exp(Y)}
 ```
 
-当 $Y\in\mathbb{R}$ 时，$t=\sigma(Y)$ 必然落在 $(0,1)$。如果随机变量 $Y=\mathrm{logit}(t)$ 服从正态分布 $\mathcal{N}(\mu,\sigma^2)$，那么 $t$ 服从Logit-Normal分布：
+当 $Y\in\mathbb{R}$ 时， $t=\sigma(Y)$ 必然落在 $(0,1)$。如果随机变量 $Y=\mathrm{logit}(t)$ 服从正态分布 $\mathcal{N}(\mu,\sigma^2)$，那么 $t$ 服从Logit-Normal分布：
 
 ```math
 t\sim\mathrm{Logit\text{-}Normal}(\mu,\sigma^2)
@@ -2415,9 +2475,9 @@ Logit-Normal分布的形状由均值 $\mu$ 和标准差 $\sigma$ 控制：
 1. $\mu=0$ 时，采样重心在中间时间步 $t=0.5$，对应中等噪声阶段。
 2. $\mu>0$ 时，$t$ 偏向1，对应高噪声阶段。
 3. $`\mu<0`$ 时，$t$ 偏向0，对应低噪声阶段。
-4. $\sigma$ 越小，采样越集中在 $\sigma(\mu)$ 附近；$\sigma$ 越大，采样覆盖的时间步越广。
+4. $\sigma$ 越小，采样越集中在 $\sigma(\mu)$ 附近； $\sigma$ 越大，采样覆盖的时间步越广。
 
-在FLUX.1 Kontext中，$\mu$ 与分辨率自适应因子 $\alpha$ 直接绑定：$\mu=\log\alpha$。处理高分辨率图像时，可以增大 $\alpha$，让采样重心右移，使模型更多训练高噪声阶段，反复学习如何从复杂噪声中恢复细节；处理低分辨率图像时，可以使用 $\alpha=1$、$\mu=0$，在保证质量的同时提高训练效率。通常固定 $\sigma=1.0$，主要通过调整 $\mu$ 实现分辨率自适应。
+在FLUX.1 Kontext中， $\mu$ 与分辨率自适应因子 $\alpha$ 直接绑定： $\mu=\log\alpha$ 。处理高分辨率图像时，可以增大 $\alpha$，让采样重心右移，使模型更多训练高噪声阶段，反复学习如何从复杂噪声中恢复细节；处理低分辨率图像时，可以使用 $\alpha=1$、 $\mu=0$ ，在保证质量的同时提高训练效率。通常固定 $\sigma=1.0$，主要通过调整 $\mu$ 实现分辨率自适应。
 
 <div align="center">
 
@@ -2462,7 +2522,7 @@ Timestep Schedule Shifting（时间步调度偏移）是FLUX.1 Kontext实现分�
 =\sigma\lambda_t^{0,1}-2\mu
 ```
 
-$\sigma$ 控制Log-SNR分布范围，$\mu$ 控制均值偏移。引入分辨率自适应的 $\alpha$-Shifted Log-SNR：
+$\sigma$ 控制Log-SNR分布范围， $\mu$ 控制均值偏移。引入分辨率自适应的 $\alpha$-Shifted Log-SNR：
 
 ```math
 \lambda_t^\alpha=\lambda_t^{0,1}-2\log\alpha
@@ -2474,7 +2534,7 @@ $\sigma$ 控制Log-SNR分布范围，$\mu$ 控制均值偏移。引入分辨率�
 t'=\frac{e^\mu}{e^\mu+\left(\frac{1}{t}-1\right)^\sigma}
 ```
 
-这个公式把原始时间步 $t$ 映射到新时间步 $t'$，从而改变训练时的Log-SNR分布。当 $\alpha>1$ 时，$t'>t$，模型更多训练高噪声阶段；当 $`\alpha<1`$ 时，$`t'<t`$，模型更多训练低噪声阶段。高分辨率图像通过 $\alpha>1$ 强化高噪声阶段学习，低分辨率图像通过 $`\alpha<1`$ 提升训练效率。相关实验中，$\alpha=3.0$ 在分辨率从 $256^2$ 提升到 $1024^2$ 时取得了较好效果。
+这个公式把原始时间步 $t$ 映射到新时间步 $t'$，从而改变训练时的Log-SNR分布。当 $\alpha>1$ 时， $t'>t$ ，模型更多训练高噪声阶段；当 $`\alpha<1`$ 时，$`t'<t`$，模型更多训练低噪声阶段。高分辨率图像通过 $\alpha>1$ 强化高噪声阶段学习，低分辨率图像通过 $`\alpha<1`$ 提升训练效率。相关实验中， $\alpha=3.0$ 在分辨率从 $256^2$ 提升到 $1024^2$ 时取得了较好效果。
 
 <div align="center">
 
@@ -2582,11 +2642,11 @@ Black Forest Labs和Krea AI在分析文生图大模型的“AI感”时引用了
 
 </div>
 
-**预训练阶段的重点是“模式覆盖”（Mode Coverage）和“世界理解”（World Understanding）。**模型需要充分吸收视觉世界中的各类风格、物体场景、地域风貌与人物形象，目标是最大化生成多样性。
+**预训练阶段的重点是“模式覆盖”（Mode Coverage）和“世界理解”（World Understanding）。** 模型需要充分吸收视觉世界中的各类风格、物体场景、地域风貌与人物形象，目标是最大化生成多样性。
 
 预训练模型甚至应该接触“劣质”数据，只要这些不良特征能够被条件机制准确描述。除了让模型知道“何为优秀”，也需要让模型理解“何为糟粕”。当前很多图像生成工作流会使用“手指畸形、面部扭曲、画面模糊、色彩过饱和”等负面提示词；如果模型从未见过这些不良特征，负面条件就无法有效引导模型避开对应的数据分布区域。
 
-**后训练阶段的核心任务，是转移并剔除数据分布中的不良成分。**预训练模型可以生成多样图像、理解广泛概念，但由于尚未形成明确的美学偏向，往往难以稳定输出高质量图像。此时需要主动利用“模式坍缩”（Mode Collapse）：通过后训练让模型持续偏向期望的优质数据分布区间，而不是平均保留所有类型的输出。
+**后训练阶段的核心任务，是转移并剔除数据分布中的不良成分。** 预训练模型可以生成多样图像、理解广泛概念，但由于尚未形成明确的美学偏向，往往难以稳定输出高质量图像。此时需要主动利用“模式坍缩”（Mode Collapse）：通过后训练让模型持续偏向期望的优质数据分布区间，而不是平均保留所有类型的输出。
 
 <div align="center">
 
@@ -2646,12 +2706,15 @@ SFT微调并非孤立的环节，它为后续的RLHF阶段打下了坚实的基�
 
 为了让你更清晰地理解SFT在整个过程中的承上启下作用，下表对比了这三个核心阶段：
 
+<div align="center">
+
 | **阶段** | **核心目标** | **数据特点** | **对模型的影响** |
 | :--- | :--- | :--- | :--- |
 | **预训练** | **模式覆盖**与**世界理解** | 海量、多样化的图像-文本对，包含各种质量的图像 | 建立通用视觉知识，最大化生成多样性 |
 | **监督微调 (SFT)** | **确立美学基础**与**提升质量** | 少量但极致精选的高质量/合成图像 | 学会生成高清、结构准确、符合特定审美的图像 |
 | **RLHF** | **对齐人类偏好**与**风格强化** | 小规模、带有明确艺术导向的人类偏好数据 | 进一步校准输出，使风格更鲜明，更稳健地符合人类审美 |
 
+</div>
 
 ### 后训练过程中的关键要点
 
@@ -2804,7 +2867,11 @@ FLUX.2系列更新的新特性与核心优化亮点，具体如下：
 3. DiT中的主要线性投影与调制层不再使用偏置参数。具体而言，两种变换器块中的注意力子块与前馈子块在其线性层中均未使用偏置参数。这里不能扩大为“整个FLUX.2所有层都无偏置”，因为VAE中的卷积层仍然包含偏置参数。
 4. 在FLUX.1中，单流变换器块将注意力输出投影与前馈网络输出投影进行了融合。FLUX.2的单流块进一步将注意力QKV投影与前馈网络的输入投影相融合，从而实现了完全并行的Transformer块结构：
 
+<div align="center">
+
 ![FLUX.2的DiT部分模块示意图](./imgs/FLUX.2的DiT部分模块示意图.png)
+
+</div>
 
 需要注意的是，与上图中的 ViT-22B 块相比，FLUX.2 采用了SwiGLU作为多层感知机的激活函数，而非使用GELU激活函数（同时也不使用偏置参数）。
 
