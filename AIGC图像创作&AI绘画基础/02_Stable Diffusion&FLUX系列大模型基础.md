@@ -538,7 +538,7 @@ SD 1.x 的 VAE Encoder 由卷积、DownBlock、ResNetBlock、MidBlock 和 Self-A
 训练时并不只使用像素误差，而是组合多种目标：
 
 - **L1/重建损失**约束像素级整体一致性；
-- **感知损失（LPIPS）**比较预训练视觉网络不同层的特征，使重建图在高层语义上接近原图；
+- **感知损失（LPIPS）** 比较预训练视觉网络不同层的特征，使重建图在高层语义上接近原图；
 - **PatchGAN 对抗损失**关注局部 Patch 的真实性，用于增强纹理和清晰度；
 - **弱 KL 正则**约束 Latent 不要偏离正态分布过远，但使用较小权重以避免牺牲重建质量。
 
@@ -981,7 +981,7 @@ CLIP Text Encoder 的位置编码上限是 77 tokens（包含起止符 `<|starto
 ### 1. 77 tokens 限制的实际影响
 
 - **直接截断**：超过 77 token 的 prompt 默认被截断，后半段完全丢失，模型生成的图像与用户预期不符；
-- **CLIP token ≠ 单词数**：CLIP 的 BPE 分词使一个英文单词常占 1~2 token，中文单字常占 2~3 token，**77 token 实际只够 30~50 个英文单词或 25~30 个中文字**；
+- **CLIP token ≠ 单词数**：CLIP 的 BPE 分词使一个英文单词常占 1-2 token，中文单字常占 2-3 token，**77 token 实际只够 30-50 个英文单词或 25-30 个中文字**；
 - **写复杂场景受限**：多角色、多物体、多风格描述无法在 77 token 内充分表达；
 - **对 SD 3 / FLUX 仍然部分受影响**：SD 3 同时使用了 CLIP-L、CLIP-G（77 token）+ T5-XXL（最大 512 token），但 CLIP 部分仍受 77 token 限制，T5 才是长上下文的承载者。
 
@@ -2416,7 +2416,7 @@ Rectified Flow选择连续直线作为噪声添加路径：
 z_t=a_tx_0+b_t\varepsilon=(1-t)x_0+t\varepsilon
 ```
 
-其中 $`x_0\sim p_{\mathrm{data}}`$、$\varepsilon\sim\mathcal{N}(0,1)$，并设置 $`a_t=1-t`$、$`b_t=t`$。对应的对数信噪比为：
+其中 $`x_0\sim p_{\mathrm{data}}`$、 $\varepsilon\sim\mathcal{N}(0,1)$ ，并设置 $`a_t=1-t`$、$`b_t=t`$。对应的对数信噪比为：
 
 ```math
 \lambda_t=\log\frac{a_t^2}{b_t^2}
@@ -2433,7 +2433,7 @@ Y=\mathrm{logit}(t)=\log\frac{t}{1-t},
 t=\sigma(Y)=\frac{\exp(Y)}{1+\exp(Y)}
 ```
 
-当 $Y\in\mathbb{R}$ 时，$t=\sigma(Y)$ 必然落在 $(0,1)$。如果随机变量 $Y=\mathrm{logit}(t)$ 服从正态分布 $\mathcal{N}(\mu,\sigma^2)$，那么 $t$ 服从Logit-Normal分布：
+当 $Y\in\mathbb{R}$ 时， $t=\sigma(Y)$ 必然落在 $(0,1)$。如果随机变量 $Y=\mathrm{logit}(t)$ 服从正态分布 $\mathcal{N}(\mu,\sigma^2)$，那么 $t$ 服从Logit-Normal分布：
 
 ```math
 t\sim\mathrm{Logit\text{-}Normal}(\mu,\sigma^2)
@@ -2475,9 +2475,9 @@ Logit-Normal分布的形状由均值 $\mu$ 和标准差 $\sigma$ 控制：
 1. $\mu=0$ 时，采样重心在中间时间步 $t=0.5$，对应中等噪声阶段。
 2. $\mu>0$ 时，$t$ 偏向1，对应高噪声阶段。
 3. $`\mu<0`$ 时，$t$ 偏向0，对应低噪声阶段。
-4. $\sigma$ 越小，采样越集中在 $\sigma(\mu)$ 附近；$\sigma$ 越大，采样覆盖的时间步越广。
+4. $\sigma$ 越小，采样越集中在 $\sigma(\mu)$ 附近； $\sigma$ 越大，采样覆盖的时间步越广。
 
-在FLUX.1 Kontext中，$\mu$ 与分辨率自适应因子 $\alpha$ 直接绑定：$\mu=\log\alpha$。处理高分辨率图像时，可以增大 $\alpha$，让采样重心右移，使模型更多训练高噪声阶段，反复学习如何从复杂噪声中恢复细节；处理低分辨率图像时，可以使用 $\alpha=1$、$\mu=0$，在保证质量的同时提高训练效率。通常固定 $\sigma=1.0$，主要通过调整 $\mu$ 实现分辨率自适应。
+在FLUX.1 Kontext中， $\mu$ 与分辨率自适应因子 $\alpha$ 直接绑定： $\mu=\log\alpha$ 。处理高分辨率图像时，可以增大 $\alpha$，让采样重心右移，使模型更多训练高噪声阶段，反复学习如何从复杂噪声中恢复细节；处理低分辨率图像时，可以使用 $\alpha=1$、 $\mu=0$ ，在保证质量的同时提高训练效率。通常固定 $\sigma=1.0$，主要通过调整 $\mu$ 实现分辨率自适应。
 
 <div align="center">
 
