@@ -128,9 +128,11 @@ Rocky最新持续撰写的10万字深入浅出完整解析扩散模型DDPM、DDI
 
 猫先生，公众号“魔方AI空间”主理人，AI算法与工程化实践者，现就职于国内头部科技企业，主要从事AI模型部署、算力平台建设及相关技术落地工作，在模型工程化和业务应用方面具有丰富经验。长期关注大模型推理部署、AI Agent、具身智能、AI视频、AIGC应用及AI基础设施等技术方向，曾参加多项AI相关赛事，多次获得冠军或进入前十，并持续探索前沿AI技术的产业应用。
 
-猫先生近期撰写的关于主流智能体框架和大模型推理部署框架的系统性讲解文章：
-- [一文梳理主流热门智能体框架：Dify、Coze、n8n、AutoGen、LangChain、CrewAI](https://mp.weixin.qq.com/s/5zLnArJcI0TDxL-iiuikPg)
-- [一文梳理主流大模型推理部署框架：vLLM、SGLang、TensorRT-LLM、ollama、XInference](https://mp.weixin.qq.com/s/Fsaz7PAUSiKizl_lw-KSeg)
+猫先生持续撰写的AGI系统性知识专栏【**从零走向AGI**】，旨在深入了解通用人工智能（AGI）的发展路径，从最基础的概念起，逐步构建完整的知识体系。
+
+- 📖 公众号专栏合集：[从零走向AGI](https://mp.weixin.qq.com/mp/appmsgalbum?__biz=MzI1MzUyMTMwOA==&action=getalbum&album_id=3676767797507325959#wechat_redirect)
+- 🔗 开源项目地址：[GitHub - From-Zero-to-AGI](https://github.com/AI-mzq/From-Zero-to-AGI)
+- 🌐 项目站点：https://ai-mzq.github.io/From-Zero-to-AGI/
 
 ### 张一凡 副主编
 
