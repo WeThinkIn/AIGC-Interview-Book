@@ -26,7 +26,7 @@
 
 ### 🧱核心知识板块
 
-- :star: [AIGC/LLM/AI Agent算法岗面试求职经验指南（包含简历模版、求职攻略、面试经验、面试技巧等通用AI岗位面试技巧）](算法岗面试求职经验指南)
+- :star: [AI行业面试求职经验指南（包含简历模版、求职攻略、面试经验、面试技巧等通用AI岗位面试技巧）](AI行业面试求职经验指南)
 - :art: [AIGC图像创作&AI绘画基础](AIGC图像创作&AI绘画基础)
 - :clapper: [AI视频基础](AI视频基础)
 - :sparkler: [大模型基础](大模型基础（精华版）)
@@ -43,7 +43,7 @@
 - :boom: [大厂高频面试题（实时更新）](大厂高频面试题（实时更新）)
 - :battery: [数据结构&算法基础](数据结构&算法基础)
 - :computer: [计算机基础](计算机基础)
-- :chart_with_upwards_trend: [开放性问题](开放性问题)
+- :chart_with_upwards_trend: [AI行业职业生涯开放性问题](AI行业职业生涯开放性问题)
 - [2026年AI算法岗求职群&学习交流社区](https://mp.weixin.qq.com/s/ssEJjHBoJDB4y5CfQIWYvw)
 
 ### 🧭热门AI学习教程精选
