@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 470" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">同一边界框的三种坐标表示（图像 W=1920，H=1080）</text>
+
+  <!-- panel 1: 归一化 -->
+  <rect x="30" y="60" width="240" height="330" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="150" y="86" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">归一化 [0,1]</text>
+  <rect x="50" y="100" width="200" height="112" fill="#f2f2f2" stroke="#595959" stroke-width="1.5"/>
+  <rect x="90" y="134" width="70" height="45" fill="none" stroke="#000000" stroke-width="2"/>
+  <text x="150" y="232" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">[0.20, 0.30,</text>
+  <text x="150" y="250" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">0.55, 0.70]</text>
+  <line x1="46" y1="266" x2="254" y2="266" stroke="#d9d9d9" stroke-width="1.2"/>
+  <text x="150" y="290" text-anchor="middle" font-size="12.5" fill="#333333">解耦分辨率</text>
+  <text x="150" y="310" text-anchor="middle" font-size="12.5" fill="#333333">数值范围稳定</text>
+  <rect x="50" y="326" width="200" height="46" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="150" y="354" text-anchor="middle" font-size="12.5" fill="#000000">丢失真实尺度</text>
+
+  <!-- panel 2: 千分制 -->
+  <rect x="290" y="60" width="240" height="330" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="86" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">千分制 ×1000</text>
+  <rect x="310" y="100" width="200" height="112" fill="#f2f2f2" stroke="#595959" stroke-width="1.5"/>
+  <rect x="350" y="134" width="70" height="45" fill="none" stroke="#000000" stroke-width="2"/>
+  <text x="410" y="232" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">[200, 300,</text>
+  <text x="410" y="250" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">550, 700]</text>
+  <text x="410" y="272" text-anchor="middle" font-size="10.5" fill="#595959">&lt;|begin_of_box|&gt; ... &lt;|end_of_box|&gt;</text>
+  <line x1="306" y1="284" x2="514" y2="284" stroke="#d9d9d9" stroke-width="1.2"/>
+  <text x="410" y="306" text-anchor="middle" font-size="12.5" fill="#333333">解耦、语义一致</text>
+  <text x="410" y="326" text-anchor="middle" font-size="12.5" fill="#333333">整数兼顾精度与解析</text>
+  <rect x="310" y="342" width="200" height="30" rx="6" fill="#f2f2f2" stroke="#595959" stroke-width="1.5"/>
+  <text x="410" y="362" text-anchor="middle" font-size="12.5" fill="#000000">相对量，仍非真实尺度</text>
+
+  <!-- panel 3: 绝对像素 -->
+  <rect x="550" y="60" width="240" height="330" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="670" y="86" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">绝对像素</text>
+  <rect x="570" y="100" width="200" height="112" fill="#f2f2f2" stroke="#595959" stroke-width="1.5"/>
+  <rect x="610" y="134" width="70" height="45" fill="none" stroke="#000000" stroke-width="2"/>
+  <text x="670" y="232" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">[384, 324,</text>
+  <text x="670" y="250" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">1056, 756]</text>
+  <line x1="566" y1="266" x2="774" y2="266" stroke="#d9d9d9" stroke-width="1.2"/>
+  <text x="670" y="290" text-anchor="middle" font-size="12.5" fill="#333333">保留真实尺度</text>
+  <text x="670" y="310" text-anchor="middle" font-size="12.5" fill="#333333">与原生分辨率对齐</text>
+  <rect x="570" y="326" width="200" height="46" rx="6" fill="#f2f2f2" stroke="#595959" stroke-width="1.5"/>
+  <text x="670" y="354" text-anchor="middle" font-size="12.5" fill="#000000">量级随图像大小变化</text>
+
+  <!-- bottom -->
+  <rect x="30" y="410" width="760" height="42" rx="6" fill="#000000"/>
+  <text x="410" y="437" text-anchor="middle" font-size="15" font-weight="bold" fill="#ffffff">三者分别代表　InternVL-2　/　GLM-4.5V　/　Qwen2.5-VL</text>
+</svg>

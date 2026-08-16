@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 500" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="8" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,3.5 L0,7 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">GLM-4.6V 设计到代码的像素级复现与视觉反馈闭环</text>
+
+  <!-- 中心 -->
+  <circle cx="280" cy="250" r="82" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="280" y="242" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">视觉反馈闭环</text>
+  <text x="280" y="264" text-anchor="middle" font-size="12" fill="#595959">多步 · 视觉对齐修正</text>
+  <text x="280" y="282" text-anchor="middle" font-size="11" fill="#595959">灵感来源 UI2Code</text>
+
+  <!-- 5 个节点 -->
+  <rect x="205" y="71" width="150" height="48" rx="6" fill="#000000"/>
+  <text x="280" y="100" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#ffffff">① 模型产出代码</text>
+
+  <rect x="352" y="178" width="150" height="48" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="427" y="207" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">② 系统渲染</text>
+
+  <rect x="296" y="351" width="150" height="48" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="371" y="380" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">③ 截图回灌</text>
+
+  <rect x="114" y="351" width="150" height="48" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="189" y="374" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">④ 与目标截图</text>
+  <text x="189" y="391" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">比对</text>
+
+  <rect x="58" y="178" width="150" height="48" rx="6" fill="#bdbdbd" stroke="#333333" stroke-width="1.5"/>
+  <text x="133" y="201" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">⑤ 自我纠正</text>
+  <text x="133" y="218" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">精修代码</text>
+
+  <!-- 环形箭头（顺时针） -->
+  <path d="M321.6,54.4 A200,200 0 0,1 453,150" fill="none" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M478.9,229 A200,200 0 0,1 428.6,383.8" fill="none" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M361.3,432.7 A200,200 0 0,1 198.7,432.7" fill="none" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M131.4,383.8 A200,200 0 0,1 81.1,229" fill="none" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M106.8,150 A200,200 0 0,1 238.4,54.4" fill="none" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 右侧分支：交互式编辑 -->
+  <line x1="502" y1="202" x2="558" y2="202" stroke="#333333" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+  <rect x="560" y="120" width="242" height="240" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="681" y="148" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">交互式编辑（分支）</text>
+  <line x1="576" y1="158" x2="786" y2="158" stroke="#d9d9d9" stroke-width="1.2"/>
+  <text x="576" y="184" font-size="12.5" fill="#000000">在截图上圈选区域</text>
+  <text x="576" y="206" font-size="12.5" fill="#000000">+ 自然语言指令</text>
+  <line x1="681" y1="216" x2="681" y2="240" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <text x="576" y="264" font-size="12.5" fill="#000000">定位到对应代码片段修改</text>
+  <rect x="576" y="278" width="210" height="66" rx="6" fill="#000000"/>
+  <text x="681" y="304" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">视觉 grounding</text>
+  <text x="681" y="326" text-anchor="middle" font-size="12.5" fill="#ffffff">截图区域 ↔ 代码片段</text>
+
+  <!-- 底部像素级复现 -->
+  <rect x="58" y="430" width="744" height="46" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="430" y="458" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">像素级复现：截图 / 设计稿 → 高保真 HTML/CSS/JS，闭环保证布局与视觉一致</text>
+</svg>

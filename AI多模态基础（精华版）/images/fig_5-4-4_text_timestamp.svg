@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 430" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">从帧索引时间对齐到文本时间戳对齐（Qwen3-VL）</text>
+
+  <!-- 上：T-RoPE 旧 -->
+  <rect x="40" y="56" width="740" height="150" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="60" y="82" font-size="16" font-weight="bold" fill="#000000">① T-RoPE（旧）：时间藏在位置编码时间分量</text>
+  <g stroke="#595959" stroke-width="1.2" fill="#ffffff">
+    <rect x="80" y="98" width="60" height="52"/><rect x="200" y="98" width="60" height="52"/><rect x="320" y="98" width="60" height="52"/><rect x="440" y="98" width="60" height="52"/>
+  </g>
+  <g font-size="12" text-anchor="middle" fill="#000000">
+    <text x="110" y="128">帧</text><text x="230" y="128">帧</text><text x="350" y="128">帧</text><text x="470" y="128">帧</text>
+  </g>
+  <g font-size="11" text-anchor="middle" fill="#595959">
+    <text x="110" y="170">时间分量 ID</text><text x="230" y="170">+Δ</text><text x="350" y="170">+Δ</text><text x="470" y="170">+Δ</text>
+  </g>
+  <rect x="536" y="104" width="228" height="46" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="650" y="124" text-anchor="middle" font-size="12" fill="#333333">隐式，与帧索引绑定</text>
+  <text x="650" y="142" text-anchor="middle" font-size="12" fill="#333333">靠位置 ID 相对间隔推断时刻</text>
+
+  <line x1="410" y1="212" x2="410" y2="238" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <!-- 下：文本时间戳对齐 -->
+  <rect x="40" y="244" width="740" height="150" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="60" y="270" font-size="16" font-weight="bold" fill="#000000">② 文本时间戳对齐：显式插入文本时间戳 token</text>
+  <!-- sequence: timestamp -> frame group -> timestamp -> frame group -->
+  <rect x="70" y="286" width="110" height="44" rx="6" fill="#000000"/>
+  <text x="125" y="312" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">&lt;3.0 seconds&gt;</text>
+  <g stroke="#595959" stroke-width="1.2" fill="#d9d9d9">
+    <rect x="190" y="290" width="36" height="36"/><rect x="230" y="290" width="36" height="36"/><rect x="270" y="290" width="36" height="36"/>
+  </g>
+  <text x="248" y="344" text-anchor="middle" font-size="11" fill="#595959">一组帧</text>
+  <rect x="320" y="286" width="110" height="44" rx="6" fill="#000000"/>
+  <text x="375" y="312" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">&lt;00:03:00&gt;</text>
+  <g stroke="#595959" stroke-width="1.2" fill="#d9d9d9">
+    <rect x="440" y="290" width="36" height="36"/><rect x="480" y="290" width="36" height="36"/><rect x="520" y="290" width="36" height="36"/>
+  </g>
+  <text x="498" y="344" text-anchor="middle" font-size="11" fill="#595959">一组帧</text>
+  <text x="575" y="312" font-size="16" fill="#595959">...</text>
+
+  <rect x="600" y="286" width="164" height="90" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="682" y="308" text-anchor="middle" font-size="12.5" fill="#000000">标准文本嵌入编码</text>
+  <text x="682" y="330" text-anchor="middle" font-size="12.5" fill="#000000">显式可读 · 帧级定位</text>
+  <text x="682" y="352" text-anchor="middle" font-size="12.5" fill="#000000">可比较 / 计算</text>
+  <text x="682" y="372" text-anchor="middle" font-size="11" fill="#595959">训练交替多种格式</text>
+</svg>

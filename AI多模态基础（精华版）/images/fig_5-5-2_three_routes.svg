@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 500" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">原生多模态三条技术路线：表征形式决定连锁取舍</text>
+
+  <line x1="277" y1="52" x2="277" y2="418" stroke="#d9d9d9" stroke-width="1.5"/>
+  <line x1="547" y1="52" x2="547" y2="418" stroke="#d9d9d9" stroke-width="1.5"/>
+
+  <text x="140" y="76" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">路线一 · 离散统一自回归</text>
+  <text x="140" y="94" text-anchor="middle" font-size="11" fill="#595959">“一切皆 token”</text>
+
+  <rect x="40" y="106" width="200" height="46" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="140" y="126" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">图像 · 文本 · 音频</text>
+  <text x="140" y="143" text-anchor="middle" font-size="10.5" fill="#333333">全模态输入</text>
+
+  <line x1="140" y1="152" x2="140" y2="170" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="174" width="200" height="46" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="140" y="194" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">VQ tokenizer 离散化</text>
+  <text x="140" y="211" text-anchor="middle" font-size="10.5" fill="#333333">并入统一词表（如 8192 图像码本）</text>
+
+  <line x1="140" y1="220" x2="140" y2="238" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="242" width="200" height="54" rx="6" fill="#000000"/>
+  <text x="140" y="264" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#ffffff">单一 AR Transformer</text>
+  <text x="140" y="284" text-anchor="middle" font-size="10.5" fill="#ffffff">单一 NTP 损失 · 理解生成同栈</text>
+
+  <rect x="40" y="316" width="200" height="56" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="140" y="339" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">训练最难：QK-Norm + z-loss</text>
+  <text x="140" y="358" text-anchor="middle" font-size="10.5" fill="#333333">生成质量受量化限制</text>
+
+  <text x="140" y="398" text-anchor="middle" font-size="11" fill="#333333">代表：Chameleon、LongCat-Next、文心 5.0</text>
+
+  <text x="410" y="76" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">路线二 · 自回归 + 扩散混合</text>
+  <text x="410" y="94" text-anchor="middle" font-size="11" fill="#595959">各模态用最适合自己的损失</text>
+
+  <rect x="310" y="106" width="92" height="46" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="356" y="126" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">文本</text>
+  <text x="356" y="143" text-anchor="middle" font-size="10" fill="#333333">NTP 损失</text>
+
+  <rect x="418" y="106" width="92" height="46" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="464" y="126" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">图像</text>
+  <text x="464" y="143" text-anchor="middle" font-size="9.5" fill="#333333">连续 patch · 扩散损失</text>
+
+  <line x1="356" y1="152" x2="392" y2="170" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="464" y1="152" x2="428" y2="170" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="310" y="174" width="200" height="46" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="194" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">同一 Transformer 内双损失</text>
+  <text x="410" y="211" text-anchor="middle" font-size="10.5" fill="#333333">NTP 与 Diffusion 并存</text>
+
+  <line x1="410" y1="220" x2="410" y2="238" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="310" y="242" width="200" height="54" rx="6" fill="#000000"/>
+  <text x="410" y="264" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#ffffff">统一主干 + 扩散解码</text>
+  <text x="410" y="284" text-anchor="middle" font-size="10.5" fill="#ffffff">训练与推理存在两套路径</text>
+
+  <rect x="310" y="316" width="200" height="56" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="410" y="339" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">同 FLOPs 下 FID 约为纯离散一半</text>
+  <text x="410" y="358" text-anchor="middle" font-size="10.5" fill="#333333">系统复杂度高 · 统一性打折</text>
+
+  <text x="410" y="398" text-anchor="middle" font-size="11" fill="#333333">代表：Transfusion、BAGEL、GPT-4o 图像生成</text>
+
+  <text x="680" y="76" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">路线三 · 连续特征原生预训练</text>
+  <text x="680" y="94" text-anchor="middle" font-size="11" fill="#595959">Mid Fusion · 当前工业主流</text>
+
+  <rect x="580" y="106" width="200" height="46" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="680" y="126" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">ViT 连续视觉特征</text>
+  <text x="680" y="143" text-anchor="middle" font-size="10.5" fill="#333333">无量化损失</text>
+
+  <line x1="680" y1="152" x2="680" y2="170" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="580" y="174" width="200" height="46" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="680" y="194" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">投影进入 LLM 主干</text>
+  <text x="680" y="211" text-anchor="middle" font-size="10.5" fill="#333333">编码器可训练 · 端到端优化</text>
+
+  <line x1="680" y1="220" x2="680" y2="238" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="580" y="242" width="200" height="54" rx="6" fill="#000000"/>
+  <text x="680" y="264" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#ffffff">联合预训练主干</text>
+  <text x="680" y="284" text-anchor="middle" font-size="10.5" fill="#ffffff">单一文本损失 · 仅覆盖理解侧</text>
+
+  <rect x="580" y="316" width="200" height="56" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="680" y="339" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">感知精度最高 · 文本易保持</text>
+  <text x="680" y="358" text-anchor="middle" font-size="10.5" fill="#333333">生成需另接输出头</text>
+
+  <text x="680" y="398" text-anchor="middle" font-size="11" fill="#333333">代表：Llama 4、Gemini 3、Qwen3-VL 等</text>
+
+  <rect x="60" y="428" width="700" height="46" rx="6" fill="#000000"/>
+  <text x="410" y="456" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">选型：理解优先选路线三 · 理解生成一体且求架构极简选路线一 · 生成质量优先选路线二</text>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 440" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">模态注入时机与配比：固定视觉 token 总预算下的三种课程</text>
+
+  <rect x="540" y="46" width="12" height="12" fill="#000000"/>
+  <text x="558" y="57" font-size="11.5" fill="#333333">视觉数据</text>
+  <rect x="640" y="46" width="12" height="12" fill="#f2f2f2" stroke="#333333" stroke-width="1"/>
+  <text x="658" y="57" font-size="11.5" fill="#333333">文本为主数据</text>
+
+  <text x="70" y="80" font-size="13" font-weight="bold" fill="#000000">课程 A：从第一步起 · 恒定约 10% 视觉比例</text>
+  <rect x="70" y="88" width="560" height="40" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <rect x="70" y="120" width="560" height="8" fill="#000000"/>
+  <text x="350" y="109" text-anchor="middle" font-size="11.5" fill="#333333">纯文本 + 图文交错（约 90%）</text>
+  <rect x="650" y="88" width="130" height="40" rx="6" fill="#000000"/>
+  <text x="715" y="105" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">最优</text>
+  <text x="715" y="121" text-anchor="middle" font-size="10" fill="#ffffff">文本能力不降反升</text>
+
+  <text x="70" y="164" font-size="13" font-weight="bold" fill="#000000">课程 B：先训纯文本 · 后期集中大剂量注入</text>
+  <rect x="70" y="172" width="560" height="40" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <rect x="490" y="172" width="140" height="40" fill="#000000"/>
+  <text x="280" y="196" text-anchor="middle" font-size="11.5" fill="#333333">纯文本</text>
+  <text x="560" y="196" text-anchor="middle" font-size="11" font-weight="bold" fill="#ffffff">集中注入</text>
+  <rect x="650" y="172" width="130" height="40" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="715" y="189" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">不及课程 A</text>
+  <text x="715" y="205" text-anchor="middle" font-size="10" fill="#333333">分布突变 · 遗忘</text>
+
+  <text x="70" y="248" font-size="13" font-weight="bold" fill="#000000">课程 C：从第一步起 · 50% 高比例混入</text>
+  <rect x="70" y="256" width="560" height="40" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <rect x="70" y="276" width="560" height="20" fill="#000000"/>
+  <text x="350" y="271" text-anchor="middle" font-size="11" fill="#333333">文本 50%</text>
+  <text x="350" y="290" text-anchor="middle" font-size="11" font-weight="bold" fill="#ffffff">视觉 50%</text>
+  <rect x="650" y="256" width="130" height="40" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="715" y="273" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">不及课程 A</text>
+  <text x="715" y="289" text-anchor="middle" font-size="10" fill="#333333">挤占语言容量</text>
+
+  <line x1="70" y1="314" x2="630" y2="314" stroke="#8c8c8c" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="350" y="332" text-anchor="middle" font-size="11.5" fill="#595959">训练进度</text>
+
+  <rect x="60" y="350" width="700" height="62" rx="6" fill="#000000"/>
+  <text x="410" y="376" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">Kimi K2.5 对照实验结论：注入时机比注入数量更重要</text>
+  <text x="410" y="398" text-anchor="middle" font-size="11.5" fill="#ffffff">配套发现 Zero-Vision SFT：预训练注入足够早，SFT 阶段零视觉数据仍能激活视觉推理</text>
+</svg>

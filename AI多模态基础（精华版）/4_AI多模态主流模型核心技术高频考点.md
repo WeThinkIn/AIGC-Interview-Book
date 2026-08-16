@@ -1,4 +1,4 @@
-## 5.4 AI多模态主流模型核心技术高频考点
+## 5.4 AI多模态主流模型高频考点（专题沉淀版）
 
 
 - [1.Qwen-VL系列视觉编码器经历了哪些关键演进，各解决什么问题](#1.Qwen-VL系列视觉编码器经历了哪些关键演进，各解决什么问题)
@@ -97,10 +97,9 @@
 | Qwen3-VL | 原生动态分辨率 | 2D-RoPE | DeepStack 多层融合、patch 14→16 | — |
 
 <div align="center">
-  <img width="2460" height="1410" alt="fig_5-4-1_deepstack" src="https://github.com/user-attachments/assets/3c6e49f1-697e-4584-a209-20001f510da4" />
-
+  <img src="images/fig_5-4-1_deepstack.png" width="720" alt="Qwen3-VL DeepStack 多层次特征融合" />
   <br/>
-  图 5.4.1-2　Qwen3-VL DeepStack 多层次特征融合
+  <b>图 5.4.1-2　Qwen3-VL DeepStack 多层次特征融合</b>
 </div>
 
 ---
@@ -120,10 +119,9 @@
 **这类方案的共同局限是"一视同仁"。** Qwen2-VL 的 MLP 合并 $2\times2$、InternVL 的 Pixel Unshuffle，压缩比都固定为 $1/4$，对信息密集区与背景区用同样的力度压——这正是下一代内容自适应压缩要解决的问题。
 
 <div align="center">
-  <img width="2460" height="1410" alt="fig_5-4-1_pixel_unshuffle" src="https://github.com/user-attachments/assets/2928bcad-990d-4039-92bf-c8c8aa1d957e" />
-
+  <img src="images/fig_5-4-1_pixel_unshuffle.png" width="720" alt="InternVL-1.5 动态分块与 Pixel Unshuffle 压缩流程" />
   <br/>
-  图 5.4.1-1　InternVL-1.5 动态分块与 Pixel Unshuffle 压缩流程
+  <b>图 5.4.1-1　InternVL-1.5 动态分块与 Pixel Unshuffle 压缩流程</b>
 </div>
 
 ---
@@ -141,9 +139,9 @@
 **两者一软一硬、叠加增益明显。** ViR 减少 token 数，既缩短语言端序列长度，又减少视觉端到语言端的特征传输量；DvD 重叠视觉/语言计算，让被压缩后的流水线进一步并行化。二者结合相比 InternVL-3 实现最高 4.05× 推理加速。从 Pixel Unshuffle 的固定 $1/4$ 到 ViR 的按需压缩、再到 DvD 的系统级解耦，这条效率演进线的方向很清晰：**从"无差别省"走向"按内容省 + 按系统并行"。**
 
 <div align="center">
- <img width="2460" height="1770" alt="fig_5-4-1_vir_dvd" src="https://github.com/user-attachments/assets/c5e204d6-ab56-4b9f-8d13-3ed1eb51569c" />
-<br/>
-  图 5.4.1-3　InternVL-3.5 内容自适应压缩 ViR 与解耦部署 DvD
+  <img src="images/fig_5-4-1_vir_dvd.png" width="720" alt="InternVL-3.5 内容自适应压缩 ViR 与解耦部署 DvD" />
+  <br/>
+  <b>图 5.4.1-3　InternVL-3.5 内容自适应压缩 ViR 与解耦部署 DvD</b>
 </div>
 
 ---
@@ -168,10 +166,9 @@
 **一个附带收益是有利于长序列外推。** 图像/视频的位置 ID 数值被显著压低（不再像把二维/三维强行展平成一维那样线性累积），推理时更容易外推到更长序列。
 
 <div align="center">
-  <img width="2460" height="1710" alt="fig_5-4-2_mrope" src="https://github.com/user-attachments/assets/97a5b27f-82b8-4178-8450-c79716a7877f" />
-
+  <img src="images/fig_5-4-2_mrope.png" width="720" alt="M-RoPE 三分量设计与多模态统一位置规则" />
   <br/>
-  图 5.4.2-1　M-RoPE 三分量设计与多模态统一位置规则
+  <b>图 5.4.2-1　M-RoPE 三分量设计与多模态统一位置规则</b>
 </div>
 
 ---
@@ -206,10 +203,9 @@ M-RoPE 之后，Qwen3-VL 的 MRoPE-Interleave（Interleaved-MRoPE）解决的是
 | V2PE | InternVL-3 | 可变视觉位置编码 | 支撑更长多模态上下文 |
 
 <div align="center">
-  <img width="2460" height="1380" alt="fig_5-4-2_mrope_interleave" src="https://github.com/user-attachments/assets/7785630c-49ab-4b96-af54-65be6cb14992" />
-
+  <img src="images/fig_5-4-2_mrope_interleave.png" width="720" alt="MRoPE-Interleave 通道交错与分块式对比" />
   <br/>
-  图 5.4.2-2　MRoPE-Interleave 通道交错与分块式对比
+  <b>图 5.4.2-2　MRoPE-Interleave 通道交错与分块式对比</b>
 </div>
 
 ---
@@ -304,10 +300,9 @@ GLM-4.5V 从基座、位置编码、计算结构、输入适配四个层面共�
 | 绝对像素 | Qwen2.5-VL | 直接对齐原尺度 | 保留真实尺度 | 数值量级随图变化 |
 
 <div align="center">
-  <img width="2460" height="1410" alt="fig_5-4-3_coord_compare" src="https://github.com/user-attachments/assets/108d7c13-915d-4866-949e-8d22829b4a38" />
-
+  <img src="images/fig_5-4-3_coord_compare.png" width="720" alt="归一化 / 千分制 / 绝对像素三种坐标对比" />
   <br/>
-  图 5.4.3-1　同一边界框的归一化 / 千分制 / 绝对像素三种坐标对比
+  <b>图 5.4.3-1　同一边界框的归一化 / 千分制 / 绝对像素三种坐标对比</b>
 </div>
 
 ---
@@ -341,10 +336,9 @@ GLM-4.5V 从基座、位置编码、计算结构、输入适配四个层面共�
 两者配合，3D patch 降低时间维冗余、动态 FPS + 绝对时间对齐保证时间语义，共同支撑在可控 token 预算下处理较长视频与做时刻定位。
 
 <div align="center">
-  <img width="2460" height="1440" alt="fig_5-4-4_3dpatch" src="https://github.com/user-attachments/assets/f1bd8951-17d3-4c9f-b5b6-b83573ee011d" />
-
+  <img src="images/fig_5-4-4_3dpatch.png" width="720" alt="3D patch 时序分块与动态 FPS 采样" />
   <br/>
-  图 5.4.4-1　3D patch 时序分块与动态 FPS 采样
+  <b>图 5.4.4-1　3D patch 时序分块与动态 FPS 采样</b>
 </div>
 
 ---
@@ -376,10 +370,9 @@ GLM-4.5V 从基座、位置编码、计算结构、输入适配四个层面共�
 从"隐式位置分量"到"显式文本标记"，本质是把时间从模型内部的编码细节，提升为可读、可比较、可运算的一等信息。
 
 <div align="center">
- <img width="2460" height="1290" alt="fig_5-4-4_text_timestamp" src="https://github.com/user-attachments/assets/6403fb6b-5f71-40ae-8337-8c74a7a9bd39" />
-
+  <img src="images/fig_5-4-4_text_timestamp.png" width="720" alt="从帧索引时间对齐到文本时间戳对齐" />
   <br/>
-  图 5.4.4-2　从帧索引时间对齐到文本时间戳对齐
+  <b>图 5.4.4-2　从帧索引时间对齐到文本时间戳对齐</b>
 </div>
 
 ---
@@ -427,10 +420,9 @@ GLM-4.5V 从基座、位置编码、计算结构、输入适配四个层面共�
 原生路线的代价是成本高昂：需要从预训练阶段起就投入大规模算力，且必须掌控语言基座，通常只有头部团队能承担。相较之下，BLIP-2 式"冻结两端 + 轻量桥接"在为现成强 LLM 低成本增加视觉能力这一目标上仍具性价比。从 BLIP-2 到 InternVL-3，体现的是多模态范式从"事后改装"向"原生一体"的演进。
 
 <div align="center">
- <img width="2460" height="1500" alt="fig_5-4-5_native_vs_blip2" src="https://github.com/user-attachments/assets/b2248226-2ba3-4eb1-b1fd-ecafe196917a" />
-
+  <img src="images/fig_5-4-5_native_vs_blip2.png" width="720" alt="BLIP-2 事后改装与 InternVL-3 原生多模态预训练" />
   <br/>
-  图 5.4.5-1　BLIP-2 事后改装与 InternVL-3 原生多模态预训练
+  <b>图 5.4.5-1　BLIP-2 事后改装与 InternVL-3 原生多模态预训练</b>
 </div>
 
 ---
@@ -467,10 +459,9 @@ GLM-4.5V 从基座、位置编码、计算结构、输入适配四个层面共�
 **降本效果非常直观：** InternVL2.5-78B 全程只用约 1200 亿 token，相比 Qwen2-VL 的 1.4 万亿 token 不到其 1/10。降本来自三点——避开"大 LLM × 视觉"的昂贵联合训练；视觉编码器一次训成、跨规模复用消除冗余；配套的数据打包（select-search-pack-maintain）提升 GPU 利用率。其前提是视觉特征可跨 LLM 迁移，若目标大 LLM 的嵌入空间差异较大，迁移后可能仍需少量再对齐——它节省的是重训视觉端的成本，而非完全免除对齐。
 
 <div align="center">
-  <img width="2460" height="1380" alt="fig_5-4-5_progressive_scaling" src="https://github.com/user-attachments/assets/7437d680-62be-4615-9d6e-be9a1fdd4962" />
-
+  <img src="images/fig_5-4-5_progressive_scaling.png" width="720" alt="InternVL-2.5 渐进式缩放：小 LLM 训视觉再迁移大 LLM" />
   <br/>
-  图 5.4.5-2　InternVL-2.5 渐进式缩放：小 LLM 训视觉再迁移大 LLM
+  <b>图 5.4.5-2　InternVL-2.5 渐进式缩放：小 LLM 训视觉再迁移大 LLM</b>
 </div>
 
 ---
@@ -541,10 +532,9 @@ RL 的核心两难是"要么不稳定、要么被静态数据封顶"。InternVL-
 这套粗到细策略在下游推理基准上带来显著提升，整体推理性能相比 InternVL-3 最高提升约 +16%（如 MMMU、MathVista）。把三家放一起看，后训练/RL 这条线的演进很清晰：**从 Qwen2.5-VL 的 SFT+DPO（对齐偏好），到 GLM-4.1V 的 RLCS（难度自适应提升推理），再到 InternVL-3.5 的级联 RL（离线稳 + 在线破上界）——目标从"合人意"一路走向"更能推理且训练可控"。**
 
 <div align="center">
-  <img width="2460" height="1290" alt="fig_5-4-6_cascade_rl" src="https://github.com/user-attachments/assets/ac3d07a5-9306-4036-b44e-ff609b77b583" />
-
+  <img src="images/fig_5-4-6_cascade_rl.png" width="720" alt="InternVL-3.5 级联强化学习：离线打底 + 在线精修" />
   <br/>
-  图 5.4.6-1　InternVL-3.5 级联强化学习：离线打底 + 在线精修
+  <b>图 5.4.6-1　InternVL-3.5 级联强化学习：离线打底 + 在线精修</b>
 </div>
 
 ---
@@ -633,10 +623,9 @@ InternVL-2.5 设计了一条三道闸的数据过滤流水线，专门压制异�
 这两项机制让前端能力从"截图生成代码"升级为"可持续迭代、自我校正"的视觉编程，更贴近真实开发中的多轮修改流程。至此七个专题形成闭环：**从看清（专题一）、定位时空（专题二~四）、到训练范式（专题五~六）与数据治理（专题七），最终收束到"感知-动作闭环"的多模态智能体——这正是主流多模态模型正在共同奔赴的方向。**
 
 <div align="center">
- <img width="2460" height="1500" alt="fig_5-4-7_visual_feedback_loop" src="https://github.com/user-attachments/assets/3b7b975c-1da9-40da-a3ad-41f5602c38e2" />
-
+  <img src="images/fig_5-4-7_visual_feedback_loop.png" width="720" alt="GLM-4.6V 像素级复现与视觉反馈闭环" />
   <br/>
-  图 5.4.7-1　GLM-4.6V 像素级复现与视觉反馈闭环
+  <b>图 5.4.7-1　GLM-4.6V 像素级复现与视觉反馈闭环</b>
 </div>
 
 ---

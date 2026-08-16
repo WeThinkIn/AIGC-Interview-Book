@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 545" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">理解与生成的表征冲突与三条调和路径</text>
+
+  <rect x="60" y="56" width="290" height="74" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="205" y="82" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">理解任务</text>
+  <text x="205" y="102" text-anchor="middle" font-size="11.5" fill="#333333">要语义抽象：压缩成高层概念</text>
+  <text x="205" y="119" text-anchor="middle" font-size="10.5" fill="#595959">（CLIP 式 · 主动丢弃低层细节）</text>
+
+  <rect x="470" y="56" width="290" height="74" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="615" y="82" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">生成任务</text>
+  <text x="615" y="102" text-anchor="middle" font-size="11.5" fill="#333333">要像素保真：保留低层信息</text>
+  <text x="615" y="119" text-anchor="middle" font-size="10.5" fill="#595959">（VAE 式 · 服务像素重建）</text>
+
+  <line x1="358" y1="100" x2="462" y2="100" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="462" y1="106" x2="358" y2="106" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <text x="410" y="88" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">方向相反</text>
+  <text x="410" y="125" text-anchor="middle" font-size="10.5" fill="#595959">跷跷板效应</text>
+
+  <line x1="410" y1="134" x2="410" y2="158" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="210" y="162" width="400" height="36" rx="6" fill="#000000"/>
+  <text x="410" y="185" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">承认冲突 · 在表征层分工 · 守住单一主干底线</text>
+
+  <line x1="260" y1="198" x2="145" y2="228" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="410" y1="198" x2="410" y2="228" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="560" y1="198" x2="675" y2="228" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <text x="140" y="250" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">路径一 · 纯离散通吃</text>
+
+  <rect x="40" y="262" width="200" height="50" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="140" y="283" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">语义完备离散 token</text>
+  <text x="140" y="301" text-anchor="middle" font-size="10.5" fill="#333333">一套表征两端共用</text>
+
+  <line x1="140" y1="312" x2="140" y2="328" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="332" width="200" height="44" rx="6" fill="#000000"/>
+  <text x="140" y="351" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">单一 AR 主干</text>
+  <text x="140" y="368" text-anchor="middle" font-size="10.5" fill="#ffffff">理解与生成同栈</text>
+
+  <rect x="40" y="392" width="200" height="52" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="140" y="413" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">风险集中在 tokenizer 质量</text>
+  <text x="140" y="432" text-anchor="middle" font-size="10.5" fill="#333333">dNaViT：28 倍压缩仍语义完备</text>
+
+  <text x="140" y="466" text-anchor="middle" font-size="11" fill="#333333">代表：Chameleon、LongCat-Next</text>
+
+  <text x="410" y="250" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">路径二 · 双路解耦 · 共享主干</text>
+
+  <rect x="310" y="262" width="92" height="50" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="356" y="283" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">理解编码器</text>
+  <text x="356" y="301" text-anchor="middle" font-size="10" fill="#333333">语义特征</text>
+
+  <rect x="418" y="262" width="92" height="50" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="464" y="283" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">生成编码器</text>
+  <text x="464" y="301" text-anchor="middle" font-size="10" fill="#333333">像素特征</text>
+
+  <line x1="356" y1="312" x2="392" y2="328" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="464" y1="312" x2="428" y2="328" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="310" y="332" width="200" height="44" rx="6" fill="#000000"/>
+  <text x="410" y="351" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">同一 Transformer 主干</text>
+  <text x="410" y="368" text-anchor="middle" font-size="10.5" fill="#ffffff">冲突在输入端消解</text>
+
+  <rect x="310" y="392" width="200" height="52" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="410" y="413" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">多训一个编码器</text>
+  <text x="410" y="432" text-anchor="middle" font-size="10.5" fill="#333333">MoE 化表达：双专家（MoT）</text>
+
+  <text x="410" y="466" text-anchor="middle" font-size="11" fill="#333333">代表：Janus-Pro、BAGEL</text>
+
+  <text x="680" y="250" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">路径三 · 混合 tokenizer</text>
+
+  <rect x="580" y="262" width="200" height="50" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="680" y="283" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">一个编码器 · 两路适配器</text>
+  <text x="680" y="301" text-anchor="middle" font-size="10.5" fill="#333333">连续供理解 · 离散供生成</text>
+
+  <line x1="680" y1="312" x2="680" y2="328" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="580" y="332" width="200" height="44" rx="6" fill="#000000"/>
+  <text x="680" y="351" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">AR 主干统一预测</text>
+  <text x="680" y="368" text-anchor="middle" font-size="10.5" fill="#ffffff">扩散解码器渲染像素</text>
+
+  <rect x="580" y="392" width="200" height="52" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="680" y="413" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">语义空间天然共享</text>
+  <text x="680" y="432" text-anchor="middle" font-size="10.5" fill="#333333">比路径二少训一个编码器</text>
+
+  <text x="680" y="466" text-anchor="middle" font-size="11" fill="#333333">代表：Apple Manzano（研究）</text>
+
+  <rect x="60" y="482" width="700" height="44" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="510" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">商业信号：GPT-4o 原生图像生成取代独立的 DALL·E，理解生成同栈越过商业可用线</text>
+</svg>

@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 480" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">Qwen2.5-VL 视频建模：3D patch 时序分块与动态 FPS 采样</text>
+
+  <line x1="410" y1="56" x2="410" y2="448" stroke="#d9d9d9" stroke-width="1.5"/>
+
+  <!-- 左：3D patch -->
+  <text x="200" y="76" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">① 3D patch（时序分块，size=2）</text>
+
+  <!-- 帧序列 -->
+  <g stroke="#595959" stroke-width="1.2">
+    <rect x="40" y="96" width="44" height="44" fill="#f2f2f2"/><rect x="90" y="96" width="44" height="44" fill="#d9d9d9"/>
+    <rect x="150" y="96" width="44" height="44" fill="#f2f2f2"/><rect x="200" y="96" width="44" height="44" fill="#d9d9d9"/>
+    <rect x="260" y="96" width="44" height="44" fill="#f2f2f2"/><rect x="310" y="96" width="44" height="44" fill="#d9d9d9"/>
+  </g>
+  <g font-size="11" text-anchor="middle" fill="#000000">
+    <text x="62" y="122">帧0</text><text x="112" y="122">帧1</text><text x="172" y="122">帧2</text><text x="222" y="122">帧3</text><text x="282" y="122">帧4</text><text x="332" y="122">帧5</text>
+  </g>
+  <!-- pairing brackets -->
+  <path d="M40,148 L40,156 L134,156 L134,148" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <path d="M150,148 L150,156 L244,156 L244,148" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <path d="M260,148 L260,156 L354,156 L354,148" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <text x="87" y="172" text-anchor="middle" font-size="10.5" fill="#595959">每 2 帧合并</text>
+
+  <line x1="87" y1="178" x2="87" y2="200" stroke="#333333" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="197" y1="178" x2="197" y2="200" stroke="#333333" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="307" y1="178" x2="307" y2="200" stroke="#333333" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+  <g stroke="#333333" stroke-width="1.5">
+    <rect x="60" y="206" width="54" height="46" rx="4" fill="#bdbdbd"/>
+    <rect x="170" y="206" width="54" height="46" rx="4" fill="#bdbdbd"/>
+    <rect x="280" y="206" width="54" height="46" rx="4" fill="#bdbdbd"/>
+  </g>
+  <g font-size="11" text-anchor="middle" fill="#000000">
+    <text x="87" y="234">patch₁</text><text x="197" y="234">patch₂</text><text x="307" y="234">patch₃</text>
+  </g>
+  <rect x="60" y="272" width="290" height="30" rx="6" fill="#000000"/>
+  <text x="205" y="292" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">patch 形状 2×14×14（时间×高×宽）</text>
+  <text x="205" y="330" text-anchor="middle" font-size="12.5" fill="#333333">逐帧独立 → 时空小块</text>
+  <text x="205" y="350" text-anchor="middle" font-size="12.5" fill="#333333">压缩时间维 token，保留短时时序</text>
+
+  <!-- 右：动态 FPS -->
+  <text x="610" y="76" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">② 动态 FPS 采样 + 绝对时间对齐</text>
+
+  <text x="446" y="112" font-size="12.5" fill="#000000">疏采样（慢节奏）</text>
+  <g stroke="#595959" stroke-width="1.2" fill="#f2f2f2">
+    <rect x="446" y="120" width="30" height="30"/><rect x="536" y="120" width="30" height="30"/><rect x="626" y="120" width="30" height="30"/><rect x="716" y="120" width="30" height="30"/>
+  </g>
+  <text x="446" y="176" font-size="12.5" fill="#000000">密采样（快节奏）</text>
+  <g stroke="#595959" stroke-width="1.2" fill="#d9d9d9">
+    <rect x="446" y="184" width="30" height="30"/><rect x="491" y="184" width="30" height="30"/><rect x="536" y="184" width="30" height="30"/><rect x="581" y="184" width="30" height="30"/><rect x="626" y="184" width="30" height="30"/><rect x="671" y="184" width="30" height="30"/><rect x="716" y="184" width="30" height="30"/>
+  </g>
+
+  <!-- 时间轴对齐 -->
+  <line x1="446" y1="256" x2="770" y2="256" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="770" y="276" text-anchor="end" font-size="11" fill="#595959">绝对时间（秒）</text>
+  <g font-size="11" text-anchor="middle" fill="#000000">
+    <line x1="461" y1="250" x2="461" y2="262" stroke="#333333" stroke-width="1.2"/><text x="461" y="246">0s</text>
+    <line x1="551" y1="250" x2="551" y2="262" stroke="#333333" stroke-width="1.2"/><text x="551" y="246">1s</text>
+    <line x1="641" y1="250" x2="641" y2="262" stroke="#333333" stroke-width="1.2"/><text x="641" y="246">2s</text>
+    <line x1="731" y1="250" x2="731" y2="262" stroke="#333333" stroke-width="1.2"/><text x="731" y="246">3s</text>
+  </g>
+  <g font-size="11" text-anchor="middle" fill="#333333">
+    <text x="461" y="290">ID 0</text><text x="551" y="290">ID 1</text><text x="641" y="290">ID 2</text><text x="731" y="290">ID 3</text>
+  </g>
+  <text x="608" y="290" text-anchor="middle" font-size="11" fill="#595959">M-RoPE 时间维</text>
+
+  <rect x="446" y="312" width="300" height="60" rx="6" fill="#000000"/>
+  <text x="596" y="336" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">时间 ID 与绝对时间对齐</text>
+  <text x="596" y="358" text-anchor="middle" font-size="12.5" fill="#ffffff">凭 ID 间隔感知快慢 · 定位第几秒</text>
+
+  <rect x="40" y="404" width="740" height="42" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="431" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">3D patch 降时间维冗余　+　动态 FPS 保时间语义 → 可控 token 预算处理长视频</text>
+</svg>
