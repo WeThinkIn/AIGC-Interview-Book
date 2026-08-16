@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 545" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">语音交互形态三代演进：回合制、可打断流式、全双工</text>
+
+  <rect x="40" y="74" width="170" height="84" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="125" y="104" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">第一代</text>
+  <text x="125" y="126" text-anchor="middle" font-size="12.5" fill="#333333">回合制 · 级联</text>
+  <text x="125" y="144" text-anchor="middle" font-size="10.5" fill="#595959">（规则拼接）</text>
+
+  <rect x="240" y="78" width="92" height="42" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="286" y="103" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">用户语音</text>
+  <line x1="332" y1="99" x2="350" y2="99" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="352" y="78" width="92" height="42" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="398" y="103" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">ASR</text>
+  <line x1="444" y1="99" x2="462" y2="99" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="464" y="78" width="92" height="42" rx="6" fill="#000000"/>
+  <text x="510" y="103" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">LLM</text>
+  <line x1="556" y1="99" x2="574" y2="99" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="576" y="78" width="92" height="42" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="622" y="103" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">TTS</text>
+  <line x1="668" y1="99" x2="686" y2="99" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="688" y="78" width="92" height="42" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="734" y="103" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">语音回复</text>
+
+  <rect x="240" y="134" width="540" height="34" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="510" y="156" text-anchor="middle" font-size="11.5" fill="#333333">时延三段相加（秒级）· 语气与情绪在 ASR 一步即丢失 · 不能打断</text>
+
+  <line x1="125" y1="162" x2="125" y2="206" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="210" width="170" height="84" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="125" y="240" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">第二代</text>
+  <text x="125" y="262" text-anchor="middle" font-size="12.5" fill="#333333">可打断流式</text>
+  <text x="125" y="280" text-anchor="middle" font-size="10.5" fill="#595959">（端到端）</text>
+
+  <rect x="240" y="210" width="360" height="66" rx="6" fill="#000000"/>
+  <text x="420" y="238" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">端到端全模态模型</text>
+  <text x="420" y="260" text-anchor="middle" font-size="11.5" fill="#ffffff">边听 · 边想 · 边说 · 用户可随时打断</text>
+
+  <rect x="620" y="210" width="160" height="66" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="700" y="231" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">首包时延</text>
+  <text x="700" y="249" text-anchor="middle" font-size="10.5" fill="#333333">GPT-4o 平均 320ms</text>
+  <text x="700" y="266" text-anchor="middle" font-size="10" fill="#333333">Qwen3.5-Omni 235~435ms</text>
+
+  <rect x="240" y="290" width="540" height="34" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="510" y="312" text-anchor="middle" font-size="11.5" fill="#333333">解决“插不上话”，但模型仍是被动响应者，不会自主决定何时说话</text>
+
+  <line x1="125" y1="298" x2="125" y2="346" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="350" width="170" height="96" rx="6" fill="#000000"/>
+  <text x="125" y="384" text-anchor="middle" font-size="15" font-weight="bold" fill="#ffffff">第三代</text>
+  <text x="125" y="406" text-anchor="middle" font-size="12.5" fill="#ffffff">全双工</text>
+  <text x="125" y="424" text-anchor="middle" font-size="10.5" fill="#ffffff">（full-duplex）</text>
+
+  <rect x="240" y="350" width="360" height="80" rx="6" fill="#000000"/>
+  <text x="420" y="376" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#ffffff">听 / 说双通道同时活跃</text>
+  <text x="420" y="398" text-anchor="middle" font-size="10.5" fill="#ffffff">自主决定：接话 · 附和 · 沉默 · 忽略旁人插话</text>
+  <text x="420" y="416" text-anchor="middle" font-size="10.5" fill="#ffffff">对话礼仪从工程规则变成习得能力</text>
+
+  <rect x="620" y="350" width="160" height="80" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="700" y="374" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">代表：SeedRealtime</text>
+  <text x="700" y="394" text-anchor="middle" font-size="10.5" fill="#333333">对话节奏问题</text>
+  <text x="700" y="410" text-anchor="middle" font-size="10.5" fill="#333333">较级联方案约减半</text>
+
+  <rect x="240" y="444" width="540" height="34" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="510" y="466" text-anchor="middle" font-size="11.5" fill="#333333">数据要求随之升级：带重叠、抢话、环境噪声的真实多人对话语料</text>
+
+  <rect x="60" y="492" width="700" height="42" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="519" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">竞争焦点已从首包时延转向话轮节奏（turn-taking）的把控能力</text>
+</svg>

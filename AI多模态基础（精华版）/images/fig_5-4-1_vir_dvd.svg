@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 590" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#ffffff"/>
+      <circle cx="2" cy="2" r="1.1" fill="#595959"/>
+    </pattern>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">InternVL-3.5 内容自适应压缩 ViR 与系统级解耦部署 DvD</text>
+
+  <text x="60" y="66" font-size="16" font-weight="bold" fill="#000000">① ViR（视觉分辨率路由）· 按内容逐块决定压缩率</text>
+  <rect x="60" y="78" width="230" height="150" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <g stroke="#595959" stroke-width="0.8" fill="url(#dots)">
+    <rect x="72" y="90" width="100" height="60"/>
+  </g>
+  <g stroke="#595959" stroke-width="0.8">
+    <line x1="97" y1="90" x2="97" y2="150"/><line x1="122" y1="90" x2="122" y2="150"/><line x1="147" y1="90" x2="147" y2="150"/>
+    <line x1="72" y1="110" x2="172" y2="110"/><line x1="72" y1="130" x2="172" y2="130"/>
+  </g>
+  <rect x="180" y="90" width="98" height="60" fill="#d9d9d9" stroke="#595959" stroke-width="0.8"/>
+  <rect x="72" y="158" width="206" height="58" fill="#f2f2f2" stroke="#595959" stroke-width="0.8"/>
+  <text x="122" y="207" text-anchor="middle" font-size="11" fill="#333333">背景 / 纯色区</text>
+
+  <rect x="316" y="96" width="230" height="42" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="431" y="113" text-anchor="middle" font-size="13" fill="#000000">文字 / OCR 密集区：保留高分辨率</text>
+  <text x="431" y="130" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">→ 更多 token</text>
+  <rect x="316" y="150" width="230" height="42" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="431" y="167" text-anchor="middle" font-size="13" fill="#000000">背景 / 纯色区：高压缩</text>
+  <text x="431" y="184" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">→ 更少 token</text>
+
+  <rect x="566" y="110" width="194" height="70" rx="6" fill="#000000"/>
+  <text x="663" y="138" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">轻量 ViCO 接入</text>
+  <text x="663" y="160" text-anchor="middle" font-size="13" fill="#ffffff">token 最多减约 50%</text>
+
+  <line x1="60" y1="248" x2="760" y2="248" stroke="#d9d9d9" stroke-width="1.5"/>
+
+  <text x="60" y="284" font-size="16" font-weight="bold" fill="#000000">② DvD（解耦视觉-语言部署）· 两台 GPU 服务器单向传输</text>
+
+  <rect x="60" y="300" width="250" height="88" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="185" y="326" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">视觉服务器 (GPU)</text>
+  <text x="185" y="352" text-anchor="middle" font-size="13" fill="#333333">ViT + MLP + ViR</text>
+  <text x="185" y="374" text-anchor="middle" font-size="12" fill="#595959">批量处理图像 · 产出紧凑特征</text>
+
+  <line x1="312" y1="344" x2="508" y2="344" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <rect x="330" y="312" width="160" height="30" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="410" y="332" text-anchor="middle" font-size="12" fill="#333333">BF16 / TCP（可选 RDMA）</text>
+  <text x="410" y="362" text-anchor="middle" font-size="11" fill="#595959">单向传输</text>
+
+  <rect x="510" y="300" width="250" height="88" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="635" y="326" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">语言服务器 (GPU)</text>
+  <text x="635" y="352" text-anchor="middle" font-size="13" fill="#333333">LLM</text>
+  <text x="635" y="374" text-anchor="middle" font-size="12" fill="#595959">融合解码</text>
+
+  <text x="60" y="422" font-size="13" font-weight="bold" fill="#000000">异步流水线（三段重叠）</text>
+  <line x1="60" y1="500" x2="760" y2="500" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="748" y="518" text-anchor="end" font-size="11" fill="#595959">时间 →</text>
+  <rect x="70" y="432" width="230" height="22" rx="4" fill="#595959" stroke="#333333" stroke-width="1.2"/>
+  <text x="185" y="448" text-anchor="middle" font-size="11.5" fill="#ffffff">视觉处理</text>
+  <rect x="230" y="458" width="230" height="22" rx="4" fill="#bdbdbd" stroke="#333333" stroke-width="1.2"/>
+  <text x="345" y="474" text-anchor="middle" font-size="11.5" fill="#000000">特征传输</text>
+  <rect x="390" y="484" width="230" height="22" rx="4" fill="#f2f2f2" stroke="#333333" stroke-width="1.2"/>
+  <text x="505" y="500" text-anchor="middle" font-size="11.5" fill="#000000">语言处理</text>
+
+  <rect x="60" y="530" width="700" height="44" rx="6" fill="#000000"/>
+  <text x="410" y="558" text-anchor="middle" font-size="15" font-weight="bold" fill="#ffffff">DvD 近 2× 吞吐　·　ViR + DvD 相比 InternVL-3 最高 4.05× 推理加速</text>
+</svg>

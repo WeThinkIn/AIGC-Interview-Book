@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 470" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#ffffff"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#8c8c8c" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="7" height="7" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#ffffff"/>
+      <circle cx="2" cy="2" r="1" fill="#8c8c8c"/>
+    </pattern>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">InternVL-1.5 动态高分辨率分块与 Pixel Unshuffle 压缩流程</text>
+
+  <rect x="24" y="96" width="96" height="118" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="72" y="90" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">原图</text>
+  <rect x="38" y="112" width="68" height="86" fill="url(#dots)" stroke="#595959" stroke-width="1.5"/>
+  <text x="72" y="232" text-anchor="middle" font-size="12" fill="#595959">高分辨率文档</text>
+
+  <line x1="122" y1="155" x2="158" y2="155" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="162" y="86" width="156" height="140" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="240" y="80" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">动态高分辨率分块</text>
+  <g stroke="#595959" stroke-width="1" fill="#d9d9d9">
+    <rect x="176" y="100" width="24" height="24"/><rect x="202" y="100" width="24" height="24"/><rect x="228" y="100" width="24" height="24"/><rect x="254" y="100" width="24" height="24"/>
+    <rect x="176" y="126" width="24" height="24"/><rect x="202" y="126" width="24" height="24"/><rect x="228" y="126" width="24" height="24"/><rect x="254" y="126" width="24" height="24"/>
+    <rect x="176" y="152" width="24" height="24"/><rect x="202" y="152" width="24" height="24"/><rect x="228" y="152" width="24" height="24"/><rect x="254" y="152" width="24" height="24"/>
+  </g>
+  <rect x="286" y="100" width="26" height="26" fill="url(#hatch)" stroke="#333333" stroke-width="1.5"/>
+  <text x="299" y="140" text-anchor="middle" font-size="10.5" fill="#333333">全局</text>
+  <text x="299" y="153" text-anchor="middle" font-size="10.5" fill="#333333">缩略图</text>
+  <text x="240" y="196" text-anchor="middle" font-size="12" fill="#333333">按长宽比切至多 40 个</text>
+  <text x="240" y="212" text-anchor="middle" font-size="12" fill="#333333">448×448 子图块（等效 4K）</text>
+
+  <line x1="320" y1="155" x2="356" y2="155" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="360" y="96" width="130" height="118" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="425" y="90" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">ViT（patch=14）</text>
+  <text x="425" y="130" text-anchor="middle" font-size="13" fill="#333333">每个 448×448 子图</text>
+  <text x="425" y="150" text-anchor="middle" font-size="13" fill="#333333">→ 32×32 网格</text>
+  <text x="425" y="176" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">= 1024 token</text>
+
+  <line x1="492" y1="155" x2="528" y2="155" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="532" y="86" width="164" height="140" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="614" y="80" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">Pixel Unshuffle</text>
+  <text x="614" y="104" text-anchor="middle" font-size="12" fill="#333333">2×2 space-to-depth</text>
+  <g stroke="#333333" stroke-width="1.5">
+    <rect x="548" y="120" width="20" height="20" fill="#bdbdbd"/><rect x="568" y="120" width="20" height="20" fill="#8c8c8c"/>
+    <rect x="548" y="140" width="20" height="20" fill="#595959"/><rect x="568" y="140" width="20" height="20" fill="#333333"/>
+  </g>
+  <line x1="592" y1="140" x2="616" y2="140" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <g stroke="#333333" stroke-width="1.5">
+    <rect x="624" y="118" width="14" height="14" fill="#bdbdbd"/>
+    <rect x="628" y="123" width="14" height="14" fill="#8c8c8c"/>
+    <rect x="632" y="128" width="14" height="14" fill="#595959"/>
+    <rect x="636" y="133" width="14" height="14" fill="#333333"/>
+  </g>
+  <text x="614" y="180" text-anchor="middle" font-size="12" fill="#333333">空间减半 · 通道 ×4</text>
+  <text x="614" y="204" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">token 数 ×1/4 → 256</text>
+
+  <rect x="150" y="270" width="240" height="58" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="270" y="294" text-anchor="middle" font-size="14" fill="#000000">40 块不压缩</text>
+  <text x="270" y="315" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">≈ 4 万 token</text>
+
+  <line x1="392" y1="299" x2="452" y2="299" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <text x="422" y="290" text-anchor="middle" font-size="11" fill="#595959">压缩</text>
+
+  <rect x="454" y="270" width="240" height="58" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="574" y="294" text-anchor="middle" font-size="14" fill="#000000">压缩后</text>
+  <text x="574" y="315" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">≈ 1 万 token</text>
+
+  <rect x="150" y="352" width="544" height="46" rx="6" fill="url(#hatch)" stroke="#333333" stroke-width="1.5"/>
+  <text x="422" y="380" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">固定压缩比 1/4：对密集区 / 背景区一视同仁</text>
+
+  <text x="410" y="430" text-anchor="middle" font-size="12" fill="#595959">注：官方早期文档误写作 "pixel shuffle"，实为下采样的 pixel unshuffle</text>
+</svg>

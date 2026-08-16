@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 570" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">M-RoPE：时间 / 高 / 宽三分量设计与多模态统一位置规则</text>
+
+  <text x="60" y="62" font-size="15" font-weight="bold" fill="#000000">hidden dim 按 mrope_section 切成三段，各施加各自旋转频率</text>
+  <rect x="60" y="72" width="233" height="40" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="176" y="97" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">Temporal（时间）</text>
+  <rect x="293" y="72" width="233" height="40" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="409" y="97" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">Height（高）</text>
+  <rect x="526" y="72" width="234" height="40" fill="#bdbdbd" stroke="#333333" stroke-width="1.5"/>
+  <text x="643" y="97" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">Width（宽）</text>
+
+  <rect x="60" y="132" width="700" height="90" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="76" y="154" font-size="15" font-weight="bold" fill="#000000">文本</text>
+  <text x="140" y="154" font-size="12" fill="#595959">t = h = w，逐 token +1</text>
+  <rect x="560" y="140" width="188" height="26" rx="6" fill="#000000"/>
+  <text x="654" y="158" text-anchor="middle" font-size="12" font-weight="bold" fill="#ffffff">退化为 1D-RoPE</text>
+  <g font-size="12" fill="#000000" text-anchor="middle">
+    <rect x="80" y="176" width="80" height="36" rx="4" fill="#f2f2f2" stroke="#595959" stroke-width="1.2"/><text x="120" y="199">(0,0,0)</text>
+    <rect x="170" y="176" width="80" height="36" rx="4" fill="#f2f2f2" stroke="#595959" stroke-width="1.2"/><text x="210" y="199">(1,1,1)</text>
+    <rect x="260" y="176" width="80" height="36" rx="4" fill="#f2f2f2" stroke="#595959" stroke-width="1.2"/><text x="300" y="199">(2,2,2)</text>
+    <rect x="350" y="176" width="80" height="36" rx="4" fill="#f2f2f2" stroke="#595959" stroke-width="1.2"/><text x="390" y="199">(3,3,3)</text>
+    <text x="470" y="199">...</text>
+  </g>
+
+  <rect x="60" y="234" width="700" height="120" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="76" y="256" font-size="15" font-weight="bold" fill="#000000">图像</text>
+  <text x="140" y="256" font-size="12" fill="#595959">t 恒定；h 按行、w 按列赋值</text>
+  <g font-size="11" text-anchor="middle">
+    <text x="118" y="286" fill="#595959">w=0</text><text x="168" y="286" fill="#595959">w=1</text><text x="218" y="286" fill="#595959">w=2</text>
+    <rect x="98" y="292" width="40" height="30" fill="#f2f2f2" stroke="#595959" stroke-width="1.2"/><text x="118" y="312" fill="#000000">t0</text>
+    <rect x="148" y="292" width="40" height="30" fill="#f2f2f2" stroke="#595959" stroke-width="1.2"/><text x="168" y="312" fill="#000000">t0</text>
+    <rect x="198" y="292" width="40" height="30" fill="#f2f2f2" stroke="#595959" stroke-width="1.2"/><text x="218" y="312" fill="#000000">t0</text>
+    <rect x="98" y="322" width="40" height="30" fill="#d9d9d9" stroke="#595959" stroke-width="1.2"/><text x="118" y="342" fill="#000000">t0</text>
+    <rect x="148" y="322" width="40" height="30" fill="#d9d9d9" stroke="#595959" stroke-width="1.2"/><text x="168" y="342" fill="#000000">t0</text>
+    <rect x="198" y="322" width="40" height="30" fill="#d9d9d9" stroke="#595959" stroke-width="1.2"/><text x="218" y="342" fill="#000000">t0</text>
+    <text x="80" y="312" fill="#595959">h=0</text><text x="80" y="342" fill="#595959">h=1</text>
+  </g>
+  <text x="290" y="300" font-size="12" fill="#333333">同图所有 token 时间 ID 相同 t0，</text>
+  <text x="290" y="320" font-size="12" fill="#333333">高、宽按网格行列位置分别赋 ID，</text>
+  <text x="290" y="340" font-size="12" fill="#333333">如 (t0, h, w)。</text>
+
+  <rect x="60" y="366" width="700" height="120" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="76" y="388" font-size="15" font-weight="bold" fill="#000000">视频</text>
+  <text x="140" y="388" font-size="12" fill="#595959">t 逐帧递增；h / w 与图像一致</text>
+  <g>
+    <rect x="98" y="400" width="70" height="70" rx="4" fill="#f2f2f2" stroke="#595959" stroke-width="1.2"/><text x="133" y="440" text-anchor="middle" font-size="12" fill="#000000">帧 t=0</text>
+    <rect x="188" y="400" width="70" height="70" rx="4" fill="#d9d9d9" stroke="#595959" stroke-width="1.2"/><text x="223" y="440" text-anchor="middle" font-size="12" fill="#000000">帧 t=1</text>
+    <rect x="278" y="400" width="70" height="70" rx="4" fill="#bdbdbd" stroke="#595959" stroke-width="1.2"/><text x="313" y="440" text-anchor="middle" font-size="12" fill="#000000">帧 t=2</text>
+    <text x="378" y="440" font-size="14" fill="#595959">...</text>
+  </g>
+  <text x="430" y="428" font-size="12" fill="#333333">视频视为帧序列：时间分量随帧递增，</text>
+  <text x="430" y="448" font-size="12" fill="#333333">每帧内部高 / 宽赋值方式沿用图像。</text>
+
+  <rect x="60" y="500" width="700" height="46" rx="6" fill="#000000"/>
+  <text x="410" y="529" text-anchor="middle" font-size="15" font-weight="bold" fill="#ffffff">跨模态衔接：下一模态从上一模态最大位置 ID + 1 开始</text>
+</svg>

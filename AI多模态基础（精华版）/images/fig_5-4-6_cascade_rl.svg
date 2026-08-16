@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 430" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">InternVL-3.5 级联强化学习：离线打底 + 在线精修</text>
+
+  <!-- 上方短板标注 -->
+  <rect x="70" y="56" width="320" height="40" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="230" y="81" text-anchor="middle" font-size="13" fill="#333333">纯在线 RL：不稳 / 冷启动差</text>
+  <rect x="430" y="56" width="320" height="40" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="590" y="81" text-anchor="middle" font-size="13" fill="#333333">纯离线 RL：被静态数据封顶</text>
+
+  <!-- 阶段1 离线 RL -->
+  <rect x="60" y="130" width="300" height="150" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="210" y="158" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">阶段 1 · 离线 RL</text>
+  <rect x="86" y="172" width="248" height="40" rx="6" fill="#000000"/>
+  <text x="210" y="197" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">MPO（混合偏好优化）</text>
+  <text x="210" y="234" text-anchor="middle" font-size="12.5" fill="#333333">用预先收集的偏好数据</text>
+  <text x="210" y="256" text-anchor="middle" font-size="12.5" fill="#333333">稳定 · 成本低 · 收敛快</text>
+  <rect x="86" y="266" width="248" height="0" fill="none"/>
+
+  <!-- 箭头 -->
+  <line x1="362" y1="205" x2="458" y2="205" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="410" y="194" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">由粗到细</text>
+
+  <!-- 阶段2 在线 RL -->
+  <rect x="460" y="130" width="300" height="150" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="610" y="158" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">阶段 2 · 在线 RL</text>
+  <rect x="486" y="172" width="248" height="40" rx="6" fill="#000000"/>
+  <text x="610" y="197" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">GSPO 等在线算法</text>
+  <text x="610" y="234" text-anchor="middle" font-size="12.5" fill="#333333">从当前策略实时采样</text>
+  <text x="610" y="256" text-anchor="middle" font-size="12.5" fill="#333333">质量高 · 贴合当前分布</text>
+
+  <!-- 阶段作用小标 -->
+  <rect x="86" y="296" width="248" height="34" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="210" y="318" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">粗对齐 → 带到优质初始点</text>
+  <rect x="486" y="296" width="248" height="34" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="610" y="318" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">精对齐 → 突破静态数据上界</text>
+
+  <!-- 底部收益 -->
+  <rect x="60" y="352" width="700" height="46" rx="6" fill="#000000"/>
+  <text x="410" y="381" text-anchor="middle" font-size="15" font-weight="bold" fill="#ffffff">相比 InternVL-3 推理性能最高 +16%（MMMU、MathVista）</text>
+</svg>

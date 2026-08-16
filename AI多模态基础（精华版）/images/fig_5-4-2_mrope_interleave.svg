@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 460" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">MRoPE-Interleave：从分块到通道交错的频率分配对比</text>
+
+  <text x="60" y="72" font-size="16" font-weight="bold" fill="#000000">① M-RoPE（分块 chunked）</text>
+  <!-- chunked bar: t t t t | h h h h | w w w w -->
+  <g font-size="13" text-anchor="middle">
+    <rect x="60" y="84" width="180" height="46" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/><text x="150" y="112" fill="#000000">t  t  t  t</text>
+    <rect x="240" y="84" width="180" height="46" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/><text x="330" y="112" fill="#000000">h  h  h  h</text>
+    <rect x="420" y="84" width="180" height="46" fill="#bdbdbd" stroke="#333333" stroke-width="1.5"/><text x="510" y="112" fill="#000000">w  w  w  w</text>
+  </g>
+  <text x="330" y="150" text-anchor="middle" font-size="12.5" fill="#595959">时间集中在某段（偏低频）· 频率分配不均</text>
+
+  <text x="60" y="196" font-size="16" font-weight="bold" fill="#000000">② MRoPE-Interleave（通道交错）</text>
+  <!-- interleaved bar: t h w t h w ... -->
+  <g font-size="12" text-anchor="middle" stroke="#333333" stroke-width="1.2">
+    <rect x="60" y="208" width="45" height="46" fill="#f2f2f2"/><rect x="105" y="208" width="45" height="46" fill="#d9d9d9"/><rect x="150" y="208" width="45" height="46" fill="#bdbdbd"/>
+    <rect x="195" y="208" width="45" height="46" fill="#f2f2f2"/><rect x="240" y="208" width="45" height="46" fill="#d9d9d9"/><rect x="285" y="208" width="45" height="46" fill="#bdbdbd"/>
+    <rect x="330" y="208" width="45" height="46" fill="#f2f2f2"/><rect x="375" y="208" width="45" height="46" fill="#d9d9d9"/><rect x="420" y="208" width="45" height="46" fill="#bdbdbd"/>
+    <rect x="465" y="208" width="45" height="46" fill="#f2f2f2"/><rect x="510" y="208" width="45" height="46" fill="#d9d9d9"/><rect x="555" y="208" width="45" height="46" fill="#bdbdbd"/>
+  </g>
+  <g font-size="13" text-anchor="middle" fill="#000000">
+    <text x="82" y="236">t</text><text x="127" y="236">h</text><text x="172" y="236">w</text>
+    <text x="217" y="236">t</text><text x="262" y="236">h</text><text x="307" y="236">w</text>
+    <text x="352" y="236">t</text><text x="397" y="236">h</text><text x="442" y="236">w</text>
+    <text x="487" y="236">t</text><text x="532" y="236">h</text><text x="577" y="236">w</text>
+  </g>
+  <text x="330" y="274" text-anchor="middle" font-size="12.5" fill="#595959">三轴频率通道交错 · 全频段均匀分配</text>
+
+  <!-- 右侧收益列 -->
+  <rect x="616" y="84" width="180" height="290" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="706" y="108" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">交错带来的收益</text>
+  <line x1="632" y1="118" x2="780" y2="118" stroke="#d9d9d9" stroke-width="1.2"/>
+  <text x="632" y="146" font-size="13" fill="#000000">· 长时程视频推理 ↑</text>
+  <text x="632" y="180" font-size="13" fill="#000000">· 时空一致性 ↑</text>
+  <text x="632" y="214" font-size="13" fill="#000000">· 外推更省：</text>
+  <text x="644" y="234" font-size="12" fill="#333333">原生 256K</text>
+  <text x="644" y="252" font-size="12" fill="#333333">YaRN 扩到约 1M</text>
+  <text x="632" y="286" font-size="13" fill="#000000">· 纯文本退化为</text>
+  <text x="644" y="306" font-size="12" fill="#333333">标准 RoPE</text>
+
+  <rect x="60" y="316" width="540" height="46" rx="6" fill="#000000"/>
+  <text x="330" y="344" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">每个通道同时观察时间与空间 → 位置表达更一致</text>
+
+  <text x="410" y="410" text-anchor="middle" font-size="12" fill="#595959">对纯文本数据非时间轴置零，退化为标准 RoPE，保留语言模型先验</text>
+</svg>

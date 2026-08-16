@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 460" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+    <marker id="arrowd" markerWidth="12" markerHeight="12" refX="9" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,3.5 L0,7 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">InternVL-2.5 渐进式缩放：小 LLM 训好视觉编码器再迁移大 LLM</text>
+
+  <!-- 步骤1 -->
+  <text x="230" y="72" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">步骤 1 · Stage 1.5</text>
+  <rect x="60" y="86" width="340" height="200" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+
+  <rect x="86" y="110" width="130" height="70" rx="6" fill="#000000"/>
+  <text x="151" y="140" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">InternViT</text>
+  <text x="151" y="162" text-anchor="middle" font-size="11" fill="#ffffff">视觉编码器</text>
+
+  <rect x="244" y="110" width="130" height="70" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="309" y="140" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">小 LLM</text>
+  <text x="309" y="162" text-anchor="middle" font-size="12" fill="#333333">如 20B</text>
+
+  <line x1="216" y1="145" x2="242" y2="145" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <text x="230" y="204" text-anchor="middle" font-size="12.5" fill="#000000">联合训练，集中优化</text>
+  <text x="230" y="224" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">基础视觉能力 + 跨模态对齐</text>
+  <rect x="86" y="238" width="288" height="34" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="230" y="260" text-anchor="middle" font-size="12.5" fill="#333333">避开用大 LLM 训视觉的高昂算力</text>
+
+  <!-- 迁移箭头 -->
+  <line x1="404" y1="150" x2="484" y2="150" stroke="#333333" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowd)"/>
+  <text x="444" y="138" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">共享权重</text>
+  <text x="444" y="176" text-anchor="middle" font-size="11" fill="#595959">直接迁移</text>
+
+  <!-- 步骤2 -->
+  <text x="620" y="72" text-anchor="middle" font-size="16" font-weight="bold" fill="#000000">步骤 2 · 迁移到大 LLM</text>
+  <rect x="488" y="86" width="272" height="200" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+
+  <rect x="512" y="110" width="110" height="70" rx="6" fill="#000000"/>
+  <text x="567" y="140" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">InternViT</text>
+  <text x="567" y="162" text-anchor="middle" font-size="11" fill="#ffffff">复用已训好</text>
+
+  <rect x="642" y="110" width="96" height="70" rx="6" fill="#bdbdbd" stroke="#333333" stroke-width="1.5"/>
+  <text x="690" y="140" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">大 LLM</text>
+  <text x="690" y="162" text-anchor="middle" font-size="12" fill="#000000">如 72B</text>
+
+  <line x1="622" y1="145" x2="640" y2="145" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <!-- skip mark -->
+  <rect x="512" y="200" width="226" height="36" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="590" y="223" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">跳过 Stage 1.5</text>
+  <g stroke="#000000" stroke-width="2">
+    <circle cx="700" cy="218" r="13" fill="#ffffff"/>
+    <line x1="692" y1="226" x2="708" y2="210"/>
+  </g>
+  <text x="620" y="262" text-anchor="middle" font-size="12" fill="#333333">无需重训视觉端，直接复用已优化 InternViT</text>
+
+  <!-- 底部 -->
+  <rect x="60" y="316" width="700" height="60" rx="6" fill="#000000"/>
+  <text x="410" y="344" text-anchor="middle" font-size="15" font-weight="bold" fill="#ffffff">InternVL2.5-78B 全程约 1200 亿 token</text>
+  <text x="410" y="366" text-anchor="middle" font-size="14" fill="#ffffff">不到 Qwen2-VL（1.4 万亿 token）的 1/10</text>
+
+  <text x="410" y="410" text-anchor="middle" font-size="12" fill="#595959">成立前提：视觉特征是可跨 LLM 迁移的通用表示，"换大脑不换眼睛"</text>
+</svg>

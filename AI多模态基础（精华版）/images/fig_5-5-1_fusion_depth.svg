@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 510" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+    <pattern id="lock" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#d9d9d9"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#8c8c8c" stroke-width="1.4"/>
+    </pattern>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">原生多模态判别框架：Late / Mid / Early Fusion 三档融合深度</text>
+
+  <text x="410" y="52" text-anchor="middle" font-size="12" fill="#595959">原生度（融合深度）递增</text>
+  <line x1="90" y1="60" x2="730" y2="60" stroke="#8c8c8c" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <line x1="277" y1="74" x2="277" y2="428" stroke="#d9d9d9" stroke-width="1.5"/>
+  <line x1="547" y1="74" x2="547" y2="428" stroke="#d9d9d9" stroke-width="1.5"/>
+
+  <text x="140" y="92" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">Late Fusion（晚期融合）</text>
+  <text x="140" y="110" text-anchor="middle" font-size="11" fill="#595959">非原生 · 缝合式组装</text>
+
+  <rect x="40" y="122" width="200" height="52" rx="6" fill="url(#lock)" stroke="#333333" stroke-width="1.5"/>
+  <text x="140" y="144" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">冻结视觉编码器</text>
+  <text x="140" y="163" text-anchor="middle" font-size="11" fill="#333333">梯度不回传 · 信息瓶颈</text>
+
+  <line x1="140" y1="174" x2="140" y2="192" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="196" width="200" height="46" rx="6" fill="#000000"/>
+  <text x="140" y="216" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">投影器（仅训练此层）</text>
+  <text x="140" y="233" text-anchor="middle" font-size="10.5" fill="#ffffff">空间变换 · 无法弥合表征错位</text>
+
+  <line x1="140" y1="242" x2="140" y2="260" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="264" width="200" height="52" rx="6" fill="url(#lock)" stroke="#333333" stroke-width="1.5"/>
+  <text x="140" y="286" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">冻结 LLM</text>
+  <text x="140" y="305" text-anchor="middle" font-size="11" fill="#333333">损失仅为文本交叉熵</text>
+
+  <rect x="40" y="336" width="200" height="56" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="140" y="359" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">对齐税 · 能力天花板</text>
+  <text x="140" y="378" text-anchor="middle" font-size="10.5" fill="#333333">细粒度信息在编码阶段即丢失</text>
+
+  <text x="140" y="416" text-anchor="middle" font-size="11.5" fill="#333333">代表：BLIP-2、LLaVA</text>
+
+  <text x="410" y="92" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">Mid Fusion（中期融合）</text>
+  <text x="410" y="110" text-anchor="middle" font-size="11" fill="#595959">原生第一阶段 · 当前工业主流</text>
+
+  <rect x="310" y="122" width="200" height="52" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="144" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">模态编码器（可训练）</text>
+  <text x="410" y="163" text-anchor="middle" font-size="11" fill="#333333">ViT / 音频编码器 · 梯度回传</text>
+
+  <line x1="410" y1="174" x2="410" y2="192" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="310" y="196" width="200" height="46" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="216" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">对齐 / 注入算子</text>
+  <text x="410" y="233" text-anchor="middle" font-size="10.5" fill="#333333">连续特征进入联合主干</text>
+
+  <line x1="410" y1="242" x2="410" y2="260" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="310" y="264" width="200" height="52" rx="6" fill="#000000"/>
+  <text x="410" y="286" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#ffffff">联合多模态主干</text>
+  <text x="410" y="305" text-anchor="middle" font-size="11" fill="#ffffff">端到端联合训练贯穿预训练</text>
+
+  <rect x="310" y="336" width="200" height="56" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="410" y="359" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">保留模态边界</text>
+  <text x="410" y="378" text-anchor="middle" font-size="10.5" fill="#333333">感知精度高 · 文本能力易保持</text>
+
+  <text x="410" y="416" text-anchor="middle" font-size="11.5" fill="#333333">代表：Qwen3-VL、InternVL3.5、Kimi K2.5</text>
+
+  <text x="680" y="92" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">Early Fusion（早期融合）</text>
+  <text x="680" y="110" text-anchor="middle" font-size="11" fill="#595959">原生收敛形态</text>
+
+  <rect x="580" y="122" width="200" height="52" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="680" y="144" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">统一 tokenizer</text>
+  <text x="680" y="163" text-anchor="middle" font-size="11" fill="#333333">所有模态离散为等价 token</text>
+
+  <line x1="680" y1="174" x2="680" y2="192" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="580" y="196" width="200" height="46" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="680" y="216" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">单一共享嵌入空间</text>
+  <text x="680" y="233" text-anchor="middle" font-size="10.5" fill="#333333">统一词表 · 几乎无模态专属参数</text>
+
+  <line x1="680" y1="242" x2="680" y2="260" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="580" y="264" width="200" height="52" rx="6" fill="#000000"/>
+  <text x="680" y="286" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#ffffff">单一 Transformer</text>
+  <text x="680" y="305" text-anchor="middle" font-size="11" fill="#ffffff">统一注意力 · 统一损失（NTP）</text>
+
+  <rect x="580" y="336" width="200" height="56" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="680" y="359" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">严格口径：from scratch</text>
+  <text x="680" y="378" text-anchor="middle" font-size="10.5" fill="#333333">不依赖任何预训练主干做初始化</text>
+
+  <text x="680" y="416" text-anchor="middle" font-size="11.5" fill="#333333">代表：Chameleon、LongCat-Next、文心 5.0</text>
+
+  <rect x="60" y="442" width="700" height="46" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="470" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">判别三问：梯度是否回传到编码器？多模态是否贯穿预训练？表征空间是否统一？</text>
+</svg>
