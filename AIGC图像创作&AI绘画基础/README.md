@@ -18,8 +18,6 @@
 4. AIGC创作框架：ComfyUI、Diffusers、Stable Diffusion WebUI等。
 5. AIGC图像创作辅助模型：GAN、ResNet、U-Net、YOLO、SAM、DINO、InsightFace、Low-Level技术等。
 
-视觉基础模型的经典原理与面试问答已按模型职责归入 [经典模型](../经典模型/readme.md) 板块，其中 ViT、DiT、DINO 进入图像分类章节，SAM 进入图像分割章节，CLIP 进入自然语言处理与多模态章节，VAE 进入独立的视觉潜空间章节；人脸检测、识别、关键点、Face Parsing、属性分析、美颜与身份保持统一进入[人脸模型高频知识点](../经典模型/人脸模型高频知识点.md)。
-
 **Rcoky也在持续撰写与沉淀AIGC图像创作技术系列的相关干货文章，力求给大家全网最详细的讲解与分析：**
 
 [手把手教你成为AIGC算法工程师，斩获AIGC算法offer！](https://zhuanlan.zhihu.com/p/651076114)
