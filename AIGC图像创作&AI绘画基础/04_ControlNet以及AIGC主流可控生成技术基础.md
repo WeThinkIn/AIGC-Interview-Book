@@ -788,7 +788,7 @@ Rocky认为，这类系统里的人脸处理算法非常关键：有的解决“
 ArcFace、CurricularFace这类模型的核心作用，是把一张人脸编码成一个定长向量，也就是身份Embedding。两个Embedding之间通常可以用余弦相似度衡量身份接近程度：
 
 ```math
-\mathrm{sim}(x_1,x_2)=\frac{f(x_1)\cdot f(x_2)}{\|f(x_1)\|\,\|f(x_2)\|}
+\mathrm{sim}(x_1,x_2)=\frac{f(x_1)\cdot f(x_2)}{||f(x_1)||\,||f(x_2)||}
 ```
 
 相似度越高，说明两张脸越像同一个人。这一步不是让机器“真的理解一个人”，而是把人眼判断的“像不像”变成可排序、可筛选、可自动化的指标。
@@ -927,7 +927,7 @@ PuLID为此增加了一个Lightning T2I训练分支，如下图所示。它从�
 
 ```math
 \mathrm{proj}_{v_{\mathrm{txt}}}(v_{\mathrm{id}})
-=\frac{v_{\mathrm{id}}\cdot v_{\mathrm{txt}}}{\|v_{\mathrm{txt}}\|^{2}}v_{\mathrm{txt}}
+=\frac{v_{\mathrm{id}}\cdot v_{\mathrm{txt}}}{||v_{\mathrm{txt}}||^{2}}v_{\mathrm{txt}}
 ```
 
 去掉重叠分量后，身份增量可以写成：
