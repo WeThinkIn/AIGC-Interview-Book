@@ -83,25 +83,37 @@
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Rocky认为我们可以将Latent Diffusion Models（LDM）当作是一个开创性的通用算法模型框架，而Stable Diffusion是在此框架基础上，通过一系列工程技术优化后形成的、在开源社区大规模落地应用的成熟算法技术即产品的模型产品。
+Rocky认为我们可以这样理解，**Latent Diffusion Models（LDM）** 是“在潜空间做扩散”的通用扩散算法模型框架，而Stable Diffusion是在此框架基础上，通过一系列工程技术优化后形成的、在开源社区大规模落地应用的AIGC图像创作大模型系列。
 
-Stable Diffusion对原始LDM框架的具体改进主要体现在以下几个方面：
+简单来说，两者的关系可以概括为：Latent Diffusion是奠定核心思想的“论文”与“蓝图”；而Stable Diffusion则是基于这张蓝图建造出的、不断升级的“摩天大楼”及围绕它形成的“繁荣城市”。
 
-**工程化与稳定性优化**
+**从技术架构本质来看，Stable Diffusion本身也归属于Latent Diffusion架构体系。**
 
-1. 训练稳定性：通过改进噪声调度、梯度裁剪等训练技巧，减少了训练过程中出现模式崩溃或不稳定的风险，使模型更容易在大规模数据集上收敛。
-2. 推理速度：在继承潜在空间高效性的基础上，持续优化去噪采样器的效率，并出现了像DeepCache、ToMe-SD、Xformer等专为SD设计的加速技术，进一步提升生成速度。
+<div align="center">
 
-**模型架构与能力的增强**
+![Stable Diffusion流程图](./imgs/StableDiffusion流程图.png)
 
-1. 条件控制：虽然LDM框架能够支持文本条件作为输入，但编码文本信息的部分是一个随机初始化的Transformer模型；而Stable Diffusion通过一个预训练好的CLIP Text Encoder来编码文本信息，预训练过的模型往往要优于从零开始训练的模型，这个优化极大地提升了文本到图像的生成能力和语义遵循度。后续更衍生出LoRA、ControlNet等辅助模型，实现了对生成内容（如构图、姿态）的精细控制。
-2. 生成质量与分辨率：通过在更大规模高质量数据上训练（Latent Diffusion Model是采用laion-400M数据训练的，而Stable Diffusion是在laion-2B-en数据集上训练的），同时Stable Diffusion的训练分辨率也更大（Latent Diffusion Model只是在256x256分辨率上训练，而Stable Diffusion先在256x256分辨率上预训练，然后再在512x512分辨率上进行微调训练），以及架构的持续迭代（如SDXL、SD3、FLUX.1、FLUX.2等），在图像细节、光影和分辨率上不断突破。
+</div>
 
-**开源生态与易用性**
+若把Stable Diffusion与Latent Diffusion原论文中的文生图基准模型相比，核心差异主要体现以下维度：
 
-这是Stable Diffusion产生巨大影响的关键。其开源策略催生了如ComfyUI、AUTOMATIC1111 WebUI等图形化界面工具，让普通用户也能轻松使用。庞大的开源社区贡献了海量的定制化模型、风格LoRA和实用AI绘画插件，使其从一个模型演变成一个功能极其丰富的AIGC图像创作生态系统。
+1.  **训练数据集的迭代升级**
 
-简单来说，两者的关系可以概括为：Latent Diffusion Models (LDM) 是奠定核心思想的“论文”与“蓝图”；而Stable Diffusion (SD) 则是基于这张蓝图建造出的、不断升级的“摩天大楼”及围绕它形成的“繁荣城市”。
+    通用Latent Diffusion中的文生图实验主要基于较小规模的laion-400M图文数据集完成训练；Stable Diffusion则使用了规模更大的laion-2B-en系列图文数据，并配合数据清洗、分辨率过滤、美学评分等工程筛选策略来提升训练样本质量。整体的**数据规模、数据质量和筛选策略都更工程化**。
+
+2.  **文本编码器的方案优化**
+
+    通用Latent Diffusion中的文本条件编码方案相对简单，是一个随机初始化的Transformer模型；Stable Diffusion v1系列则采用预训练CLIP文本编码器作为文本特征提取模块。相较于从零开始训练或较弱的文本编码方案，在大规模图文配对数据上完成预训练的文本编码器，通常具备更强的文本语义理解和图文对齐能力。
+
+3.  **训练分辨率与策略的优化**
+
+    通用Latent Diffusion中的文生图基准更偏研究验证，只是在 $256\times256$ 分辨率上训练；Stable Diffusion更强调可用的开放文生图生成能力，采用分阶段训练和更高分辨率微调等工程策略，先在 $256\times256$ 分辨率上预训练，然后再在 $512\times 512$分辨率上进行微调训练，满足高分辨率生成的质量要求。
+
+4.  **架构持续迭代升级**
+   
+    通用Latent Diffusion只是一个实验性模型架构；而Stable Diffusion作为商业化模型，其架构的持续迭代（如SDXL、SD3、FLUX.1、FLUX.2等），不断突破AIGC图像创作领域的效果上限。
+
+总的来说，Stable Diffusion可以理解为Latent Diffusion的一次工程优化与扩展：更强的文本编码器、更大规模的数据、更系统的数据筛选和更面向实际场景的训练策略，共同提升了模型生成质量和可用性。
 
 
 <h2 id="q-030">面试问题：介绍一下 Stable Diffusion 的训练 / 推理过程（正向扩散过程和反向去噪过程）</h2>
