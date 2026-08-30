@@ -39,11 +39,15 @@
 
 **三档差异可由前向计算与梯度路径给出形式化描述。** Late Fusion 可写为
 
-$$\mathbf{z}=\mathrm{sg}\bigl(\mathrm{ViT}(I)\bigr),\quad \mathbf{h}=W\mathbf{z},\quad \mathcal{L}=-\sum_t\log p_\theta(y_t\mid \mathbf{h},\,y_{<t})$$
+```math
+\mathbf{z}=\mathrm{sg}\bigl(\mathrm{ViT}(I)\bigr),\quad \mathbf{h}=W\mathbf{z},\quad \mathcal{L}=-\sum_t\log p_\theta(y_t\mid \mathbf{h},\,y_{\lt t})
+```
 
-其中 $\mathrm{sg}(\cdot)$ 为 stop-gradient，$W$ 为投影矩阵，交叉熵仅作用于文本 token，故 $\partial\mathcal{L}/\partial\theta_{\mathrm{ViT}}=0$。Mid Fusion 取消 $\mathrm{sg}$，ViT 与 LLM 优化同一语言建模损失，视觉参数自预训练起始步即接受任务梯度。Early Fusion 将各模态映射到同一嵌入表 $E\in\mathbb{R}^{|V|\times d}$，图像、文本与音频的离散编号在序列 $x=(x_1,\ldots,x_L)$ 中交错排列，目标退化为标准 next-token prediction
+其中 $`\mathrm{sg}(\cdot)`$ 为 stop-gradient，$`W`$ 为投影矩阵，交叉熵仅作用于文本 token，故 $`\partial\mathcal{L}/\partial\theta_{\mathrm{ViT}}=0`$。Mid Fusion 取消 $`\mathrm{sg}`$，ViT 与 LLM 优化同一语言建模损失，视觉参数自预训练起始步即接受任务梯度。Early Fusion 将各模态映射到同一嵌入表 $`E\in\mathbb{R}^{|V|\times d}`$，图像、文本与音频的离散编号在序列 $`x=(x_1,\ldots,x_L)`$ 中交错排列，目标退化为标准 next-token prediction
 
-$$\mathcal{L}_{\mathrm{NTP}}=-\sum_{t=1}^{L}\log p_\theta(x_t\mid x_{<t})$$
+```math
+\mathcal{L}_{\mathrm{NTP}}=-\sum_{t=1}^{L}\log p_\theta(x_t\mid x_{\lt t})
+```
 
 此时视觉不再仅作为条件前缀，理解与生成共享同一似然。
 
@@ -90,11 +94,11 @@ $$\mathcal{L}_{\mathrm{NTP}}=-\sum_{t=1}^{L}\log p_\theta(x_t\mid x_{<t})$$
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-CLIP → BLIP-2 → LLaVA 的主线，本质上是条件适配：视觉被作为外部条件接入已经训练完成的语言模型。从目标函数看，该路线以条件分布 $p(\text{text} \mid \text{image})$ 近似联合分布 $p(\text{text}, \text{image})$。联合分布同时支持图像生成与以图像为条件的文本建模；条件分布仅覆盖后者。缝合路线在目标层面即放弃了模态对称性，下述局限均由此产生。
+CLIP → BLIP-2 → LLaVA 的主线，本质上是条件适配：视觉被作为外部条件接入已经训练完成的语言模型。从目标函数看，该路线以条件分布 $`p(\text{text} \mid \text{image})`$ 近似联合分布 $`p(\text{text}, \text{image})`$。联合分布同时支持图像生成与以图像为条件的文本建模；条件分布仅覆盖后者。缝合路线在目标层面即放弃了模态对称性，下述局限均由此产生。
 
-**局限一：冻结编码器构成信息瓶颈。** 冻结编码器对应马尔可夫链 $I\to\mathrm{enc}_{\mathrm{frozen}}(I)\to\mathrm{LLM}$。由数据处理不等式，$I(y;\mathrm{enc}(I))\le I(y;I)$，且 $\mathrm{enc}$ 的参数不再被下游损失更新，该上界在接入 LLM 之后无法再被提高。CLIP 式对比预训练优化的是 $I(\mathrm{enc}(I);\mathrm{caption})$，而非 $I(\mathrm{enc}(I);y_{\mathrm{OCR}})$ 或 $I(\mathrm{enc}(I);y_{\mathrm{box}})$。编码器保留何种信息、丢弃何种信息，在投影器开始训练之前已经确定。OCR 文字、边界框与图表结构若在编码阶段丢失，后续 LLM 无法恢复。BLIP-2 两阶段改装与原生预训练的完整对比，见 5.4 节"视觉能力是事后缝合还是原生习得"主问题。
+**局限一：冻结编码器构成信息瓶颈。** 冻结编码器对应马尔可夫链 $`I\to\mathrm{enc}_{\mathrm{frozen}}(I)\to\mathrm{LLM}`$。由数据处理不等式，$`I(y;\mathrm{enc}(I))\le I(y;I)`$，且 $`\mathrm{enc}`$ 的参数不再被下游损失更新，该上界在接入 LLM 之后无法再被提高。CLIP 式对比预训练优化的是 $`I(\mathrm{enc}(I);\mathrm{caption})`$，而非 $`I(\mathrm{enc}(I);y_{\mathrm{OCR}})`$ 或 $`I(\mathrm{enc}(I);y_{\mathrm{box}})`$。编码器保留何种信息、丢弃何种信息，在投影器开始训练之前已经确定。OCR 文字、边界框与图表结构若在编码阶段丢失，后续 LLM 无法恢复。BLIP-2 两阶段改装与原生预训练的完整对比，见 5.4 节"视觉能力是事后缝合还是原生习得"主问题。
 
-**局限二：对齐税（alignment tax）。** 投影器 $h=Wz+b$ 仅为仿射变换，不足以消除两个独立预训练表征空间之间的非线性错位。其后果有二：一是必须增加对齐阶段与对齐数据，成本转移到下游；二是对齐过程往往占用模型容量并削弱语言能力。5.1 节指出，GPT-4o 在纯文本榜单上仅与 GPT-4 Turbo 相近而非超越，视觉对齐占用容量是常见解释。
+**局限二：对齐税（alignment tax）。** 投影器 $`h=Wz+b`$ 仅为仿射变换，不足以消除两个独立预训练表征空间之间的非线性错位。其后果有二：一是必须增加对齐阶段与对齐数据，成本转移到下游；二是对齐过程往往占用模型容量并削弱语言能力。5.1 节指出，GPT-4o 在纯文本榜单上仅与 GPT-4 Turbo 相近而非超越，视觉对齐占用容量是常见解释。
 
 **局限三：能力上界已由缩放律给出实证。** Apple 对 457 个模型的扫描表明：Late Fusion 相对 Early Fusion 并不具有内在优势；在小参数量区间，Early Fusion 性能更高、训练成本更低、部署更简单；达到 compute-optimal 时，Late Fusion 需要更高的参数—数据比。该结果将"缝合是算力不足时的权宜之计"由经验判断推进为可检验结论。
 
@@ -116,11 +120,13 @@ CLIP → BLIP-2 → LLaVA 的主线，本质上是条件适配：视觉被作为
 
 该路线的出发点，是将 LLM 的成功范式推广到全部模态：若 next-token prediction 足以刻画语言，则将图像与音频同样离散为 token 后，同一目标函数应能刻画各模态。
 
-**基本思想是将各模态离散化并并入同一词表。** 视觉编码器先输出连续特征 $\mathbf{z}_e\in\mathbb{R}^{d}$，再对码本 $\{e_k\}_{k=1}^{K}$ 作最近邻量化
+**基本思想是将各模态离散化并并入同一词表。** 视觉编码器先输出连续特征 $`\mathbf{z}_e\in\mathbb{R}^{d}`$，再对码本 $`\{e_k\}_{k=1}^{K}`$ 作最近邻量化
 
-$$k^*=\arg\min_k\|\mathbf{z}_e-e_k\|_2,\quad \mathbf{z}_q=e_{k^*}$$
+```math
+k^*=\arg\min_k\|\mathbf{z}_e-e_k\|_2,\quad \mathbf{z}_q=e_{k^*}
+```
 
-$k^*$ 即为视觉 token。Chameleon（2024）取 $K=8192$，一张 $512\times 512$ 图像经 $32\times 32$ 特征图得到 1024 个编号，并入规模为 65536 的统一词表；7B 与 34B 的单一 Transformer 自第一层起采用 early fusion，理解与生成共享 $\mathcal{L}_{\mathrm{NTP}}$。Tokenizer 通常另设重建项 $\|\mathbf{z}_e-\mathbf{z}_q\|_2^2$，码本以 EMA 或 straight-through 更新，惯例是先稳定词典、再训练 Transformer。BAAI 的 Emu3 随后以 8B 参数验证：纯 NTP 可同时超过 SDXL（生成）与 LLaVA-1.6（理解），该工作于 2026 年发表于 Nature，为该路线提供了重要学术依据。
+$`k^*`$ 即为视觉 token。Chameleon（2024）取 $`K=8192`$，一张 $`512\times 512`$ 图像经 $`32\times 32`$ 特征图得到 1024 个编号，并入规模为 65536 的统一词表；7B 与 34B 的单一 Transformer 自第一层起采用 early fusion，理解与生成共享 $`\mathcal{L}_{\mathrm{NTP}}`$。Tokenizer 通常另设重建项 $`\|\mathbf{z}_e-\mathbf{z}_q\|_2^2`$，码本以 EMA 或 straight-through 更新，惯例是先稳定词典、再训练 Transformer。BAAI 的 Emu3 随后以 8B 参数验证：纯 NTP 可同时超过 SDXL（生成）与 LLaVA-1.6（理解），该工作于 2026 年发表于 Nature，为该路线提供了重要学术依据。
 
 **该路线将多模态问题约化为已被充分研究的序列建模问题，因而具有以下便利：**
 
@@ -128,11 +134,13 @@ $k^*$ 即为视觉 token。Chameleon（2024）取 $K=8192$，一张 $512\times 5
 - 推理侧继承 KV cache、投机解码与量化部署，无需为视觉生成单独维护扩散服务；
 - 理解与生成处于同一序列，跨模态上下文（例如依据前一图像风格继续生成）可在同一似然中表达。
 
-**难题一：统一 softmax 下的模态竞争与训练不稳定。** 文本与图像共享 $p(x_t\mid x_{<t})=\mathrm{softmax}(z)_t$。图像位置的条件熵通常低于文本，$\max_i z_i$ 易被推至极端，训练中后期出现范数漂移甚至发散。Chameleon 的稳定化方案已成为该路线的标准配置：QK-Norm 在计算注意力前对 $Q,K$ 沿通道作 L2 归一化，以约束 $\mathrm{softmax}(QK^\top/\sqrt{d})$ 的输入尺度；z-loss 直接惩罚配分函数
+**难题一：统一 softmax 下的模态竞争与训练不稳定。** 文本与图像共享 $`p(x_t\mid x_{\lt t})=\mathrm{softmax}(z)_t`$。图像位置的条件熵通常低于文本，$`\max_i z_i`$ 易被推至极端，训练中后期出现范数漂移甚至发散。Chameleon 的稳定化方案已成为该路线的标准配置：QK-Norm 在计算注意力前对 $`Q,K`$ 沿通道作 L2 归一化，以约束 $`\mathrm{softmax}(QK^\top/\sqrt{d})`$ 的输入尺度；z-loss 直接惩罚配分函数
 
-$$\mathcal{L}_z=\lambda\bigl(\log\sum_i e^{z_i}\bigr)^2$$
+```math
+\mathcal{L}_z=\lambda\bigl(\log\sum_i e^{z_i}\bigr)^2
+```
 
-并调整 LayerNorm 位置，34B 规模训练才得以稳定。其因果链是：模态熵差异导致 logit 尺度失控，再以归一化注意力与 $\log Z$ 正则加以抑制。
+并调整 LayerNorm 位置，34B 规模训练才得以稳定。其因果链是：模态熵差异导致 logit 尺度失控，再以归一化注意力与 $`\log Z`$ 正则加以抑制。
 
 **难题二：模态混合调度。** 多模态数据不宜简单拼接。某一模态在局部训练窗口内占比过高时，模型会学到退化的无条件先验，对另一模态缺乏响应。混合比例与采样课程必须单独设计，相关结论见本节"模态混合比例与注入时机如何影响模型能力？"子问题。
 
@@ -146,13 +154,15 @@ $$\mathcal{L}_z=\lambda\bigl(\log\sum_i e^{z_i}\bigr)^2$$
 
 混合路线直接回应纯离散自回归的主要短板：图像生成质量。
 
-**矛盾在于：离散化损害生成保真，扩散目标又难以并入统一序列建模。** 扩散在连续空间中建模 $p(I)$，生成质量较高，但去噪目标与 NTP 不兼容；纯离散自回归在架构上最为统一，VQ 量化与逐 token 串行解码同时降低生成质量与速度。混合路线的主张是：各模态采用与其统计结构相匹配的损失函数，代价是放弃单一 softmax 目标。
+**矛盾在于：离散化损害生成保真，扩散目标又难以并入统一序列建模。** 扩散在连续空间中建模 $`p(I)`$，生成质量较高，但去噪目标与 NTP 不兼容；纯离散自回归在架构上最为统一，VQ 量化与逐 token 串行解码同时降低生成质量与速度。混合路线的主张是：各模态采用与其统计结构相匹配的损失函数，代价是放弃单一 softmax 目标。
 
-**网络结构为一条 Transformer、两套注意力掩码与两个输出头。** 文本位置使用因果掩码，在词表上计算 NTP；图像 patch 保持连续表征 $\mathbf{x}\in\mathbb{R}^{N\times d}$，损失取扩散（或流匹配）
+**网络结构为一条 Transformer、两套注意力掩码与两个输出头。** 文本位置使用因果掩码，在词表上计算 NTP；图像 patch 保持连续表征 $`\mathbf{x}\in\mathbb{R}^{N\times d}`$，损失取扩散（或流匹配）
 
-$$\mathcal{L}_{\mathrm{diff}}=\mathbb{E}_{t,\boldsymbol{\epsilon}}\bigl[\|\boldsymbol{\epsilon}-\epsilon_\theta(\mathbf{x}_t,t,\mathbf{c})\|_2^2\bigr],\qquad \mathbf{x}_t=\alpha_t\mathbf{x}_0+\sigma_t\boldsymbol{\epsilon}$$
+```math
+\mathcal{L}_{\mathrm{diff}}=\mathbb{E}_{t,\boldsymbol{\epsilon}}\bigl[\|\boldsymbol{\epsilon}-\epsilon_\theta(\mathbf{x}_t,t,\mathbf{c})\|_2^2\bigr],\qquad \mathbf{x}_t=\alpha_t\mathbf{x}_0+\sigma_t\boldsymbol{\epsilon}
+```
 
-图像 token 之间通常允许双向注意，以满足去噪对全局上下文的需求；文本保持因果约束。参数共享，掩码不同。总损失为 $\mathcal{L}=\mathcal{L}_{\mathrm{NTP}}+\lambda\mathcal{L}_{\mathrm{diff}}$。$\lambda$ 是该路线的关键超参数：取值偏大则生成质量上升、语言能力下降；取值偏小则退化为以视觉为条件的语言模型。
+图像 token 之间通常允许双向注意，以满足去噪对全局上下文的需求；文本保持因果约束。参数共享，掩码不同。总损失为 $`\mathcal{L}=\mathcal{L}_{\mathrm{NTP}}+\lambda\mathcal{L}_{\mathrm{diff}}`$。$`\lambda`$ 是该路线的关键超参数：取值偏大则生成质量上升、语言能力下降；取值偏小则退化为以视觉为条件的语言模型。
 
 **Transfusion 以对照实验给出定量证据。** Meta 的 Transfusion（2024）将上述双损失接入单一 Transformer，并与 Chameleon 式全离散方案在相同 FLOPs 下比较：图像生成 FID 约为离散方案的一半；图生文任务约需 21.8% 的 FLOPs 即可持平。该结果是"保留模态特定损失具有收益"的常用证据。
 
@@ -170,15 +180,19 @@ $$\mathcal{L}_{\mathrm{diff}}=\mathbb{E}_{t,\boldsymbol{\epsilon}}\bigl[\|\bolds
 
 **前向结构简洁，正是其工程优势的来源。** 视觉侧不做量化：
 
-$$\mathbf{H}_v=\mathrm{ViT}(I)\in\mathbb{R}^{N\times d_v},\quad \mathbf{H}_v'=W\mathbf{H}_v\in\mathbb{R}^{N\times d}$$
+```math
+\mathbf{H}_v=\mathrm{ViT}(I)\in\mathbb{R}^{N\times d_v},\quad \mathbf{H}_v'=W\mathbf{H}_v\in\mathbb{R}^{N\times d}
+```
 
-$\mathbf{H}_v'$ 作为条件前缀与文本嵌入拼接，自回归损失仅作用于文本位置
+$`\mathbf{H}_v'`$ 作为条件前缀与文本嵌入拼接，自回归损失仅作用于文本位置
 
-$$\mathcal{L}=-\sum_{t\in\mathcal{T}_{\mathrm{text}}}\log p_\theta(y_t\mid \mathbf{H}_v',\,y_{<t})$$
+```math
+\mathcal{L}=-\sum_{t\in\mathcal{T}_{\mathrm{text}}}\log p_\theta(y_t\mid \mathbf{H}_v',\,y_{\lt t})
+```
 
-视觉位置不进入词表、不参与 softmax，因而不会与文本争夺 logit 空间，这是语言能力较易保持的结构原因。与 Late Fusion 的关键差别在于：此处 $\mathrm{ViT}$ 不冻结，$\partial\mathcal{L}/\partial\theta_{\mathrm{ViT}}$ 自预训练第一步即存在。生成能力的缺失同样由结构决定：模型并未学习 $p(\mathbf{H}_v\mid y)$，图像生成需另接扩散头或离散码本。
+视觉位置不进入词表、不参与 softmax，因而不会与文本争夺 logit 空间，这是语言能力较易保持的结构原因。与 Late Fusion 的关键差别在于：此处 $`\mathrm{ViT}`$ 不冻结，$`\partial\mathcal{L}/\partial\theta_{\mathrm{ViT}}`$ 自预训练第一步即存在。生成能力的缺失同样由结构决定：模型并未学习 $`p(\mathbf{H}_v\mid y)`$，图像生成需另接扩散头或离散码本。
 
-**优势一：感知精度最高。** 连续特征不包含 $\|\mathbf{z}_e-\mathbf{z}_q\|$ 量化误差，在 OCR、视觉定位、文档与图表解析等细粒度任务上具有先天优势。Qwen3-VL、InternVL3.5（最大 241B-A28B）在文档理解基准上的表现，均建立在连续特征之上。
+**优势一：感知精度最高。** 连续特征不包含 $`\|\mathbf{z}_e-\mathbf{z}_q\|`$ 量化误差，在 OCR、视觉定位、文档与图表解析等细粒度任务上具有先天优势。Qwen3-VL、InternVL3.5（最大 241B-A28B）在文档理解基准上的表现，均建立在连续特征之上。
 
 **优势二：完整继承 LLM 的训练体系。** 数据管线、并行训练基础设施、SFT 与 RL 对齐方法均可复用。InternVL3.5 的原生预训练阶段仅使用约 250B token（文本与多模态约 1:2.5，序列长度 32K），即完成语言与多模态能力的同步构建，原因正在于它直接建立在成熟的语言模型训练管线上。
 
@@ -238,15 +252,17 @@ $$\mathcal{L}=-\sum_{t\in\mathcal{T}_{\mathrm{text}}}\log p_\theta(y_t\mid \math
 
 原生预训练中最关键的工程自由度不在网络结构，而在数据课程（data curriculum），即模态组成、混合比例与注入时机。混合比例在优化中对应梯度混合：每一步的有效更新为
 
-$$\Delta\theta \propto \alpha\,\nabla\mathcal{L}_{\mathrm{mm}}+(1-\alpha)\,\nabla\mathcal{L}_{\mathrm{text}}$$
+```math
+\Delta\theta \propto \alpha\,\nabla\mathcal{L}_{\mathrm{mm}}+(1-\alpha)\,\nabla\mathcal{L}_{\mathrm{text}}
+```
 
-$\alpha$ 过大则文本方向的梯度被淹没；$\alpha$ 过小则视觉梯度稀疏，对齐无法充分完成。2026 年有两组实验结论可直接引用。
+$`\alpha`$ 过大则文本方向的梯度被淹没；$`\alpha`$ 过小则视觉梯度稀疏，对齐无法充分完成。2026 年有两组实验结论可直接引用。
 
-**结论一：原生多模态遵循与 LLM 相近的缩放律，参数与数据应近似等比扩展。** Apple 对 457 个模型的扫描表明，early fusion 原生模型的 scaling 行为与纯文本 LLM 高度一致：给定算力 $C$，最优参数量 $N$ 与数据量 $D$ 近似满足 Chinchilla 关系 $N\propto D\propto\sqrt{C}$。数据构成会改变最优分配：caption 类图文对占比较高时，应增加数据量（图文对有效信息密度较低）；interleaved 交错图文占比较高时则相反。参照混合配比约为 caption 类 45%、interleaved 类 45%、纯文本 10%。
+**结论一：原生多模态遵循与 LLM 相近的缩放律，参数与数据应近似等比扩展。** Apple 对 457 个模型的扫描表明，early fusion 原生模型的 scaling 行为与纯文本 LLM 高度一致：给定算力 $`C`$，最优参数量 $`N`$ 与数据量 $`D`$ 近似满足 Chinchilla 关系 $`N\propto D\propto\sqrt{C}`$。数据构成会改变最优分配：caption 类图文对占比较高时，应增加数据量（图文对有效信息密度较低）；interleaved 交错图文占比较高时则相反。参照混合配比约为 caption 类 45%、interleaved 类 45%、纯文本 10%。
 
-**结论二：注入时机比注入总量更关键。** Kimi K2.5（总参数 1T、激活 32B）在固定视觉 token 总预算的对照实验中发现：自预训练第一步起以约 10% 的恒定比例混入视觉数据，效果优于先训练文本、后期集中注入，也优于 50% 的高比例混入。总预算固定而仅改变课程形状，等价于保持 $\int\alpha(t)\,dt$ 不变、调整 $\alpha(t)$ 的时间表；平坦的 $\alpha(t)\approx 0.1$ 优于先取 0、再急剧增大。该现象与语言模型在训练早期决定特征几何的观察一致：表征空间一旦由纯文本梯度塑形，再引入视觉相当于在已固化的流形上作局部修正。配套发现是 Zero-Vision SFT：当预训练阶段视觉注入足够早且足够充分时，即使 SFT 阶段完全不使用视觉数据，模型仍表现出视觉推理能力。这说明多模态对齐主要在预训练阶段完成，后训练的作用是激活而非重建。
+**结论二：注入时机比注入总量更关键。** Kimi K2.5（总参数 1T、激活 32B）在固定视觉 token 总预算的对照实验中发现：自预训练第一步起以约 10% 的恒定比例混入视觉数据，效果优于先训练文本、后期集中注入，也优于 50% 的高比例混入。总预算固定而仅改变课程形状，等价于保持 $`\int\alpha(t)\,dt`$ 不变、调整 $`\alpha(t)`$ 的时间表；平坦的 $`\alpha(t)\approx 0.1`$ 优于先取 0、再急剧增大。该现象与语言模型在训练早期决定特征几何的观察一致：表征空间一旦由纯文本梯度塑形，再引入视觉相当于在已固化的流形上作局部修正。配套发现是 Zero-Vision SFT：当预训练阶段视觉注入足够早且足够充分时，即使 SFT 阶段完全不使用视觉数据，模型仍表现出视觉推理能力。这说明多模态对齐主要在预训练阶段完成，后训练的作用是激活而非重建。
 
-**结论三：MoE 应采用模态无关路由。** Apple 的扫描实验表明，路由器应取 $\mathrm{softmax}(W\mathbf{h})$，不宜将模态标识拼入 $\mathbf{h}$ 作硬性分工。模态无关路由显著优于人为指定的模态感知路由：不预先规定专家与模态的对应关系，专家会在训练中自发形成模态专精。LongCat-Next 的技术报告观察到同样的路由专精化现象，二者相互印证。将模态先验硬编码进路由器，等于提前锁定专家容量。
+**结论三：MoE 应采用模态无关路由。** Apple 的扫描实验表明，路由器应取 $`\mathrm{softmax}(W\mathbf{h})`$，不宜将模态标识拼入 $`\mathbf{h}`$ 作硬性分工。模态无关路由显著优于人为指定的模态感知路由：不预先规定专家与模态的对应关系，专家会在训练中自发形成模态专精。LongCat-Next 的技术报告观察到同样的路由专精化现象，二者相互印证。将模态先验硬编码进路由器，等于提前锁定专家容量。
 
 **若干配比与课程可作为工程参照：**
 
@@ -263,7 +279,7 @@ $\alpha$ 过大则文本方向的梯度被淹没；$\alpha$ 过小则视觉梯�
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-"引入视觉必然削弱文本能力"曾是行业中的普遍判断。5.1 节曾指出 GPT-4o 的纯文本能力仅与 GPT-4 Turbo 相近。2026 年的新证据表明，退化并非必然，关键变量是数据课程。机制上，退化主要来自训练分布的突变，而非简单的容量挤占。纯文本阶段收敛到 $p_{\mathrm{text}}$ 之后，若将混合比 $\alpha$ 由 0 突然提高至 0.5，小批量内的 token 分布发生跳变，优化轨迹会偏离已经形成的文本最优区域，这与灾难性遗忘的标准图像一致。若全程保持较小且恒定的 $\alpha$，则相当于在 $p_{\mathrm{text}}$ 的邻域内持续施加多模态扰动。
+"引入视觉必然削弱文本能力"曾是行业中的普遍判断。5.1 节曾指出 GPT-4o 的纯文本能力仅与 GPT-4 Turbo 相近。2026 年的新证据表明，退化并非必然，关键变量是数据课程。机制上，退化主要来自训练分布的突变，而非简单的容量挤占。纯文本阶段收敛到 $`p_{\mathrm{text}}`$ 之后，若将混合比 $`\alpha`$ 由 0 突然提高至 0.5，小批量内的 token 分布发生跳变，优化轨迹会偏离已经形成的文本最优区域，这与灾难性遗忘的标准图像一致。若全程保持较小且恒定的 $`\alpha`$，则相当于在 $`p_{\mathrm{text}}`$ 的邻域内持续施加多模态扰动。
 
 **反例一：视觉数据对文本能力产生正迁移。** Kimi K2.5 在纯文本基座上续训 15T 视觉—文本混合 token 后，MMLU-Pro、GPQA 等纯文本基准不降反升，SWE-bench Verified 达到 76.8%。一种解释是：交错图文数据提供了纯文本语料中相对稀缺的推理链形态（图表推理、空间关系、过程演示），从而对文本推理构成正迁移。
 
@@ -293,21 +309,25 @@ $\alpha$ 过大则文本方向的梯度被淹没；$\alpha$ 过小则视觉梯�
 
 统一理解生成（业界称 UMM 或 M2M 形态）的根本困难不在损失函数，而在表征：两类任务对图像应被编码成何种形式提出了方向相反的要求。
 
-**信息论表述下，二者对应相反的优化目标。** 记视觉表征为 $z$。理解任务近似为
+**信息论表述下，二者对应相反的优化目标。** 记视觉表征为 $`z`$。理解任务近似为
 
-$$\max I(z;y_{\mathrm{sem}})\quad\text{并尽量}\quad\min I(z;I)$$
+```math
+\max I(z;y_{\mathrm{sem}})\quad\text{并尽量}\quad\min I(z;I)
+```
 
-CLIP 及对比学习即沿此方向：丢弃纹理等低层细节，以换取可迁移的语义。生成任务近似为 $\max I(z;I)$，即重建，对应 VAE 的 $-\log p(I\mid z)$ 或扩散的去噪分数匹配。单一编码器无法同时充当信息瓶颈与充分统计量。早期统一模型普遍出现理解与生成相互牵制的现象，这也是两类模型长期分家的原因。
+CLIP 及对比学习即沿此方向：丢弃纹理等低层细节，以换取可迁移的语义。生成任务近似为 $`\max I(z;I)`$，即重建，对应 VAE 的 $`-\log p(I\mid z)`$ 或扩散的去噪分数匹配。单一编码器无法同时充当信息瓶颈与充分统计量。早期统一模型普遍出现理解与生成相互牵制的现象，这也是两类模型长期分家的原因。
 
-**冲突的本质是语义抽象与像素保真不可兼得。** 理解要求将场景压缩为高层概念；生成要求保留毛发纹理、光照渐变等低层信息。以同一 $z$ 同时服务两端，两端性能都会下降。
+**冲突的本质是语义抽象与像素保真不可兼得。** 理解要求将场景压缩为高层概念；生成要求保留毛发纹理、光照渐变等低层信息。以同一 $`z`$ 同时服务两端，两端性能都会下降。
 
 **调和路径一：纯离散，将风险集中于 tokenizer。** 以一套语义完备的离散表征同时支持理解与生成。Chameleon 开其先河，LongCat-Next 目前走得最远（dNaViT 在 28 倍压缩下同时支撑文档级理解与图像生成）。BAAI 的 Emu3.5 同属此路径，词表总量 282,926，其中视觉 token 131,072。该路径架构最为简洁，风险全部集中在 tokenizer 质量上。
 
 **调和路径二：双路解耦，共享主干。** 承认两类任务需要不同的视觉编码，将冲突隔离在输入端。DeepSeek 的 Janus-Pro 使用两套编码器、一个 Transformer
 
-$$z_{\mathrm{und}}=E_{\mathrm{und}}(I),\qquad z_{\mathrm{gen}}=E_{\mathrm{gen}}(I)$$
+```math
+z_{\mathrm{und}}=E_{\mathrm{und}}(I),\qquad z_{\mathrm{gen}}=E_{\mathrm{gen}}(I)
+```
 
-理解时以 $z_{\mathrm{und}}$ 为条件作 NTP，生成时对 $z_{\mathrm{gen}}$ 对应的码本作 NTP；主干 $T$ 共享，冲突不进入注意力。其文生图基准 GenEval 达到 80%，超过 DALL-E 3。字节 BAGEL 的 MoT 双专家加双视觉编码器（像素级与语义级）是同一思想的 MoE 化：专家分工发生在 FFN，注意力仍作用在单一序列上。
+理解时以 $`z_{\mathrm{und}}`$ 为条件作 NTP，生成时对 $`z_{\mathrm{gen}}`$ 对应的码本作 NTP；主干 $`T`$ 共享，冲突不进入注意力。其文生图基准 GenEval 达到 80%，超过 DALL-E 3。字节 BAGEL 的 MoT 双专家加双视觉编码器（像素级与语义级）是同一思想的 MoE 化：专家分工发生在 FFN，注意力仍作用在单一序列上。
 
 **调和路径三：混合 tokenizer，单一编码器、两路出口。** Apple 的 Manzano 使同一视觉编码器接两路适配器：连续嵌入供理解路径使用，离散 token 供生成路径使用；自回归主干统一预测，扩散解码器完成最终渲染。相较路径二，可少训练一个编码器，语义空间天然共享。
 
@@ -321,13 +341,13 @@ $$z_{\mathrm{und}}=E_{\mathrm{und}}(I),\qquad z_{\mathrm{gen}}=E_{\mathrm{gen}}(
 
 统一自回归将图像生成转化为逐 token 串行解码，在效率上处于不利位置。这是离散路线工程落地的主要瓶颈，也是检验是否理解自回归生成代价的常见追问。
 
-**时延由步数与单步计算量共同决定。** 设 patch 大小为 $p$，视觉 token 数 $N=(H/p)\times(W/p)$。在 Chameleon 中，$512\times 512$ 对应 $N=1024$，每步一次完整前向，注意力复杂度为 $O(L^2)$，$L$ 随已生成长度增加。分辨率边长加倍则 $N$ 变为 4 倍，墙钟时间的增长不低于 4 倍，KV cache 亦同步变长。扩散每一步对全图并行，步数 $T$ 与分辨率弱相关，因此在高分辨率下自回归更为不利。相关加速方法见 5.2 节"多模态生成器"中"主流采样策略与推理加速方法"。
+**时延由步数与单步计算量共同决定。** 设 patch 大小为 $`p`$，视觉 token 数 $`N=(H/p)\times(W/p)`$。在 Chameleon 中，$`512\times 512`$ 对应 $`N=1024`$，每步一次完整前向，注意力复杂度为 $`O(L^2)`$，$`L`$ 随已生成长度增加。分辨率边长加倍则 $`N`$ 变为 4 倍，墙钟时间的增长不低于 4 倍，KV cache 亦同步变长。扩散每一步对全图并行，步数 $`T`$ 与分辨率弱相关，因此在高分辨率下自回归更为不利。相关加速方法见 5.2 节"多模态生成器"中"主流采样策略与推理加速方法"。
 
-**加速思路一：一次预测一组 token。** 每步输出 $k$ 个 token，串行步数由 $N$ 降至 $N/k$。文心 5.0 的 Next-Group-of-Tokens Prediction 是该思路在全模态统一架构上的工业实现。
+**加速思路一：一次预测一组 token。** 每步输出 $`k`$ 个 token，串行步数由 $`N`$ 降至 $`N/k`$。文心 5.0 的 Next-Group-of-Tokens Prediction 是该思路在全模态统一架构上的工业实现。
 
-**加速思路二：减少所需生成的 token 总量。** 在 tokenizer 层面提高压缩比。LongCat-Next 的 dNaViT 在 28 倍压缩下仍保持语义完备，$N$ 随之下降，训练与推理同时受益。
+**加速思路二：减少所需生成的 token 总量。** 在 tokenizer 层面提高压缩比。LongCat-Next 的 dNaViT 在 28 倍压缩下仍保持语义完备，$`N`$ 随之下降，训练与推理同时受益。
 
-**加速思路三：训练与推理解耦，解码阶段并行化。** 训练仍使用 $\prod_t p(x_t\mid x_{<t})$ 以保证似然可分解；推理改为离散扩散，在 $T\ll N$ 步内并行更新整张 token 图。BAAI 的 Emu3.5（34.1B，13T token 训练）以 DiDA 适配实现单图推理约 20 倍加速，理解与生成指标基本无损，表明自回归训练与并行解码可以分离。
+**加速思路三：训练与推理解耦，解码阶段并行化。** 训练仍使用 $`\prod_t p(x_t\mid x_{\lt t})`$ 以保证似然可分解；推理改为离散扩散，在 $`T\ll N`$ 步内并行更新整张 token 图。BAAI 的 Emu3.5（34.1B，13T token 训练）以 DiDA 适配实现单图推理约 20 倍加速，理解与生成指标基本无损，表明自回归训练与并行解码可以分离。
 
 三条思路相互正交，可以叠加。串行解码并非离散自回归路线的固有宿命，而是可被工程逐步降低的代价。这也是该路线在 2026 年重新获得工业投入的原因之一。
 
@@ -347,13 +367,15 @@ $$z_{\mathrm{und}}=E_{\mathrm{und}}(I),\qquad z_{\mathrm{gen}}=E_{\mathrm{gen}}(
 
 语音交互的传统实现是三段级联：ASR 将语音转为文本，LLM 生成文本回复，TTS 将回复合成为语音。GPT-4o（2024）首次使端到端方案与级联方案的体验差距被广泛感知。级联对应三条马尔可夫链的串联
 
-$$\mathrm{audio}\xrightarrow{\mathrm{ASR}}\mathrm{text}\xrightarrow{\mathrm{LLM}}\mathrm{text}\xrightarrow{\mathrm{TTS}}\mathrm{audio}$$
+```math
+\mathrm{audio}\xrightarrow{\mathrm{ASR}}\mathrm{text}\xrightarrow{\mathrm{LLM}}\mathrm{text}\xrightarrow{\mathrm{TTS}}\mathrm{audio}
+```
 
-由数据处理不等式，$I(\mathrm{reply};\mathrm{audio})\le I(\mathrm{reply};\mathrm{ASR}(\mathrm{audio}))$。第一段完成之后，语气、情绪与重音等可用信息的上界即被锁定。二者差异可从三个维度说明。
+由数据处理不等式，$`I(\mathrm{reply};\mathrm{audio})\le I(\mathrm{reply};\mathrm{ASR}(\mathrm{audio}))`$。第一段完成之后，语气、情绪与重音等可用信息的上界即被锁定。二者差异可从三个维度说明。
 
-**信息维度：级联在第一段即丢弃副语言信息。** 语音转为文本的同时，说话人特征与环境声随之丢失，文本层面无法区分同一语句的不同语气。端到端直接拟合 $p(\mathrm{audio}_{\mathrm{out}},\mathrm{text}\mid\mathrm{audio}_{\mathrm{in}},I)$。GLM-4-Voice 将语音离散为 12.5Hz 的低码率 token，与文本在同一 NTP 中建模，韵律作为序列中的码，而非由 TTS 事后附加。
+**信息维度：级联在第一段即丢弃副语言信息。** 语音转为文本的同时，说话人特征与环境声随之丢失，文本层面无法区分同一语句的不同语气。端到端直接拟合 $`p(\mathrm{audio}_{\mathrm{out}},\mathrm{text}\mid\mathrm{audio}_{\mathrm{in}},I)`$。GLM-4-Voice 将语音离散为 12.5Hz 的低码率 token，与文本在同一 NTP 中建模，韵律作为序列中的码，而非由 TTS 事后附加。
 
-**时延维度：级联时延为三段之和。** $T_{\mathrm{cas}}=T_{\mathrm{ASR}}+T_{\mathrm{LLM}}+T_{\mathrm{TTS}}$，且每一段需等待上一段输出相对完整，产品时延通常在秒级。端到端流式对应的是并行重叠而非简单求和，LLM 尚未结束即可开始发声。GPT-4o 的语音响应平均 320ms、最快 232ms，已进入人类对话自然停顿的量级。
+**时延维度：级联时延为三段之和。** $`T_{\mathrm{cas}}=T_{\mathrm{ASR}}+T_{\mathrm{LLM}}+T_{\mathrm{TTS}}`$，且每一段需等待上一段输出相对完整，产品时延通常在秒级。端到端流式对应的是并行重叠而非简单求和，LLM 尚未结束即可开始发声。GPT-4o 的语音响应平均 320ms、最快 232ms，已进入人类对话自然停顿的量级。
 
 **节奏维度：级联系统不具备可学习的对话节奏。** 接话、沉默与被打断后的收尾，级联方案只能依赖 VAD（语音活动检测）等规则。这些规则恰恰对应自然对话的核心机制。端到端模型可从真实对话数据中学习节奏，详见本节"从'可打断'到'全双工'，交互形态的演进方向是什么？"子问题。
 
@@ -367,13 +389,13 @@ $$\mathrm{audio}\xrightarrow{\mathrm{ASR}}\mathrm{text}\xrightarrow{\mathrm{LLM}
 
 端到端只解决信息通路问题。交互体验的关键指标是首包时延，即用户结束发言到听到第一声回应的间隔。以下以公开技术细节较为完整的 Qwen-Omni 系列为参照，归纳四项机制。
 
-**机制一：分工式架构，理解与发声解耦。** Thinker-Talker 是该系列的标志设计。Thinker 为多模态 LLM，输出隐藏状态 $\mathbf{h}_t$ 以及可选的文本 token；Talker 为规模较小的 codec 语言模型，将 $\mathbf{h}_t$ 映射为语音码。二者流式衔接：Thinker 计算第 $t$ 步时，Talker 已在合成第 $t$ 帧。该架构由 Qwen2.5-Omni（7B 稠密）确立，Qwen3-Omni 升级为 30B-A3B 的 MoE 版本，Qwen3.5-Omni 进一步宣称以 omnimodal 方式原生预训练（官方口径），支持 256K 上下文与 113 种语言的语音识别。
+**机制一：分工式架构，理解与发声解耦。** Thinker-Talker 是该系列的标志设计。Thinker 为多模态 LLM，输出隐藏状态 $`\mathbf{h}_t`$ 以及可选的文本 token；Talker 为规模较小的 codec 语言模型，将 $`\mathbf{h}_t`$ 映射为语音码。二者流式衔接：Thinker 计算第 $`t`$ 步时，Talker 已在合成第 $`t`$ 帧。该架构由 Qwen2.5-Omni（7B 稠密）确立，Qwen3-Omni 升级为 30B-A3B 的 MoE 版本，Qwen3.5-Omni 进一步宣称以 omnimodal 方式原生预训练（官方口径），支持 256K 上下文与 113 种语言的语音识别。
 
 **机制二：分块流式输入。** 音频与视频按 chunk 进入 Thinker，不必等待整段输入结束即可开始理解，从而将聆听等待分摊到说话过程之中。
 
-**机制三：时间对齐位置编码。** 音频流与视频帧必须在时间轴上对齐，否则口型与声音会发生错位。TMRoPE 将 M-RoPE 的 $(t,h,w)$ 三分量引入实时流：在同一时钟 $t$ 上交错排列音频 token 与视频 patch，旋转位置编码在时间维共享。这是 5.4 节中 M-RoPE 在实时交互场景中的延伸。
+**机制三：时间对齐位置编码。** 音频流与视频帧必须在时间轴上对齐，否则口型与声音会发生错位。TMRoPE 将 M-RoPE 的 $`(t,h,w)`$ 三分量引入实时流：在同一时钟 $`t`$ 上交错排列音频 token 与视频 patch，旋转位置编码在时间维共享。这是 5.4 节中 M-RoPE 在实时交互场景中的延伸。
 
-**机制四：多码本并行合成，首帧即可发声。** Talker 采用残差向量量化（RVQ）：$\mathbf{z}=\mathbf{z}^{(1)}+\cdots+\mathbf{z}^{(m)}$，每一级对应一个码本，粗码本先输出，细码本补偿残差。再配合 MTP（多 token 预测），生成第一帧 codec 编码即可开始合成波形，无需等待完整句子。Qwen3.5-Omni 引入 ARIA，在流式解码中动态对齐文本单元与语音单元，以抑制长句中的语音—语义漂移。
+**机制四：多码本并行合成，首帧即可发声。** Talker 采用残差向量量化（RVQ）：$`\mathbf{z}=\mathbf{z}^{(1)}+\cdots+\mathbf{z}^{(m)}`$，每一级对应一个码本，粗码本先输出，细码本补偿残差。再配合 MTP（多 token 预测），生成第一帧 codec 编码即可开始合成波形，无需等待完整句子。Qwen3.5-Omni 引入 ARIA，在流式解码中动态对齐文本单元与语音单元，以抑制长句中的语音—语义漂移。
 
 **大参数模型的实时化是另一层工程问题。** 美团 LongCat-Flash-Omni 在总参数 560B 的规模上实现实时音视频交互，主要依赖三项设计：MoE 稀疏化（激活 27B）并配合零计算专家，以降低单 token 成本；视觉与音频编解码器控制在约 6 亿参数；音视频特征按 chunk 交错进入主干，以维持稳定的流式节拍。这表明模型规模与响应速度可以通过系统设计同时满足，稀疏架构有利于全模态实时化。
 
@@ -393,7 +415,7 @@ $$\mathrm{audio}\xrightarrow{\mathrm{ASR}}\mathrm{text}\xrightarrow{\mathrm{LLM}
 
 **第三代：全双工（full-duplex）。** 模型与用户在听、说两个通道上同时保持活跃，模型自主决定接话、附和、保持沉默或忽略无关插话。字节 SeedRealtime（2026）是这一形态的代表：单一端到端模型在连续音视频流上同时完成观看、聆听与发言，官方对比显示相对其级联系统可将"对话节奏问题"减少约一半，并已在豆包全量上线。开源侧，美团 LongCat-Flash-Omni 以 128K 上下文支撑 8 分钟以上的连续音视频交互（实时化设计见本节"流式低时延语音生成有哪些关键机制？"子问题），为全双工提供了所需的长时记忆。
 
-**竞争焦点已由时延转向节奏。** 首包时延进入数百毫秒后，继续压缩的边际收益迅速下降。接话时机、附和、抢话处理，以及噪声环境中判断语句是否针对自身，均属 turn-taking。形式化地，模型需要学习条件策略 $p(a_t\mid x_{\le t})$，其中 $a_t\in\{\mathrm{listen},\mathrm{speak},\mathrm{backchannel},\mathrm{yield}\}$。VAD 只是能量阈值 $\mathbf{1}[E_t>\tau]$，无法覆盖重叠说话与附和。全双工将上述礼仪由规则改为从真实对话中估计的分布。
+**竞争焦点已由时延转向节奏。** 首包时延进入数百毫秒后，继续压缩的边际收益迅速下降。接话时机、附和、抢话处理，以及噪声环境中判断语句是否针对自身，均属 turn-taking。形式化地，模型需要学习条件策略 $`p(a_t\mid x_{\le t})`$，其中 $`a_t\in\{\mathrm{listen},\mathrm{speak},\mathrm{backchannel},\mathrm{yield}\}`$。VAD 只是能量阈值 $`\mathbf{1}[E_t\gt \tau]`$，无法覆盖重叠说话与附和。全双工将上述礼仪由规则改为从真实对话中估计的分布。
 
 **训练要求随之改变。** 数据方面，语料需由干净的单人指令录音扩展为包含重叠、抢话与环境噪声的真实多人对话。建模方面，沉默多久构成冷场、停顿多久构成话轮让渡，均是可从数据中估计的分布。这两项能力将成为下一代交互入口的关键差异。
 
@@ -405,13 +427,3 @@ $$\mathrm{audio}\xrightarrow{\mathrm{ASR}}\mathrm{text}\xrightarrow{\mathrm{LLM}
 
 ---
 
-
-
-
-
-** AI多模态下游应用：** 
-（1）产品角度
-
-（2）具身智能
-
-（3）AI Agent（结合应用场景如工业质检、OCR、自动驾驶）
