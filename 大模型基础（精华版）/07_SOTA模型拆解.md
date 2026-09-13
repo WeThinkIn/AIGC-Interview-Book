@@ -172,7 +172,7 @@ $$
 
 $I-\beta_t k_tk_t^\top$ **只擦除"沿 $k_t$ 方向的旧映射"**，其余方向原样保留，随后再写入新关联 $k_tv_t^\top$：
 
-- $\lVert k_t\rVert=1,\ \beta_t\in(0,1)$ ：$1-\beta_t\in(0,1)$，是**收缩式擦除**；
+- $\lVert k_t\rVert=1,\ \beta_t\in(0,1)$ ： $1-\beta_t\in(0,1)$ ，是**收缩式擦除**；
 - $\beta_t\lVert k_t\rVert^2>2$ ：特征值 $<-1$，退化为**放大/振荡**，擦除不再稳定。
 
 <a id="sota-section-49"></a>
