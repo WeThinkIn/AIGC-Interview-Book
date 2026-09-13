@@ -293,10 +293,9 @@ $$
 **(2) 等价的掩码写法**：
 
 $$
-M^{(g)}_{t,s}=\mathbf{1}_{s\in\mathcal{S}^{(l_0)}_t},\qquad
+M^{(g)}_{t,s}=\bigl[\,s\in\mathcal{S}^{(l_0)}_t\,\bigr],\qquad
 o^{(l)}_t=\operatorname{softmax}\left(\frac{q^{(l)}_t k^{(l)\top}_s}{\sqrt{d_h}}+\log M^{(g)}_{t,s}\right)v^{(l)}_s
 $$
-
 
 <a id="sota-section-51"></a>
 ## 51. GPT、claude：闭源模型Top级模型
