@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 500" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">多模态下游应用版图：任务性质 × 产品位置</text>
+
+  <rect x="130" y="56" width="216" height="52" rx="6" fill="#000000"/>
+  <text x="238" y="79" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">感知增强类</text>
+  <text x="238" y="98" text-anchor="middle" font-size="10.5" fill="#ffffff">输出结构化感知结果</text>
+
+  <rect x="358" y="56" width="216" height="52" rx="6" fill="#000000"/>
+  <text x="466" y="79" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">认知与生成类</text>
+  <text x="466" y="98" text-anchor="middle" font-size="10.5" fill="#ffffff">理解、推理到内容产出</text>
+
+  <rect x="586" y="56" width="216" height="52" rx="6" fill="#000000"/>
+  <text x="694" y="79" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">交互与决策类</text>
+  <text x="694" y="98" text-anchor="middle" font-size="10.5" fill="#ffffff">输出动作 · 作用于环境</text>
+
+  <rect x="18" y="120" width="100" height="140" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="68" y="180" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">模型即产品</text>
+  <text x="68" y="202" text-anchor="middle" font-size="10" fill="#333333">全能 · 安全 · 稳定</text>
+
+  <rect x="18" y="272" width="100" height="140" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="68" y="332" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#000000">模型即组件</text>
+  <text x="68" y="354" text-anchor="middle" font-size="10" fill="#333333">单点极致 · 低成本</text>
+
+  <rect x="130" y="120" width="216" height="140" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="238" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">扫描问答助手</text>
+  <text x="238" y="174" text-anchor="middle" font-size="11" fill="#333333">夸克扫描 · 通用 OCR 应用</text>
+  <text x="238" y="196" text-anchor="middle" font-size="11" fill="#333333">拍照识物 · 翻译取词</text>
+  <text x="238" y="236" text-anchor="middle" font-size="10" fill="#595959">选型：端到端 MLLM 直出</text>
+
+  <rect x="358" y="120" width="216" height="140" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="466" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">理解与创作应用</text>
+  <text x="466" y="174" text-anchor="middle" font-size="11" fill="#333333">豆包拍照解题</text>
+  <text x="466" y="196" text-anchor="middle" font-size="11" fill="#333333">Kimi 长 PDF 问答</text>
+  <text x="466" y="236" text-anchor="middle" font-size="10" fill="#595959">选型：大模型 + RAG / 工具</text>
+
+  <rect x="586" y="120" width="216" height="140" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="694" y="150" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">交互与助理形态</text>
+  <text x="694" y="174" text-anchor="middle" font-size="11" fill="#333333">豆包实时语音视频通话</text>
+  <text x="694" y="196" text-anchor="middle" font-size="11" fill="#333333">GUI-Agent 操作助手</text>
+  <text x="694" y="236" text-anchor="middle" font-size="10" fill="#595959">选型：全模态 / Agent 架构</text>
+
+  <rect x="130" y="272" width="216" height="140" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="238" y="302" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">感知管线中的组件</text>
+  <text x="238" y="326" text-anchor="middle" font-size="11" fill="#333333">工业质检零样本检测</text>
+  <text x="238" y="348" text-anchor="middle" font-size="11" fill="#333333">拍立淘 embedding 召回</text>
+  <text x="238" y="388" text-anchor="middle" font-size="10" fill="#595959">选型：专用小模型 + 离线反哺</text>
+
+  <rect x="358" y="272" width="216" height="140" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="466" y="302" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">内容管线中的组件</text>
+  <text x="466" y="326" text-anchor="middle" font-size="11" fill="#333333">剪映高光检测与成片编排</text>
+  <text x="466" y="348" text-anchor="middle" font-size="11" fill="#333333">商品图打标 · 字段抽取</text>
+  <text x="466" y="388" text-anchor="middle" font-size="10" fill="#595959">选型：多模型编排工作流</text>
+
+  <rect x="586" y="272" width="216" height="140" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="694" y="302" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">决策系统中的组件</text>
+  <text x="694" y="326" text-anchor="middle" font-size="11" fill="#333333">自动驾驶慢系统 VLM</text>
+  <text x="694" y="348" text-anchor="middle" font-size="11" fill="#333333">机器人 VLA 语义层</text>
+  <text x="694" y="388" text-anchor="middle" font-size="10" fill="#595959">选型：双系统 · 安全层兜底</text>
+
+  <rect x="60" y="432" width="700" height="46" rx="6" fill="#000000"/>
+  <text x="410" y="454" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">定位决定选型：即产品倾向端到端大一统模型</text>
+  <text x="410" y="471" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">即组件倾向专用小模型与大小模型协同</text>
+</svg>

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 500" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">GUI-Agent 的感知–决策–执行闭环与可靠性机制</text>
+
+  <rect x="170" y="64" width="200" height="56" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="270" y="88" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">屏幕截图观察</text>
+  <text x="270" y="106" text-anchor="middle" font-size="10.5" fill="#333333">高分辨率界面 · 小图标小字</text>
+
+  <rect x="400" y="150" width="210" height="64" rx="6" fill="#d9d9d9" stroke="#333333" stroke-width="1.5"/>
+  <text x="505" y="174" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">观察压缩</text>
+  <text x="505" y="192" text-anchor="middle" font-size="10.5" fill="#333333">变化区域保留 · 历史摘要化</text>
+  <text x="505" y="206" text-anchor="middle" font-size="10.5" fill="#333333">控制上下文增长</text>
+
+  <rect x="400" y="256" width="210" height="72" rx="6" fill="#000000"/>
+  <text x="505" y="282" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#ffffff">VLM 规划 + grounding</text>
+  <text x="505" y="301" text-anchor="middle" font-size="10.5" fill="#ffffff">任务分解 · 预测精确坐标</text>
+  <text x="505" y="317" text-anchor="middle" font-size="10.5" fill="#ffffff">纯视觉端到端 或 set-of-mark 辅助</text>
+
+  <rect x="170" y="372" width="200" height="64" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="270" y="396" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">动作执行</text>
+  <text x="270" y="414" text-anchor="middle" font-size="10.5" fill="#333333">click(x,y) · type · scroll</text>
+  <text x="270" y="428" text-anchor="middle" font-size="10.5" fill="#333333">环境状态改变</text>
+
+  <line x1="370" y1="100" x2="452" y2="146" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="505" y1="214" x2="505" y2="252" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="452" y1="328" x2="360" y2="380" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="220" y1="372" x2="248" y2="124" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <text x="184" y="252" text-anchor="middle" font-size="10.5" fill="#595959">新一轮观察</text>
+
+  <text x="712" y="86" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">可靠性三板斧</text>
+
+  <rect x="634" y="102" width="156" height="62" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="712" y="126" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">检查点与回滚</text>
+  <text x="712" y="146" text-anchor="middle" font-size="10" fill="#333333">失败回溯 · 不从头再来</text>
+
+  <rect x="634" y="178" width="156" height="62" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="712" y="202" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">高危操作拦截</text>
+  <text x="712" y="222" text-anchor="middle" font-size="10" fill="#333333">删除支付类二次确认</text>
+
+  <rect x="634" y="254" width="156" height="62" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="712" y="278" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">沙箱执行</text>
+  <text x="712" y="298" text-anchor="middle" font-size="10" fill="#333333">先隔离验证再生效</text>
+
+  <line x1="634" y1="288" x2="614" y2="290" stroke="#595959" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+  <rect x="634" y="340" width="156" height="86" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="712" y="364" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">可执行环境评测</text>
+  <text x="712" y="384" text-anchor="middle" font-size="10" fill="#333333">OSWorld · 369 桌面任务</text>
+  <text x="712" y="400" text-anchor="middle" font-size="10" fill="#333333">AndroidWorld · 116 任务</text>
+  <text x="712" y="416" text-anchor="middle" font-size="10" fill="#333333">以环境终态判定成败</text>
+
+  <rect x="60" y="448" width="700" height="40" rx="6" fill="#000000"/>
+  <text x="410" y="473" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">多步衰减：单步成功率 95% 的 20 步任务，端到端成功率仅约 36% —— 单步精度决定长任务成败</text>
+</svg>
