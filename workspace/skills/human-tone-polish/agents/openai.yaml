@@ -1,0 +1,4 @@
+interface:
+  display_name: "人味润色"
+  short_description: "去掉技术内容的机械模板感，保留作者语气与判断"
+  default_prompt: "Use $human-tone-polish to polish this Chinese technical draft while preserving the author's voice."
