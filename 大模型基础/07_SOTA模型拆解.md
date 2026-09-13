@@ -3,28 +3,33 @@
 
 ## 目录导航
 
-- [47. Qwen：通用 Transformer 到混合注意力与可控推理](<#sota-section-47>)
+- [1. Qwen：通用 Transformer 到混合注意力与可控推理](<#sota-section-47>)
   - [面试问题：如何用一条正确主线概括 Qwen 的版本演进？](<#sota-section-47-question-01>)
   - [面试问题：Qwen3 与 Qwen3.8 的公开架构分别有什么关键点？](<#sota-section-47-question-02>)
   - [面试问题：DCA、YaRN、RoPE 分别属于哪一代、各自解决什么问题？](<#sota-section-47-question-03>)
   - [面试问题：什么是Dual Chunk Attention?](<#sota-section-47-question-04>)
-- [48. Kimi：推理时扩展、MoE 与超长上下文](<#sota-section-48>)
+    
+- [2. Kimi：推理时扩展、MoE 与超长上下文](<#sota-section-48>)
   - [面试问题：Kimi K1.5、K2 和 K3 的主线是什么？](<#sota-section-48-question-01>)
   - [面试问题：K2 与 K3 的 MoE、注意力和长上下文怎样比较？](<#sota-section-48-question-02>)
   - [面试问题：什么是Kimi Delta Attention？](<#sota-section-48-question-03>)
-- [49. DeepSeek：MLA、DeepSeekMoE、推理强化与稀疏注意力](<#sota-section-49>)
+    
+- [3. DeepSeek：MLA、DeepSeekMoE、推理强化与稀疏注意力](<#sota-section-49>)
   - [面试问题：DeepSeek-V3 的 MLA、MoE、负载均衡和 MTP 如何协同？](<#sota-section-49-question-01>)
   - [面试问题：DeepSeek-R1 为什么要经历 R1-Zero、冷启动和多阶段 RL？](<#sota-section-49-question-02>)
   - [面试问题：什么是 DeepSeek Sparse Attention？](<#sota-section-49-question-03>)
-- [50. GLM：异步 RL、IndexShare](<#sota-section-50>)
+    
+- [4. GLM：异步 RL、IndexShare](<#sota-section-50>)
   - [面试问题：GLM-4.5、GLM-5 与 GLM-5.2 的确定性变化是什么？](<#sota-section-50-question-01>)
   - [面试问题：DSA、异步 RL、IndexShare 和 MTP 的工程价值是什么？](<#sota-section-50-question-02>)
   - [面试问题：什么是IndexShare？](<#sota-section-50-question-03>)
-- [51. GPT、claude：闭源模型Top级模型](<#sota-section-51>)
+    
+- [5. GPT、claude：闭源模型Top级模型](<#sota-section-51>)
   - [面试问题：GPT-5.6 的 Sol、Terra、Luna、max 和 ultra 分别是什么？](<#sota-section-51-question-01>)
   - [面试问题：Claude 的混合推理（hybrid reasonin）指什么？](<#sota-section-51-question-02>)
   - [面试问题：Fable 5、Mythos 5 应怎样解释？什么是Claude code？](<#sota-section-51-question-03>)
-- [52. Grok：从开源 Grok-1 到闭源 Grok 4.6](<#sota-section-52>)
+    
+- [6. Grok：从开源 Grok-1 到闭源 Grok 4.6](<#sota-section-52>)
   - [面试问题：Grok 的哪些架构细节可以复现？](<#sota-section-52-question-01>)
   - [面试问题：Grok 4 与 Grok 4.6 的训练主线是什么？](<#sota-section-52-question-02>)
   - [面试问题：Grok Build 和 Grok Bot 与基础模型是什么关系？](<#sota-section-52-question-03>)
