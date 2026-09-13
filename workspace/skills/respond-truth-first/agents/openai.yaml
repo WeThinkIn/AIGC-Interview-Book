@@ -1,0 +1,4 @@
+interface:
+  display_name: "求真输出"
+  short_description: "以证据约束结论、校准不确定性，抵抗迎合并接受可靠的新证据纠正"
+  default_prompt: "Use $respond-truth-first to analyze this request with evidence-first reasoning and calibrated conclusions."
