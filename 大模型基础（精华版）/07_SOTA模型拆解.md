@@ -89,9 +89,9 @@ DCA 是一种**位置编码重映射**方案：把长序列切成块，让任意
 
 | 分支 | 覆盖对象 | 位置规则 | 目的 |
 | --- | --- | --- | --- |
-| **Intra-chunk** | 同块 key | 真实相对距离 $i-j$，$\Delta_{\mathrm{intra}}=i-j$ | 保住**局部高分辨率** |
-| **Successive-chunk** | 紧邻前一块 | 真实相对距离 $i-j$，$\Delta_{\mathrm{intra}}=i-j$ | 保住**跨块边界处的连续性**，避免边界断裂 |
-| **Inter-chunk** | 更早的所有块 | 用**块内位置**重映射，$p_i=(i\bmod l)+l,\qquad p_j=j\bmod l,\qquad \Delta_{\mathrm{inter}}=p_i-p_j$ | 把远距离压缩进训练分布，**防止外推失效** |
+| **Intra-chunk** | 同块 key | 真实相对距离 $i-j$， $\Delta_{\mathrm{intra}}=i-j$ | 保住**局部高分辨率** |
+| **Successive-chunk** | 紧邻前一块 | 真实相对距离 $i-j$ ， $\Delta_{\mathrm{intra}}=i-j$ | 保住**跨块边界处的连续性**，避免边界断裂 |
+| **Inter-chunk** | 更早的所有块 | 用**块内位置**重映射， $p_i=(i\bmod l)+l,\qquad p_j=j\bmod l,\qquad \Delta_{\mathrm{inter}}=p_i-p_j$ | 把远距离压缩进训练分布，**防止外推失效** |
 
 <a id="sota-section-48"></a>
 ## 48. Kimi：推理时扩展、MoE 与超长上下文
