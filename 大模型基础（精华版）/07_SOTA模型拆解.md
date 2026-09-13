@@ -294,7 +294,7 @@ $$
 
 $$
 M^{(g)}_{t,s}=\mathbb{1}\!\left\{s\in\mathcal{S}^{(l_0)}_t\right\},\qquad
-o^{(l)}_t=\mathrm{softmax}\!\left(\frac{q^{(l)}_t k^{(l)\top}_s}{\sqrt{d_h}}+\log M^{(g)}_{t,s}\right)v^{(l)}_s
+o^{(l)}_t=\operatorname{softmax}\!\left(\frac{q^{(l)}_t k^{(l)\top}_s}{\sqrt{d_h}}+\log M^{(g)}_{t,s}\right)v^{(l)}_s
 $$
 
 
