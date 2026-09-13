@@ -132,6 +132,7 @@ K2 使用多头潜在注意力（Multi-head Latent Attention，MLA）压缩 KV �
 **Gated DeltaNet 的细粒度门控改进版**：用 **delta 规则（先擦后写）+ 逐通道对角门控** 替换纯叠加式记忆，再与全注意力**按比例混合**使用。
 
 **（1）共同骨架**
+
 $$
 S_t=\lambda_t S_{t-1}+k_t v_t^\top,\qquad y_t=q_t^\top S_t
 $$
@@ -146,7 +147,7 @@ $$
 S_t=\mathrm{Diag}(\alpha_t)\left(I-\beta_t k_t k_t^\top\right)S_{t-1}+\beta_t k_t v_t^\top
 $$
 
-- $\mathrm{Diag}(\alpha_t)$ ：**逐通道对角**遗忘门，$d_k\times d_k$，作用在 key 指标上
+- $\mathrm{Diag}(\alpha_t)$ ：**逐通道对角**遗忘门， $d_k\times d_k$ ，作用在 key 指标上
 - $\beta_t\in(0,1)$ ：**标量**写入门（步长），控制新关联的写入强度
 - $I-\beta_t k_t k_t^\top$ ：沿 $k_t$ 方向的**擦除投影**
 
