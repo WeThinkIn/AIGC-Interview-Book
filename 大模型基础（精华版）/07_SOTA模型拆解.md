@@ -221,7 +221,7 @@ DSA 的核心思想是**把"算权重"和"选位置"解耦**：用低维索引�
 对每个 query token $t$ 与历史 token $s$：
 
 $$
-I_{t,s}=\sum_{j=1}^{H^{I}} w^{I}_{t,j}\cdot\mathrm{ReLU}\!\left(q^{I}_{t,j}\cdot k^{I}_{s}\right)
+I_{t,s}=\sum_{j=1}^{H^{I}} w^{I}_{t,j}\cdot\mathrm{ReLU}\left(q^{I}_{t,j}\cdot k^{I}_{s}\right)
 $$
 
 
@@ -235,13 +235,13 @@ $$
 **(1) top-k 选择**
 
 $$
-\mathcal{S}_t=\mathrm{Top}\!-\!k_{s\le t}\left(\{I_{t,s}\}_{s=1}^{t}\right),\qquad |\mathcal{S}_t|=k
+\mathcal{S}_t=\mathrm{Top}-k_{s\le t}\left(\{I_{t,s}\}_{s=1}^{t}\right),\qquad |\mathcal{S}_t|=k
 $$
 
 **(2) 稀疏主注意力**
 
 $$
-o_t=\sum_{s\in\mathcal{S}_t}\frac{\exp\!\left(q_t^{\top}k_s/\sqrt{d_h}\right)}{\sum_{s'\in\mathcal{S}_t}\exp\!\left(q_t^{\top}k_{s'}/\sqrt{d_h}\right)}\,v_s
+o_t=\sum_{s\in\mathcal{S}_t}\frac{\exp\left(q_t^{\top}k_s/\sqrt{d_h}\right)}{\sum_{s'\in\mathcal{S}_t}\exp\left(q_t^{\top}k_{s'}/\sqrt{d_h}\right)}\,v_s
 $$
 
 #### 4. 索引器怎么训练：KL 蒸馏
@@ -249,9 +249,9 @@ $$
 把**稠密主注意力**的真实分布当成老师，让归一化后的索引器分数去逼近它：
 
 $$
-p_{t,s}=\frac{\exp\!\left(q_t^{\top}k_s/\sqrt{d_h}\right)}{\sum_{s'\in\mathcal{S}_t}\exp\!\left(q_t^{\top}k_{s'}/\sqrt{d_h}\right)},
+p_{t,s}=\frac{\exp\left(q_t^{\top}k_s/\sqrt{d_h}\right)}{\sum_{s'\in\mathcal{S}_t}\exp\left(q_t^{\top}k_{s'}/\sqrt{d_h}\right)},
 \qquad
-\mathcal{L}_{I}=\sum_{t}\mathbb{D}_{\mathrm{KL}}\!\left(p_{t,:}\,\Big\|\,\mathrm{Softmax}_{s}\bigl(I_{t,:}\bigr)\right)
+\mathcal{L}_{I}=\sum_{t}\mathbb{D}_{\mathrm{KL}}\left(p_{t,:}\,\Big\|\,\mathrm{Softmax}_{s}\bigl(I_{t,:}\bigr)\right)
 $$
 
 <a id="sota-section-50"></a>
@@ -285,14 +285,16 @@ IndexShare在DSA的基础上进一步优化索引器。
 - 每层的 Q/K/V、gather 出来的 KV、以及注意力权重，全部仍各自计算。
 
 **(1) 共享规则**：每 $g$ 层一组，组内只算一次索引
+
 $$
 \mathcal{S}^{(l)}_t\equiv\mathcal{S}^{(l_0)}_t,\quad l\in[l_0,\,l_0+g)
 $$
 
 **(2) 等价的掩码写法**：
+
 $$
-M^{(g)}_{t,s}=\mathbb{1}\!\left\{s\in\mathcal{S}^{(l_0)}_t\right\},
-o^{(l)}_t=\mathrm{softmax}\!\left(\frac{q^{(l)}_tk^{(l)\top}_s}{\sqrt{d_h}}+\log M^{(g)}_{t,s}\right)v^{(l)}_s
+M^{(g)}_{t,s}=\mathbb{1}\left\{s\in\mathcal{S}^{(l_0)}_t\right\},
+o^{(l)}_t=\mathrm{softmax}\left(\frac{q^{(l)}_tk^{(l)\top}_s}{\sqrt{d_h}}+\log M^{(g)}_{t,s}\right)v^{(l)}_s
 $$
 
 
