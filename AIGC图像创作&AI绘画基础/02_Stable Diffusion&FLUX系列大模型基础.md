@@ -4,8 +4,8 @@
 
 [1.介绍一下Stable Diffusion的原理](#q-028)
   - [面试问题：Stable Diffusion 相比经典 Diffusion model 的核心优化是什么？](#q-029)
-  - [面试问题：介绍一下 Stable Diffusion 的训练 / 推理过程（正向扩散过程和反向去噪过程）](#q-030)
-  - [面试问题：介绍 Stable Diffusion 核心网络结构](#q-039)
+  - [面试问题：介绍一下Stable Diffusion的训练/推理过程](#q-030)
+  - [面试问题：介绍一下Stable Diffusion核心网络结构](#q-039)
   - [面试问题：Stable Diffusion 的优化策略有哪些？](#q-031)
   - [面试问题：介绍一下针对 Stable Diffusion 的模型融合技术](#q-033)
   - [面试问题：为什么相同 seed + 相同 prompt 在不同采样器 / 精度 / 框架下结果会有差异？工程上如何保证生成结果可复现？](#q-036a)
@@ -83,11 +83,9 @@
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Rocky认为我们可以这样理解，**Latent Diffusion Models（LDM）** 是“在潜空间做扩散”的通用扩散算法模型框架，而Stable Diffusion是在此框架基础上，通过一系列工程技术优化后形成的、在开源社区大规模落地应用的AIGC图像创作大模型系列。
+Rocky认为我们可以这样理解，Latent Diffusion Models（LDM）是“在潜空间做扩散”的**通用扩散算法模型框架**，而Stable Diffusion是在此框架基础上，通过一系列工程技术优化后在开源社区大规模落地应用的**AIGC图像创作大模型系列**。
 
-简单来说，两者的关系可以概括为：Latent Diffusion是奠定核心思想的“论文”与“蓝图”；而Stable Diffusion则是基于这张蓝图建造出的、不断升级的“摩天大楼”及围绕它形成的“繁荣城市”。
-
-**从技术架构本质来看，Stable Diffusion本身也归属于Latent Diffusion架构体系。**
+**从技术架构本质来看，Stable Diffusion本身也归属于Latent Diffusion架构体系。** 两者的关系可以概括为：Latent Diffusion是奠定核心思想的架构基座；而Stable Diffusion则是基于这个架构基座进行设计，整体流程如下图所示。
 
 <div align="center">
 
@@ -95,108 +93,83 @@ Rocky认为我们可以这样理解，**Latent Diffusion Models（LDM）** 是�
 
 </div>
 
-若把Stable Diffusion与Latent Diffusion原论文中的文生图基准模型相比，核心差异主要体现以下维度：
+具体来讲，若把Stable Diffusion与Latent Diffusion原论文中的文生图基准模型相比，核心差异主要体现以下维度：
 
-1.  **训练数据集的迭代升级**
+1.  **训练数据集的迭代升级**：通用Latent Diffusion中的文生图实验主要基于较小规模的laion-400M图文数据集完成训练；Stable Diffusion则使用了规模更大的laion-2B-en系列图文数据集，并配合数据清洗、低分辨率过滤、美学评分等筛选策略来提升训练样本质量。整体的**数据规模、数据质量和工程策略都更完善**。
 
-    通用Latent Diffusion中的文生图实验主要基于较小规模的laion-400M图文数据集完成训练；Stable Diffusion则使用了规模更大的laion-2B-en系列图文数据，并配合数据清洗、分辨率过滤、美学评分等工程筛选策略来提升训练样本质量。整体的**数据规模、数据质量和筛选策略都更工程化**。
+2.  **文本编码器的方案优化**：通用Latent Diffusion中的文本条件编码方案相对简单，是一个随机初始化的Transformer模型；Stable Diffusion则采用预训练CLIP文本编码器作为文本特征提取模块。相较于从零开始训练文本编码器，在大规模图文配对数据上完成预训练的文本编码器通常具备更强的文本语义理解和图文对齐能力。
 
-2.  **文本编码器的方案优化**
+3.  **训练分辨率与策略的优化**：通用Latent Diffusion更偏研究验证性质，只是在 $256\times256$ 分辨率上训练；Stable Diffusion采用分阶段训练和高分辨率微调等工程策略，先在 $256\times256$ 分辨率上预训练，然后再在 $512\times 512$分辨率上进行微调训练，满足高分辨率生成的质量要求。
 
-    通用Latent Diffusion中的文本条件编码方案相对简单，是一个随机初始化的Transformer模型；Stable Diffusion v1系列则采用预训练CLIP文本编码器作为文本特征提取模块。相较于从零开始训练或较弱的文本编码方案，在大规模图文配对数据上完成预训练的文本编码器，通常具备更强的文本语义理解和图文对齐能力。
-
-3.  **训练分辨率与策略的优化**
-
-    通用Latent Diffusion中的文生图基准更偏研究验证，只是在 $256\times256$ 分辨率上训练；Stable Diffusion更强调可用的开放文生图生成能力，采用分阶段训练和更高分辨率微调等工程策略，先在 $256\times256$ 分辨率上预训练，然后再在 $512\times 512$分辨率上进行微调训练，满足高分辨率生成的质量要求。
-
-4.  **架构持续迭代升级**
-   
-    通用Latent Diffusion只是一个实验性模型架构；而Stable Diffusion作为商业化模型，其架构的持续迭代（如SDXL、SD3、FLUX.1、FLUX.2等），不断突破AIGC图像创作领域的效果上限。
+4.  **架构持续迭代升级**：通用Latent Diffusion只是一个实验性模型架构；而Stable Diffusion作为商业化模型，其架构的持续迭代（如SDXL、SD3、FLUX.1、FLUX.2等），不断突破AIGC图像创作领域的效果上限。
 
 总的来说，Stable Diffusion可以理解为Latent Diffusion的一次工程优化与扩展：更强的文本编码器、更大规模的数据、更系统的数据筛选和更面向实际场景的训练策略，共同提升了模型生成质量和可用性。
 
 
-<h2 id="q-030">面试问题：介绍一下 Stable Diffusion 的训练 / 推理过程（正向扩散过程和反向去噪过程）</h2>
+<h2 id="q-030">面试问题：介绍一下Stable Diffusion的训练/推理过程</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Stable Diffusion 的训练与推理都围绕同一个核心目标展开：**在低维 Latent 隐空间中学习如何加噪和去噪，并用文本条件控制去噪方向**。训练阶段让 U-Net 学会预测不同噪声强度下的噪声残差；推理阶段再把这个能力反过来使用，从随机高斯噪声或加噪后的参考图出发，逐步还原图像 Latent Feature。
+Stable Diffusion的训练与推理都围绕同一个核心目标展开：**在低维Latent隐空间中学习如何加噪和去噪，并用文本条件控制去噪方向**。训练阶段让U-Net网络学会预测不同噪声强度下的噪声；推理阶段再把这个能力反过来使用，从随机高斯噪声或加噪后的参考图出发，逐步还原图像的Latent隐空间。
 
-### 1. Stable Diffusion 的训练过程
+### 1. Stable Diffusion的训练过程
 
-Stable Diffusion 的完整训练逻辑可以概括为：
+Stable Diffusion的完整训练逻辑可以概括为：
 
 1. 从数据集中随机选择一组图像—文本样本；
-2. 使用 VAE Encoder 将图像压缩为低维 Latent Feature；
-3. 从噪声时间步中随机采样一个 timestep $t$，并向 Latent Feature 加入该强度的高斯噪声；
-4. 使用 CLIP Text Encoder 将文本标签编码为 Text Embeddings；
-5. 把 noisy latent、timestep 对应的 Time Embedding 和 Text Embeddings 输入 U-Net；
-6. U-Net 通过 Cross-Attention 持续注入文本语义，并预测本次实际加入的噪声；
-7. 计算预测噰声和真实噪声之间的回归损失，反向传播并更新 U-Net 参数。
+2. 使用VAE Encoder将图像压缩为Latent Feature；
+3. 从噪声时间步中随机采样一个timestep $t$，并向Latent Feature加入该强度的高斯噪声；
+4. 使用CLIP Text Encoder将文本标签编码为Text Embeddings；
+5. 把Noisy Latent、timestep对应的Time Embedding和Text Embeddings输入 U-Net；
+6. U-Net通过Cross-Attention持续注入Text Embeddings，并预测本次实际加入的噪声；
+7. 计算预测噪声和真实噪声之间的MSE损失，反向传播并更新U-Net参数。
 
 <div align="center"><img src="./imgs/sd-training-epoch-timestep.jpg" alt="Stable Diffusion 训练中跨 Epoch 随机采样时间步" /></div>
 
-每个样本只随机训练一个 timestep，并不意味着模型只学习某一个去噪阶段。随着 Epoch 不断迭代，同一图像会对应不同的噪声强度；在整个数据集和训练周期上，模型最终覆盖从接近原图到接近纯噪声的完整噪声分布。Time Embedding 则让同一个 U-Net 知道当前位于哪一个去噪阶段，从而根据噪声强度调整预测策略。
+每个样本只随机训练一个timestep，并不意味着模型只学习某一个去噪阶段。随着Epoch不断迭代，同一图像会对应不同的噪声强度；在整个数据集和训练周期上，模型最终覆盖从接近原图到接近纯噪声的完整噪声分布。Time Embedding则让同一个U-Net知道当前位于哪一个去噪阶段，从而根据噪声强度来预测噪声。
 
-### 2. Stable Diffusion 的推理过程
+### 2. Stable Diffusion的推理过程
 
-文生图与图生图的主要区别只在于初始 Latent Feature 的来源：
+Stable Diffusion的推理过程主要分文生图与图生图，两者主要区别只在于初始Latent Feature的来源：
 
-- **文生图（txt2img）**：从随机高斯噪声 Latent 开始；
-- **图生图（img2img）**：先用 VAE Encoder 把输入图像压缩成 Latent，再根据 denoising strength 加入一定量的噪声。
+- **文生图（txt2img）**：从随机高斯噪声开始；
+- **图生图（img2img）**：先用VAE Encoder把输入图像压缩成Latent Feature，再根据denoising strength加入一定量的噪声。
 
-随后二者都会进入相同的反向去噪链路：CLIP Text Encoder 将 Prompt 编码为 Text Embeddings；U-Net 在每个 timestep 预测噪声残差，Scheduler 根据当前采样算法和时间步更新 Latent；经过多次迭代后，纯噪声逐渐减少，图像语义信息和文本语义信息逐渐增加；最后由 VAE Decoder 将去噪后的 Latent Feature 重建为像素级图像。
+随后二者都会进入相同的反向去噪链路：
+1. CLIP Text Encoder将Prompt编码为Text Embeddings；
+2. U-Net在每个timestep预测噪声，Scheduler根据当前采样算法和时间步更新 Latent Feature；
+3. 经过多次迭代后，Latent Feature中的噪声逐渐减少，图像语义信息和文本语义信息逐渐增加；
+4. 最后由VAE Decoder将去噪后的Latent Feature重建为像素级图像。
 
 <div align="center"><img src="./imgs/sd-txt2img-img2img-inference-flow.jpg" alt="Stable Diffusion 文生图和图生图前向推理流程" /></div>
 
-面试中可以把完整链路收束为：**Prompt → CLIP Text Encoder → Text Embeddings；图像或高斯噪声 → Latent Feature；U-Net + Scheduler 在 Cross-Attention 条件下反复去噪；VAE Decoder 将最终 Latent 重建为图像。**
 
-<h2 id="q-039">面试问题：介绍 Stable Diffusion 核心网络结构</h2>
+<h2 id="q-039">面试问题：介绍一下Stable Diffusion核心网络结构</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Stable Diffusion 整体上是一个端到端的 Latent Diffusion 系统，主要由 **VAE、U-Net、CLIP Text Encoder 和 Scheduler** 组成。其中 VAE 负责连接像素空间与 Latent 隐空间，CLIP Text Encoder 负责把自然语言转换成语义条件，U-Net 负责预测噪声残差，Scheduler 负责按照既定采样轨迹更新 Latent。
+Stable Diffusion整体上是一个端到端的Latent Diffusion架构模型，主要由 **VAE、U-Net、CLIP Text Encoder和Scheduler** 组成。其中VAE负责连接像素空间与Latent隐空间，CLIP Text Encoder负责把自然语言转换成语义条件，U-Net负责预测噪声，Scheduler负责设计采样方法更新Latent隐空间。
 
 <div align="center"><img src="./imgs/stable-diffusion-overall-architecture.jpg" alt="Stable Diffusion 整体架构及条件扩散流程" /></div>
 
-1.CLIP：CLIP模型是一个基于对比学习的多模态模型，主要包含Text Encoder和Image Encoder两个模型。在Stable Diffusion中主要使用了Text Encoder部分。CLIP Text Encoder模型将输入的文本Prompt进行编码，转换成Text Embeddings（文本的语义信息），通过U-Net网络的CrossAttention模块嵌入Stable Diffusion中作为Condition条件，对生成图像的内容进行一定程度上的控制与引导。
+1. CLIP：CLIP模型是一个基于对比学习的多模态模型，主要包含Text Encoder和Image Encoder两个模型。在Stable Diffusion中主要使用了Text Encoder部分。CLIP Text Encoder模型将输入的文本Prompt进行编码，转换成Text Embeddings（文本的语义信息），通过U-Net网络的CrossAttention模块嵌入Stable Diffusion中作为Condition条件，对生成图像的内容进行一定程度上的控制与引导。
 
-2.VAE：基于Encoder-Decoder架构的生成模型。VAE的Encoder（编码器）结构能将输入图像转换为低维Latent特征，并作为U-Net的输入。VAE的Decoder（解码器）结构能将低维Latent特征重建还原成像素级图像。在Latent空间进行diffusion过程可以大大减少模型的计算量。对于 $512\times512$ 的图像，SD 1.x 通常把它压缩为 $4\times64\times64$ 的 Latent，使后续去噪过程避开高成本的像素空间计算。
+2. VAE：基于Encoder-Decoder架构的生成模型。VAE的Encoder（编码器）结构能将输入图像转换为低维Latent特征，并作为U-Net的输入。VAE的Decoder（解码器）结构能将低维Latent特征重建还原成像素级图像。在Latent空间进行diffusion过程可以大大减少模型的计算量。对于 $512\times512$ 的图像，SD 1.x 通常把它压缩为 $4\times64\times64$ 的 Latent，使后续去噪过程避开高成本的像素空间计算。
 
-3.U-Net：进行Stable Diffusion模型训练时，VAE部分和CLIP部分通常都是冻结的，主要训练U-Net的模型参数。U-Net结构能够预测噪声残差，并结合Sampling method对输入的特征进行重构，逐步将其从随机高斯噪声转化成图像的Latent Feature。训练损失函数与DDPM一致：
+3. U-Net：进行Stable Diffusion模型训练时，VAE部分和CLIP部分通常都是冻结的，主要训练U-Net的模型参数。U-Net结构能够预测噪声残差，并结合Sampling method对输入的特征进行重构，逐步将其从随机高斯噪声转化成图像的Latent Feature。训练损失函数与DDPM一致：
 
 <div align="center"><img src="./imgs/DDPM_loss.png" alt="训练损失函数" /></div>
 
-4.Scheduler：Scheduler 本身通常没有需要学习的神经网络参数，但它决定每一步如何根据 U-Net 的输出更新 Latent。训练阶段常使用 DDPM 噪声调度，推理阶段则可以选择 DDIM、Euler、DPM++、UniPC 等采样方法，以不同的速度、随机性和数值轨迹完成反向去噪。
+4. Scheduler：Scheduler 本身通常没有需要学习的神经网络参数，但它决定每一步如何根据 U-Net 的输出更新 Latent。训练阶段常使用 DDPM 噪声调度，推理阶段则可以选择 DDIM、Euler、DPM++、UniPC 等采样方法，以不同的速度、随机性和数值轨迹完成反向去噪。
 
-四个模块之间的职责边界非常清晰：**CLIP 决定“听懂什么”，U-Net 决定“如何去噪”，Scheduler 决定“沿什么轨迹去噪”，VAE 决定“以什么压缩表示学习并最终还原出什么细节”。**
+四个模块之间的职责边界非常清晰：**CLIP决定“听懂什么”，U-Net决定“如何去噪”，Scheduler决定“沿什么采样方式去噪”，VAE决定“以什么压缩表示学习并最终还原出什么细节”。**
 
 
 <h2 id="q-031">面试问题：Stable Diffusion 的优化策略有哪些？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-### 1. 面试问题：Stable Diffusion 训练时为什么要为每个样本随机采样一个时间步？该采样策略对模型质量有什么影响？
-
-Stable Diffusion 在每个训练 step 中，对一个 batch 内的每个样本**独立、均匀地**从 $\{1, 2, \dots, T\}$（通常 $T=1000$）中采样一个时间步 $t$，再用 $`x_t = \sqrt{\bar\alpha_t} x_0 + \sqrt{1-\bar\alpha_t}\epsilon`$ 一步加噪、预测噪声。这是 **Monte Carlo 估计变分下界（ELBO）** 的工程实现。
-
-**1. 为什么要随机采样而不是顺序遍历**
-
-- **理论上**：DDPM 的训练损失是对所有时间步 $t$ 求期望 $`\mathbb{E}_{t, x_0, \epsilon}[||\epsilon - \epsilon_\theta(x_t, t)||^2]`$，逐 step 随机采样是这个期望的无偏估计。
-- **工程上**：若顺序遍历 $t$，模型在某段连续 step 内只学某个噪声水平，梯度方向被局部时间步主导，**优化方向震荡、收敛慢**；随机采样使 batch 内同时覆盖低、中、高噪声段，梯度方向更稳定。
-- **数据高效**：同一张图在不同 epoch 中会被随机匹配到不同的 $t$，等价于做了**隐式的数据增强**。
-
-**2. 采样策略对模型质量的影响**
-
-- **均匀采样（DDPM 默认）**：实现最简单，但中等噪声段对最终视觉质量贡献最大，均匀采样导致中等 $t$ 的样本利用率不够极致。
-- **重要性采样 / Loss-aware sampling**（Improved DDPM、SD3）：根据每个 $t$ 的 loss 大小动态调整采样概率，把更多算力分配给「难学」的时间步，加速收敛。
-- **Logit-Normal / lognorm shift**（SD3、FLUX 中的 Rectified Flow 训练）：把 $t$ 偏向中间区域采样，对 RF 训练目标更友好，能提升采样步数较少时的生成质量。
-- **大分辨率训练时的 schedule shift**（SD3、SDXL 高分辨率训练）：高分辨率图像的「信息破坏速度」与 $t$ 不再线性，需要把 schedule 偏移到更高 $t$，否则会出现「加噪不足，残留低频结构」问题。
-
-**面试金句**：随机采样是无偏估计 ELBO 的需要；而**采样分布的形状**（均匀 / 重要性 / lognorm / shift）则直接决定了模型在不同噪声段的学习预算，是 SD3、FLUX 这类新一代模型重点优化的工程细节。
-
-
-### 2. 面试问题：Stable Diffusion 中的 ε-prediction、x0-prediction、v-prediction 三种参数化方式有何差异？SD 各版本分别采用了哪种？为什么？
+### 1. 面试问题：Stable Diffusion 中的 ε-prediction、x0-prediction、v-prediction 三种参数化方式有何差异？SD 各版本分别采用了哪种？为什么？
 
 扩散模型在数学上等价的三种「网络要预测什么」的选择，但在**数值稳定性、信噪比覆盖、与采样器/CFG 的兼容性**上差异巨大，是 SD 系列代际演进的关键技术点。
 
@@ -235,7 +208,7 @@ x_0 = \sqrt{\bar\alpha_t}\,x_t - \sqrt{1-\bar\alpha_t}\,v_t
 **面试金句**：三种参数化在数学上等价但在数值上不等价；**ε-pred 偏好高 $t$，x0-pred 偏好低 $t$，v-pred 在全 $t$ 均衡**。SD 系列从 1.x 的 ε-pred → 2.1-v 的 v-pred → SD 3 / FLUX 的 Rectified Flow，本质上是「让网络在所有噪声水平上都得到均衡的梯度信号」这条路线的不断深化。
 
 
-### 3. 面试问题：Stable Diffusion 中的 latent scale factor（如 0.18215）有什么作用？为什么不同 SD 版本的 scale factor 不同？
+### 2. 面试问题：Stable Diffusion 中的 latent scale factor（如 0.18215）有什么作用？为什么不同 SD 版本的 scale factor 不同？
 
 `scale_factor` 是把 VAE Encoder 输出的 latent 喂给扩散模型之前，要乘以的一个标量常数；推理时 VAE Decoder 之前再除回去。它的核心作用是：**让 latent 的统计分布近似单位方差的标准正态**，从而与扩散模型的噪声 schedule 相匹配。
 
@@ -269,7 +242,7 @@ x_0 = \sqrt{\bar\alpha_t}\,x_t - \sqrt{1-\bar\alpha_t}\,v_t
 
 **面试金句**：scale factor 的本质是把「重建友好的 VAE 隐空间」对齐到「扩散友好的单位方差正态空间」；它和扩散网络是绑定训练的一对常数，跨版本/跨 VAE 必须同步切换。
 
-### 4. 面试问题：Stable Diffusion 训练 / 推理为什么需要 EMA（指数滑动平均）权重？常见 EMA decay 的取值与权衡是什么？
+### 3. 面试问题：Stable Diffusion 训练 / 推理为什么需要 EMA（指数滑动平均）权重？常见 EMA decay 的取值与权衡是什么？
 
 EMA（Exponential Moving Average）是在训练过程中**用滑动平均的方式维护一份「平滑版」权重**：
 
@@ -308,7 +281,7 @@ EMA（Exponential Moving Average）是在训练过程中**用滑动平均的方�
 
 **面试金句**：EMA 不是「锦上添花」而是扩散模型的**事实标准**——它把损失景观中高频抖动滤掉，逼近平坦最优点，对 FID 与采样稳定性都有显著收益；decay 的选择与训练 step 数挂钩，大模型大数据集需要更大的 decay 与更长的等效平均窗口。
 
-### 5. Stable Diffusion 官方训练与推理中的工程优化
+### 4. Stable Diffusion 官方训练与推理中的工程优化
 
 Stable Diffusion 1.x 的官方训练采用了典型的多阶段策略：先在 $256\times256$ 分辨率上预训练，再在筛选后的高分辨率、美学质量更高的数据子集上以 $512\times512$ 分辨率继续训练。SD 1.3、1.4 和 1.5 还在训练时以一定概率丢弃文本条件，使同一个 U-Net 同时学会有条件与无条件噪声预测，为推理阶段的 Classifier-Free Guidance（CFG）提供基础。
 
