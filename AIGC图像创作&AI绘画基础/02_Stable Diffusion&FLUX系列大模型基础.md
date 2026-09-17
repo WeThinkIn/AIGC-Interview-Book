@@ -4,13 +4,10 @@
 
 [1.介绍一下Stable Diffusion的原理](#q-028)
   - [面试问题：Stable Diffusion 相比经典 Diffusion model 的核心优化是什么？](#q-029)
-  - [面试问题：介绍一下Stable Diffusion的训练/推理过程](#q-030)
-  - [面试问题：介绍一下Stable Diffusion核心网络结构](#q-039)
-  - [面试问题：Stable Diffusion 的优化策略有哪些？](#q-031)
-  - [面试问题：介绍一下针对 Stable Diffusion 的模型融合技术](#q-033)
-  - [面试问题：为什么相同 seed + 相同 prompt 在不同采样器 / 精度 / 框架下结果会有差异？工程上如何保证生成结果可复现？](#q-036a)
-  - [面试问题：Stable Diffusion 中的 img2img（图生图）原理是什么？denoising strength 起到什么作用？](#q-040a)
-  - [面试问题：Stable Diffusion 中的 Inpaint 和 Outpaint 分别是什么？](#q-040)
+  - [面试问题：介绍一下Stable Diffusion核心网络结构与训练/推理过程](#q-039)
+  - [面试问题：Stable Diffusion中的图生图原理是什么？denoising strength起到什么作用？](#q-040a)
+  - [面试问题：介绍一下Stable Diffusion中Inpaint和Outpaint的原理](#q-040)
+  - [面试问题：介绍一下针对Stable Diffusion的模型融合技术](#q-033)
 
 [2.介绍一下 Stable Diffusion 中 VAE 的架构、原理和作用](#q-041)
   - [面试问题：Stable Diffusion 模型中的 VAE 和单纯的 VAE 生成模型的区别是什么？](#q-044)
@@ -106,9 +103,23 @@ Rocky认为我们可以这样理解，Latent Diffusion Models（LDM）是“在�
 总的来说，Stable Diffusion可以理解为Latent Diffusion的一次工程优化与扩展：更强的文本编码器、更大规模的数据、更系统的数据筛选和更面向实际场景的训练策略，共同提升了模型生成质量和可用性。
 
 
-<h2 id="q-030">面试问题：介绍一下Stable Diffusion的训练/推理过程</h2>
+<h2 id="q-039">面试问题：介绍一下Stable Diffusion核心网络结构与训练/推理过程</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+
+Stable Diffusion是端到端的Latent Diffusion架构模型，主要由 **VAE、U-Net、CLIP Text Encoder和Scheduler** 组成。其中VAE负责连接像素空间与Latent隐空间，CLIP Text Encoder负责把自然语言转换成语义条件，U-Net负责预测噪声，Scheduler负责设计采样方法更新Latent隐空间。
+
+<div align="center"><img src="./imgs/stable-diffusion-overall-architecture.jpg" alt="Stable Diffusion 整体架构及条件扩散流程" /></div>
+
+1. **CLIP模型是一个基于对比学习的多模态模型**，主要包含Text Encoder和Image Encoder两个部分，在Stable Diffusion中主要使用了Text Encoder部分。CLIP Text Encoder将输入的文本Prompt进行编码，转换成Text Embeddings（文本的语义信息），通过U-Net网络的CrossAttention模块嵌入Stable Diffusion中作为Condition条件，对生成图像的内容进行一定程度上的控制与引导。
+
+2. **VAE是基于Encoder-Decoder架构的生成模型**。VAE的Encoder（编码器）能将输入图像转换为低维Latent特征，并作为U-Net的输入。VAE的Decoder（解码器）能将低维Latent特征重建还原成像素级图像。在Latent空间进行扩散过程可以大大减少模型的计算量，对于 $512\times512$ 的图像，SD 1.x 通常把它压缩为 $4\times64\times64$ 的 Latent。
+
+3. **U-Net是Stable Diffusion的Backbone**。进行Stable Diffusion模型训练时，VAE部分和CLIP部分通常都是冻结的，主要训练U-Net的模型参数。U-Net结构能够预测噪声，并结合Scheduler对输入的Latent特征进行去噪重构，逐步将其从高斯噪声转化成图像的Latent Feature。
+
+4. Scheduler本身通常没有需要学习的神经网络参数，但它决定每一步如何根据U-Net的输出更新Latent。训练阶段常使用DDPM噪声调度，推理阶段则可以选择DDIM、Euler、DPM++、UniPC等采样方法，以不同的速度、随机性和数值轨迹完成反向去噪过程。
+
+<div align="center"><img src="./imgs/DDPM_loss.png" alt="训练损失函数" /></div>
 
 Stable Diffusion的训练与推理都围绕同一个核心目标展开：**在低维Latent隐空间中学习如何加噪和去噪，并用文本条件控制去噪方向**。训练阶段让U-Net网络学会预测不同噪声强度下的噪声；推理阶段再把这个能力反过来使用，从随机高斯噪声或加噪后的参考图出发，逐步还原图像的Latent隐空间。
 
@@ -144,166 +155,64 @@ Stable Diffusion的推理过程主要分文生图与图生图，两者主要区�
 <div align="center"><img src="./imgs/sd-txt2img-img2img-inference-flow.jpg" alt="Stable Diffusion 文生图和图生图前向推理流程" /></div>
 
 
-<h2 id="q-039">面试问题：介绍一下Stable Diffusion核心网络结构</h2>
+<h2 id="q-040a">面试问题：Stable Diffusion中的图生图原理是什么？denoising strength起到什么作用？</h2>
 
-**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Stable Diffusion整体上是一个端到端的Latent Diffusion架构模型，主要由 **VAE、U-Net、CLIP Text Encoder和Scheduler** 组成。其中VAE负责连接像素空间与Latent隐空间，CLIP Text Encoder负责把自然语言转换成语义条件，U-Net负责预测噪声，Scheduler负责设计采样方法更新Latent隐空间。
+图生图（img2img）是Stable Diffusion最常用的二次创作能力，本质是**在前向扩散链上选一个中间时刻 $t^*$ 作为起点，从这个加噪后的Latent开始反向去噪**，而不是从纯高斯噪声 $\mathcal{N}(0, I)$ 开始。
 
-<div align="center"><img src="./imgs/stable-diffusion-overall-architecture.jpg" alt="Stable Diffusion 整体架构及条件扩散流程" /></div>
+<div align="center"><img src="./imgs/sd-img2img-denoising-flow.png" alt="Stable Diffusion 图生图与去噪强度控制流程" /></div>
 
-1. CLIP：CLIP模型是一个基于对比学习的多模态模型，主要包含Text Encoder和Image Encoder两个模型。在Stable Diffusion中主要使用了Text Encoder部分。CLIP Text Encoder模型将输入的文本Prompt进行编码，转换成Text Embeddings（文本的语义信息），通过U-Net网络的CrossAttention模块嵌入Stable Diffusion中作为Condition条件，对生成图像的内容进行一定程度上的控制与引导。
+### 1. 完整流程
 
-2. VAE：基于Encoder-Decoder架构的生成模型。VAE的Encoder（编码器）结构能将输入图像转换为低维Latent特征，并作为U-Net的输入。VAE的Decoder（解码器）结构能将低维Latent特征重建还原成像素级图像。在Latent空间进行diffusion过程可以大大减少模型的计算量。对于 $512\times512$ 的图像，SD 1.x 通常把它压缩为 $4\times64\times64$ 的 Latent，使后续去噪过程避开高成本的像素空间计算。
-
-3. U-Net：进行Stable Diffusion模型训练时，VAE部分和CLIP部分通常都是冻结的，主要训练U-Net的模型参数。U-Net结构能够预测噪声残差，并结合Sampling method对输入的特征进行重构，逐步将其从随机高斯噪声转化成图像的Latent Feature。训练损失函数与DDPM一致：
-
-<div align="center"><img src="./imgs/DDPM_loss.png" alt="训练损失函数" /></div>
-
-4. Scheduler：Scheduler 本身通常没有需要学习的神经网络参数，但它决定每一步如何根据 U-Net 的输出更新 Latent。训练阶段常使用 DDPM 噪声调度，推理阶段则可以选择 DDIM、Euler、DPM++、UniPC 等采样方法，以不同的速度、随机性和数值轨迹完成反向去噪。
-
-四个模块之间的职责边界非常清晰：**CLIP决定“听懂什么”，U-Net决定“如何去噪”，Scheduler决定“沿什么采样方式去噪”，VAE决定“以什么压缩表示学习并最终还原出什么细节”。**
-
-
-<h2 id="q-031">面试问题：Stable Diffusion 的优化策略有哪些？</h2>
-
-**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
-
-### 1. 面试问题：Stable Diffusion 中的 ε-prediction、x0-prediction、v-prediction 三种参数化方式有何差异？SD 各版本分别采用了哪种？为什么？
-
-扩散模型在数学上等价的三种「网络要预测什么」的选择，但在**数值稳定性、信噪比覆盖、与采样器/CFG 的兼容性**上差异巨大，是 SD 系列代际演进的关键技术点。
-
-**1. 三种参数化的数学定义**
-
-记加噪公式 $`x_t = \sqrt{\bar\alpha_t}x_0 + \sqrt{1-\bar\alpha_t}\epsilon`$，定义信噪比 $`\text{SNR}(t) = \bar\alpha_t / (1-\bar\alpha_t)`$。三种预测目标的关系为：
+1. **VAE 编码**：把输入参考图编码为 latent $z_0$ 。
+2. **加噪到中间步**：根据 denoising strength $s \in [0, 1]$ 计算起始时间步 $t^* = \lfloor s \cdot T \rfloor$ ，然后对 $z_0$ 一步加噪：
 
 ```math
-v_t = \sqrt{\bar\alpha_t}\,\epsilon - \sqrt{1-\bar\alpha_t}\,x_0
+z_{t^*} = \sqrt{\bar\alpha_{t^*}}\,z_0 + \sqrt{1 - \bar\alpha_{t^*}}\,\epsilon,\quad \epsilon\sim\mathcal{N}(0,I)
 ```
 
-```math
-\epsilon = \sqrt{\bar\alpha_t}\,v_t + \sqrt{1-\bar\alpha_t}\,x_t,\quad
-x_0 = \sqrt{\bar\alpha_t}\,x_t - \sqrt{1-\bar\alpha_t}\,v_t
-```
+3. **从 $t^*$ 反向去噪**：以 $z_{t^*}$ 为起点、文本条件为引导，跑剩余的 $\lceil s \cdot \text{steps} \rceil$ 个采样步。
+4. **VAE 解码**：把最终 Latent 解码回像素。
 
-**2. 三者对比**
+### 2. denoising strength 的作用与直觉
 
-<div align="center">
+- $s = 0$：不加噪，模型基本「拷贝」原图。
+- $s$ 较小（0.2 ~ 0.4）：保留原图大结构与构图，仅做「细节修饰、风格轻调」。常用于细节增强、轻微风格转绘、局部替换的边界融合。
+- $s$ 中等（0.5 ~ 0.7）：原图作为「构图与色调骨架」，模型在此基础上做较强重绘。常用于风格迁移、人物动作迁移、参考构图二创。
+- $s$ 较大（0.8 ~ 0.95）：仅保留原图的极低频信息（大体明暗、轮廓），生成结果与原图差异显著。
+- $s = 1$：等价于文生图（从纯高斯噪声开始）。
 
-| 预测目标 | 损失主导区间 | 高 $t$（接近纯噪声） | 低 $t$（接近原图） | 适用场景 |
-| --- | --- | --- | --- | --- |
-| **ε-pred** | 中、高噪声段 | 良好（噪声有信号） | 数值不稳定（信号占比小，loss 趋零） | 标准 DDPM、SD 1.x、SD 2.0、SDXL base |
-| **x0-pred** | 低、中噪声段 | 数值不稳定（基本是噪声） | 良好 | 教师蒸馏、Inpainting 微调 |
-| **v-pred** | 全噪声段均衡 | 良好 | 良好 | SD 2.1-v、SDXL 部分 fine-tune、Imagen、Rectified Flow |
-
-</div>
-
-**3. SD 各版本的选择**
-
-- **SD 1.x、SD 2.0**：ε-prediction，沿用 DDPM 原始范式。
-- **SD 2.1-v（768 模型）**：v-prediction。Stability 官方在 768 高分辨率模型上切换到 v-pred，原因是高分辨率训练中**低 $t$ 区域 ε 数值非常小，loss 几乎为零**，模型学不到细节修复能力；v-pred 在所有 $t$ 上 loss 量级均衡，训练更稳定，CFG 也更不容易过曝。
-- **SDXL base**：仍用 ε-pred（向下兼容生态），但 SDXL 的部分官方 / 社区微调版本（如 `sdxl-vpred`、`zsnr` 配方）使用 v-pred + Zero-SNR 终端噪声。
-- **SD 3 / FLUX**：Rectified Flow 在数学上等价于 **v-prediction 的连续时间形态**——网络预测「从噪声到数据的速度场」，本质上把 v-pred 的全局均衡性发挥到极致，再叠加直线化路径以加速采样。
-
-**面试金句**：三种参数化在数学上等价但在数值上不等价；**ε-pred 偏好高 $t$，x0-pred 偏好低 $t$，v-pred 在全 $t$ 均衡**。SD 系列从 1.x 的 ε-pred → 2.1-v 的 v-pred → SD 3 / FLUX 的 Rectified Flow，本质上是「让网络在所有噪声水平上都得到均衡的梯度信号」这条路线的不断深化。
+denoising strength同时控制「起始 $t^*$ 」和「实际跑的步数」，因此设置的越小推理越快。
 
 
-### 2. 面试问题：Stable Diffusion 中的 latent scale factor（如 0.18215）有什么作用？为什么不同 SD 版本的 scale factor 不同？
+<h2 id="q-040">面试问题：介绍一下Stable Diffusion中Inpaint和Outpaint的原理</h2>
 
-`scale_factor` 是把 VAE Encoder 输出的 latent 喂给扩散模型之前，要乘以的一个标量常数；推理时 VAE Decoder 之前再除回去。它的核心作用是：**让 latent 的统计分布近似单位方差的标准正态**，从而与扩散模型的噪声 schedule 相匹配。
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-**1. scale factor 的作用**
+- **Inpaint（局部修复）** 指对图像中指定区域进行内容修复或替换的技术。用户可通过遮罩（Mask）标记需修改的区域，并输入文本提示（如“修改物体”或“删除物体”），模型将根据上下文生成与周围环境协调的新内容。典型应用包括移除水印、修复破损图像或替换特定对象。
+- **Outpaint（边界扩展）** 则用于扩展图像边界，生成超出原图范围的合理内容。例如，将一幅风景画的左右两侧延伸，生成连贯的山脉或天空。其核心挑战在于保持扩展区域与原始图像在风格、光照和语义上的一致性。
 
-- **统计对齐**：扩散模型默认假设输入分布近似 $\mathcal{N}(0, I)$（前向加噪、反向去噪都基于这个假设）。VAE Encoder 训练时只优化重建质量，并未约束输出 latent 的方差恰好为 1；如果不缩放，latent 的方差可能远大于或远小于 1，导致：
-  - 加噪过程把信号「淹没」过快或过慢；
-  - 同一 noise schedule 下信噪比错位，CFG / 采样器表现劣化。
-- **数值稳定**：把 latent 拉回 $\mathcal{O}(1)$ 量级有利于 fp16 / bf16 的数值范围。
-- **与已发布权重耦合**：scale factor 和扩散网络是**一体训练**的，所以推理时必须用与训练完全一致的常数，否则结果会整体偏色或塌缩。
+两者目标不同：Inpaint聚焦于“内部修正”，而Outpaint致力于“外部延展”，共同拓展了生成式AI在图像编辑中的灵活性。
 
-**2. 为什么不同版本 scale factor 不同**
+### Inpaint和Outpaint的完整处理链路
 
-`scale_factor` 不是手工调出的「魔法数字」，而是按 **「在训练数据集上让 latent 的标准差近似 1」** 这个原则**统计估计**出来的：把 VAE 跑在大批训练图上，估出 latent 的 std，取倒数即为 scale factor。
+Inpaint 整体上仍然是 img2img，但增加了 Mask 作为空间约束。输入图像先经 VAE Encoder 得到 Latent Feature，Mask 也根据倍率同步缩放；在每一个去噪步骤中，只更新 Mask 指定的区域，Mask 之外则持续回填对应时间步的原图 Latent，使未编辑区域尽量保持不变。
 
-<div align="center">
+<div align="center"><img src="./imgs/sd-inpainting-mask-flow.jpg" alt="Stable Diffusion Inpainting 的 Mask 约束去噪流程" /></div>
 
-| 版本 | VAE 通道数 | scale_factor | 备注 |
-| --- | --- | --- | --- |
-| SD 1.x / 2.x | 4 | **0.18215** | 在 LAION 子集上估计的 latent std≈5.49 的倒数 |
-| SDXL | 4 | **0.13025** | SDXL 重新训练了 VAE，latent 分布发生变化 |
-| SD 3 / FLUX | 16 | 由 `scaling_factor` + `shift_factor` 联合定义 | 16 通道 VAE 同时引入 mean shift，latent 先减 shift 再乘 scale |
+普通 SD Pipeline 可以在采样过程中用 Mask 做混合；专门训练的 Inpainting 模型则会把 noisy latent、masked image latent 和 mask 在通道维拼接后送入 U-Net。以 SD 1.x 为例，三者通常分别为 4、4、1 个通道，合计 9 个输入通道，因此它比仅在采样器外部混合 Mask 更能理解缺失区域与周围上下文。
 
-</div>
-
-**3. 工程注意事项**
-
-- **跨版本切换 VAE 必须同步 scale_factor**：把 SD 1.5 的 VAE 直接用到 SDXL 上、不改 scale factor，会导致明显偏色或细节崩溃。
-- **SD 3 / FLUX 的 latent 是「先减 shift 后乘 scale」**：忽略 shift 项是迁移代码时的高频踩坑点。
-- **diffusers / ComfyUI 中**这个常数通常已经写在 `vae.config.scaling_factor` 中，自定义 pipeline 时必须读取而不是硬编码。
-
-**面试金句**：scale factor 的本质是把「重建友好的 VAE 隐空间」对齐到「扩散友好的单位方差正态空间」；它和扩散网络是绑定训练的一对常数，跨版本/跨 VAE 必须同步切换。
-
-### 3. 面试问题：Stable Diffusion 训练 / 推理为什么需要 EMA（指数滑动平均）权重？常见 EMA decay 的取值与权衡是什么？
-
-EMA（Exponential Moving Average）是在训练过程中**用滑动平均的方式维护一份「平滑版」权重**：
-
-```math
-\theta_{\text{ema}}^{(t)} = \mu \cdot \theta_{\text{ema}}^{(t-1)} + (1 - \mu) \cdot \theta^{(t)}
-```
-
-最终发布与推理时使用的是 $`\theta_{\text{ema}}`$，而不是优化器最后一步的 $\theta$。
-
-**1. 为什么扩散模型几乎必上 EMA**
-
-- **去除高频抖动**：扩散模型损失非常平坦但带高频噪声（不同 $t$ 的 loss 量级差异大），原始权重在小批量、大学习率下波动剧烈；EMA 等价于在权重空间做低通滤波，得到更接近损失「平坦谷底」的权重。
-- **提升 FID / 生成质量**：在 DDPM、ADM、SDXL、SD3 论文中均有明确报告——EMA 权重相比原始权重，FID 显著下降、视觉一致性更好。
-- **采样稳定性**：去噪过程对权重微小扰动敏感，EMA 减小了「同一 prompt 不同 ckpt 出图差异巨大」的问题。
-- **配合 mixed precision / 大 batch**：在 fp16 / bf16 训练中，EMA 用 fp32 维护副本可以缓解低精度累积误差。
-
-**2. EMA decay 的取值与权衡**
-
-<div align="center">
-
-| decay $\mu$ | 等效平均窗口 | 适用场景 |
-| --- | --- | --- |
-| 0.999 | ≈1000 step | 小数据集 / 快速实验，更新快 |
-| 0.9999 | ≈10000 step | 标准扩散模型训练（DDPM、ADM 默认） |
-| 0.99995 ~ 0.99999 | ≈数万 ~ 十万 step | SDXL / SD3 这类大模型大数据集 |
-| 自适应（Karras EMA、Power-Law EMA） | 训练初期 decay 小、后期 decay 大 | EDM2 / Karras 系列；解决「早期 EMA 滞后、后期 EMA 不够平滑」 |
-
-</div>
-
-**3. 工程注意事项**
-
-- **存储成本翻倍**：需要额外一份 fp32 EMA 权重副本；SDXL / SD3 的 EMA 单独占用约等于 base 模型大小的显存或磁盘。
-- **训练初期偏置**：刚启动时 EMA 滞后，常做 **bias correction** 或在 warmup 后才开始累积 EMA。
-- **EMA 与 finetune**：在已有 EMA 权重上做 LoRA / Dreambooth fine-tune 时，通常**只对 base 权重做 fine-tune，不再维护 EMA**，避免拉慢学习速度。
-- **EMA vs SWA**：SWA（Stochastic Weight Averaging）是周期性等权平均；EMA 是连续指数平均。生成模型领域 EMA 更常用。
-
-**面试金句**：EMA 不是「锦上添花」而是扩散模型的**事实标准**——它把损失景观中高频抖动滤掉，逼近平坦最优点，对 FID 与采样稳定性都有显著收益；decay 的选择与训练 step 数挂钩，大模型大数据集需要更大的 decay 与更长的等效平均窗口。
-
-### 4. Stable Diffusion 官方训练与推理中的工程优化
-
-Stable Diffusion 1.x 的官方训练采用了典型的多阶段策略：先在 $256\times256$ 分辨率上预训练，再在筛选后的高分辨率、美学质量更高的数据子集上以 $512\times512$ 分辨率继续训练。SD 1.3、1.4 和 1.5 还在训练时以一定概率丢弃文本条件，使同一个 U-Net 同时学会有条件与无条件噪声预测，为推理阶段的 Classifier-Free Guidance（CFG）提供基础。
-
-在优化器与训练资源层面，官方使用 AdamW、学习率 warmup、梯度累积和大规模数据并行。这里真正值得迁移到工程实践中的不是某一组固定超参数，而是三条原则：**先低分辨率建立分布能力，再高分辨率强化细节；用条件丢弃训练统一有条件/无条件分支；用梯度累积与混合精度扩大有效 batch。**
-
-推理和部署阶段还可以从四个层面继续优化：
-
-1. **数值精度**：使用 FP16 或 BF16 降低显存和计算成本；支持 Tensor Core 的硬件可评估 TF32。低精度是否可用要分别验证 U-Net、Text Encoder 与 VAE，不能只看 Pipeline 是否能够启动。
-2. **分块与切片**：Attention Slicing 逐头计算注意力，VAE Slicing 按样本串行编码/解码，VAE Tiling 按空间块解码；本质都是用更多时延换取更低峰值显存。
-3. **权重卸载与内存布局**：Model CPU Offload 以模块为单位在 CPU/GPU 间切换，Sequential CPU Offload 进一步细化到子模块，显存更低但传输开销更大；Channels Last 是否加速则取决于硬件、算子和编译后端。
-4. **算子与图编译优化**：xFormers、SDPA、FlashAttention 减少 Attention 的显存读写；`torch.compile`、TensorRT 等通过算子融合和计算图编译降低推理开销；Token Merging（ToMe）通过合并相似 token 进一步加速，但属于可能影响细节的有损优化。
-
-这些优化没有统一的“最快配置”。生产环境应同时记录 **生成质量、峰值显存、冷启动时间、单图时延和吞吐量**，再根据交互式生成、批量生产或低显存部署选择组合。
+Outpaint 可以看作 Mask 位于原图边界之外的 Inpaint：先扩展画布，把新增区域标为需要生成的 Mask，再通过相同的条件去噪补全内容。它的关键不是单独的生成公式，而是让扩展区域在透视、光照、纹理和语义上延续原图。
 
 
-<h2 id="q-033">面试问题：介绍一下针对 Stable Diffusion 的模型融合技术</h2>
+<h2 id="q-033">面试问题：介绍一下针对Stable Diffusion的模型融合技术</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
 Stable Diffusion的模型融合主要通过 **Merge Block Weight（块权重融合）** 这种精细化的模型参数整合技术实现，通过分层处理U-Net/Transformer内部不同功能模块层的权重，实现多个Stable Diffusion模型特点优势的定向组合。
 
-### 一、核心原理：分层权重插值
+### 1. 核心原理：分层权重插值
 
 模型融合的目标是合并多个训练好的Stable Diffusion模型（如风格模型+主体模型），生成兼具各方优势的新模型。Merge Block Weight的核心创新在于**分块处理U-Net/Transformer结构**，而非整体融合：
 
@@ -323,9 +232,9 @@ Stable Diffusion的U-Net包含多个功能模块：
 W_{\text{merged}}^{(i)} = \alpha \cdot W_A^{(i)} + (1 - \alpha) \cdot W_B^{(i)}
 ```
 
-其中 $`W_A^{(i)}`$ 和 $`W_B^{(i)}`$ 是待融合模型在模块 $i$ 的权重， $\alpha$ 为该模块的融合系数（0~1）。
+其中 $W_A^{(i)}$ 和 $W_B^{(i)}$ 是待融合模型在模块 $i$ 的权重， $\alpha$ 为该模块的融合系数（0~1）。
 
-### 二、技术实现流程
+### 2. 技术实现流程
 
 **1. 权重归一化（关键预处理）**
 
@@ -351,18 +260,12 @@ W_{\text{merged}}^{(i)} = \alpha \cdot W_A^{(i)} + (1 - \alpha) \cdot W_B^{(i)}
 - **Spatial Transformer**： $\alpha=0.8$ （侧重模型A的文本控制力）
 - **UpSample层**： $\alpha=0.3$ （侧重模型B的细节生成能力）
 
-### 总结
+### 3. Stable Diffusion进行模型融合的主流技巧
 
-Merge Block Weight通过解构U-Net并分层融合权重，实现了模型能力的精准嫁接，成为解决单一模型局限性问题的关键技术。随着Stable Diffusion 3等新架构对多模态权重的分离设计（如MMDiT），模型融合将进一步向**模态感知融合**（Modality-Aware Merging）演进，在艺术创作、工业设计等领域释放更大潜力。
-
-### 1. 面试问题：Stable Diffusion进行模型融合的技巧有哪些？
-
-我们在进行几个Stable Diffusion的融合时，可以调整U-Net架构中每一层模型的融合权重，从而能够进行模型融合的进阶整合：
-
-在MBW插件中，将U-Net分层了25个可调层，开源社区将其分为:
-IN区：有12层
-M区：有1层
-OUT区：有12层
+我们在进行几个Stable Diffusion的融合时，可以调整U-Net架构中每一层模型的融合权重，从而能够进行模型融合的进阶整合。我们以Stable Diffusion 1.5为例，在MBW插件中，将U-Net分层了25个可调层，开源社区将其分为:
+1. IN区：有12层
+2. M区：有1层
+3. OUT区：有12层
 
 IN区影响下采样过程对特征的提取，层数从00到11，感受野越来越大，影响的程度越来越大。IN区块负责平面构成的相关工作（构图元素以及生成图像背景），特别是6-11层，总的来说层数越高影响效果越明显，更改层数越多影响效果越明显。比如：各个物体的大小、位置以及基本轮廓。其中在画面中占比越小的物体受到越浅层的参数控制，占比大的物体受到更深层的参数控制。浅层权重越高，小物体的表现效果就越向该模型靠拢；深层权重越高，较大物体的表现效果就越向该模型靠拢。
 
@@ -373,107 +276,6 @@ OUT区影响上采样过程对特征进行还原，层数从00到11，感受野�
 同时如果IN层和OUT层只改变其中的某一层，几乎不会产生影响效果。
 
 M区：影响最大的一层，甚至比IN11层的影响更大，起到了类似IN层的作用，可以看作IN12层，但也只能起到一层的作用，不如IN层中多层叠加后的影响大。该层越大，构图越向该模型靠拢。
-
-
-<h2 id="q-036a">面试问题：为什么相同 seed + 相同 prompt 在不同采样器 / 精度 / 框架下结果会有差异？工程上如何保证生成结果可复现？</h2>
-
-**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
-
-「同 seed + 同 prompt 但出图不同」是 SD 工程化中最常被反复追问的问题。Seed **只决定初始噪声**；从初始噪声到最终图像的链路上还有大量额外的「随机源」与「数值不一致源」。
-
-### 1. seed 真正决定了什么
-
-- 初始 latent $`z_T \sim \mathcal{N}(0, I)`$ 的具体采样值；
-- 训练 / 推理过程中所有调用 `torch.randn`、`torch.rand` 的随机数序列；
-- 如果 sampler 是随机型（如 ancestral / SDE 系），每一步注入的噪声序列。
-
-**seed 不决定**：模型权重、采样器算法、时间步离散化方式、CFG scale、CFG 形式（cond/uncond batch 顺序）、attention 实现、数值精度、GPU/CPU 后端、cudnn benchmark。
-
-### 2. 出现差异的常见原因
-
-<div align="center">
-
-| 差异源 | 说明 | 是否影响最终图 |
-| --- | --- | --- |
-| **采样器算法** | DDIM / DPM-Solver / Euler-A / UniPC 的更新公式不同 | 显著 |
-| **采样步数** | 同采样器不同步数下的离散化误差不同 | 显著 |
-| **scheduler 配置** | linear / scaled-linear / karras / lognorm shift；betas、prediction_type | 显著 |
-| **精度** | fp32 / fp16 / bf16 的舍入误差累积 | 中等～显著 |
-| **attention 后端** | 原生 / xFormers / SDPA / FlashAttention 的算子顺序、reduction 路径 | 轻微～中等 |
-| **GPU / 驱动** | A100 / H100 / 4090 的 cuBLAS / cuDNN tile 选择不同 | 轻微 |
-| **CPU 与 GPU 的 randn** | 两者实现不同，PyTorch 文档明确不保证一致 | 显著 |
-| **cudnn.benchmark = True** | 会根据输入形状选最快算子，引入非确定性 | 中等 |
-| **batch 内顺序与 padding** | 多 prompt 拼 batch 时不同顺序也可能改变结果 | 轻微 |
-
-</div>
-
-### 3. 可复现性的工程做法
-
-1. **冻结环境**：固定 PyTorch、CUDA、xFormers / SDPA、diffusers、模型权重哈希，最好打成镜像。
-2. **统一 seed 设定**：`torch.manual_seed(seed)`、`torch.cuda.manual_seed_all(seed)`、`numpy.random.seed(seed)`、`random.seed(seed)`。
-3. **关闭非确定性算子**：`torch.use_deterministic_algorithms(True)`、`torch.backends.cudnn.benchmark = False`、`torch.backends.cudnn.deterministic = True`，并按 PyTorch 文档设置 `CUBLAS_WORKSPACE_CONFIG`。
-4. **统一精度**：尽量在 fp32 或同一型号 GPU 的 bf16 / fp16 下复现；跨硬件复现往往只能做到「视觉一致」，难做到 bit-exact。
-5. **统一采样链路**：固定采样器、步数、scheduler 配置、CFG scale、CFG 实现（cond / uncond 是否同 batch）。
-6. **A1111 / ComfyUI 复现注意点**：A1111 的「随机种子」作用于 CPU 的 `randn`，ComfyUI 默认 GPU `randn`，二者直接互换 seed 无法对齐——需要切换 `randn_source`。
-
-**面试金句**：seed 只锁住「初始噪声」，可复现性还需要锁住「采样链路 + 数值后端 + 硬件环境」整条链。在生产环境中，复现的常见做法是：**镜像化环境 + 显式确定性配置 + 同一型号 GPU + 锁定采样器/步数/精度**，否则只能保证「视觉相似」而非「逐像素一致」。
-
-
-<h2 id="q-040a">面试问题：Stable Diffusion 中的 img2img（图生图）原理是什么？denoising strength 起到什么作用？</h2>
-
-**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
-
-img2img 是 SD 最常用的二次创作能力，本质是 **在前向扩散链上选一个中间时刻 $t^*$ 作为起点，从这个加噪后的 latent 开始反向去噪**，而不是从纯噪声 $\mathcal{N}(0, I)$ 开始。
-
-<div align="center"><img src="./imgs/sd-img2img-denoising-flow.png" alt="Stable Diffusion 图生图与去噪强度控制流程" /></div>
-
-### 1. 完整流程
-
-1. **VAE 编码**：把输入参考图编码为 latent $`z_0`$。
-2. **加噪到中间步**：根据 denoising strength $s \in [0, 1]$ 计算起始时间步 $`t^* = \lfloor s \cdot T \rfloor`$，然后对 $`z_0`$ 一步加噪。
-
-```math
-z_{t^*} = \sqrt{\bar\alpha_{t^*}}\,z_0 + \sqrt{1 - \bar\alpha_{t^*}}\,\epsilon,\quad \epsilon\sim\mathcal{N}(0,I)
-```
-
-3. **从 $t^*$ 反向去噪**：以 $`z_{t^*}`$ 为起点、文本条件为引导，跑剩余的 $`\lceil s \cdot \text{steps} \rceil`$ 个采样步。
-4. **VAE 解码**：把最终 latent 解码回像素。
-
-### 2. denoising strength 的作用与直觉
-
-- $s = 0$：不加噪，模型基本「拷贝」原图。
-- $s$ 较小（0.2 ~ 0.4）：保留原图大结构与构图，仅做「细节修饰、风格轻调」。常用于细节增强、轻微风格转绘、局部替换的边界融合。
-- $s$ 中等（0.5 ~ 0.7）：原图作为「构图与色调骨架」，模型在此基础上做较强重绘。常用于风格迁移、人物动作迁移、参考构图二创。
-- $s$ 较大（0.8 ~ 0.95）：仅保留原图的极低频信息（大体明暗、轮廓），生成结果与原图差异显著。
-- $s = 1$：等价于 txt2img（从纯噪声开始）。
-
-### 3. 工程要点
-
-- denoising strength 同时控制「起始 $t^*$」和「实际跑的步数」，因此 strength 越小推理越快。
-- img2img 与 **Inpaint、ControlNet、IP-Adapter** 是正交能力，可以叠加使用：strength 控制原图保留度，ControlNet 控制结构，IP-Adapter 控制风格 / ID。
-- 在 SDXL / SD3 上做 img2img 时，micro-conditioning（original/target size）必须传入与原图一致的尺寸，否则会出现尺寸偏差导致的细节崩溃。
-- **SDEdit 论文**是 img2img 的理论起源：「在合适的中间噪声水平上加噪再去噪，可以同时保留高层语义与改变低层细节」。
-
-**面试金句**：img2img 不是把原图「画进 prompt 里」，而是把原图当作扩散链上的一个「中间状态」，让模型从这一步继续向 $t=0$ 去噪；denoising strength 决定了「保留多少原图信息 / 模型有多少自由度」。
-
-<h2 id="q-040">面试问题：Stable Diffusion 中的 Inpaint 和 Outpaint 分别是什么？</h2>
-
-**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
-
-- **Inpaint（局部修复）** 指对图像中指定区域进行内容修复或替换的技术。用户可通过遮罩（Mask）标记需修改的区域，并输入文本提示（如“草地”或“删除物体”），模型将根据上下文生成与周围环境协调的新内容。典型应用包括移除水印、修复破损图像或替换特定对象。
-- **Outpaint（边界扩展）** 则用于扩展图像边界，生成超出原图范围的合理内容。例如，将一幅风景画的左右两侧延伸，生成连贯的山脉或天空。其核心挑战在于保持扩展区域与原始图像在风格、光照和语义上的一致性。
-
-两者均基于 Stable Diffusion 的潜在扩散模型，但目标不同：Inpaint 聚焦于“内部修正”，而 Outpaint 致力于“外部延展”，共同拓展了生成式 AI 在图像编辑中的灵活性。
-
-### Inpaint 的完整处理链路
-
-Inpaint 整体上仍然是 img2img，但增加了 Mask 作为空间约束。输入图像先经 VAE Encoder 得到 Latent Feature，Mask 同步缩放到 Latent 分辨率；在每一个去噪步骤中，只更新 Mask 指定的区域，Mask 之外则持续回填对应时间步的原图 Latent，使未编辑区域尽量保持不变。
-
-<div align="center"><img src="./imgs/sd-inpainting-mask-flow.jpg" alt="Stable Diffusion Inpainting 的 Mask 约束去噪流程" /></div>
-
-普通 SD Pipeline 可以在采样过程中用 Mask 做混合；专门训练的 Inpainting 模型则会把 noisy latent、masked image latent 和 mask 在通道维拼接后送入 U-Net。以 SD 1.x 为例，三者通常分别为 4、4、1 个通道，合计 9 个输入通道，因此它比仅在采样器外部混合 Mask 更能理解缺失区域与周围上下文。
-
-Outpaint 可以看作 Mask 位于原图边界之外的 Inpaint：先扩展画布，把新增区域标为需要生成的 Mask，再通过相同的条件去噪补全内容。它的关键不是单独的生成公式，而是让扩展区域在透视、光照、纹理和语义上延续原图。
 
 
 <h1 id="q-041">2.介绍一下 Stable Diffusion 中 VAE 的架构、原理和作用</h1>
@@ -572,7 +374,36 @@ VAE 是连接「像素世界」与「扩散世界」的桥梁，是 SD 系列代
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-> 该问题与 [面试问题：Stable Diffusion 的优化策略有哪些？](#q-031) 中的 latent scale factor 子问题形成「VAE 视角 vs 扩散视角」互补，本节侧重 VAE 侧的统计估计与跨版本切换实操。
+`scale_factor` 是把 VAE Encoder 输出的 latent 喂给扩散模型之前，要乘以的一个标量常数；推理时 VAE Decoder 之前再除回去。它的核心作用是：**让 latent 的统计分布近似单位方差的标准正态**，从而与扩散模型的噪声 schedule 相匹配。
+
+**1. scale factor 的作用**
+
+- **统计对齐**：扩散模型默认假设输入分布近似 $\mathcal{N}(0, I)$（前向加噪、反向去噪都基于这个假设）。VAE Encoder 训练时只优化重建质量，并未约束输出 latent 的方差恰好为 1；如果不缩放，latent 的方差可能远大于或远小于 1，导致：
+  - 加噪过程把信号「淹没」过快或过慢；
+  - 同一 noise schedule 下信噪比错位，CFG / 采样器表现劣化。
+- **数值稳定**：把 latent 拉回 $\mathcal{O}(1)$ 量级有利于 fp16 / bf16 的数值范围。
+- **与已发布权重耦合**：scale factor 和扩散网络是**一体训练**的，所以推理时必须用与训练完全一致的常数，否则结果会整体偏色或塌缩。
+
+**2. 为什么不同版本 scale factor 不同**
+
+`scale_factor` 不是手工调出的「魔法数字」，而是按 **「在训练数据集上让 latent 的标准差近似 1」** 这个原则**统计估计**出来的：把 VAE 跑在大批训练图上，估出 latent 的 std，取倒数即为 scale factor。
+
+<div align="center">
+
+| 版本 | VAE 通道数 | scale_factor | 备注 |
+| --- | --- | --- | --- |
+| SD 1.x / 2.x | 4 | **0.18215** | 在 LAION 子集上估计的 latent std≈5.49 的倒数 |
+| SDXL | 4 | **0.13025** | SDXL 重新训练了 VAE，latent 分布发生变化 |
+| SD 3 / FLUX | 16 | 由 `scaling_factor` + `shift_factor` 联合定义 | 16 通道 VAE 同时引入 mean shift，latent 先减 shift 再乘 scale |
+
+</div>
+
+**3. 工程注意事项**
+
+- **跨版本切换 VAE 必须同步 scale_factor**：把 SD 1.5 的 VAE 直接用到 SDXL 上、不改 scale factor，会导致明显偏色或细节崩溃。
+- **SD 3 / FLUX 的 latent 是「先减 shift 后乘 scale」**：忽略 shift 项是迁移代码时的高频踩坑点。
+- **diffusers / ComfyUI 中**这个常数通常已经写在 `vae.config.scaling_factor` 中，自定义 pipeline 时必须读取而不是硬编码。
+
 
 ### 1. 从 VAE 输出到扩散输入的「分布对齐」
 
