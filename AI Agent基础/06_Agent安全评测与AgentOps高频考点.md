@@ -939,3 +939,4 @@ Agent 事故包括：
 - Liu et al., [**AgentBench: Evaluating LLMs as Agents**](https://github.com/THUDM/AgentBench), 2023.
 - LangSmith, [**Observability and Evaluation for LLM Applications**](https://docs.smith.langchain.com/).
 - Arize Phoenix, [**LLM Tracing and Evaluation**](https://docs.arize.com/phoenix).
+- OrcaReplay, [**本地录制与离线重放 Agent 运行轨迹**](https://github.com/Continuum-AI-Corp/OrcaReplay)：夹在 Agent 与模型厂商之间的 HTTP 代理 + shim，把提示词、工具调用、响应与原始字节原样录成本地 trace，可完全离线重放以复现失败运行、diff 两次运行或把录像 fork 到另一个模型上重跑；另提供 MCP server 读取本地 trace 库。Apache-2.0，npm 包 orcareplay。
