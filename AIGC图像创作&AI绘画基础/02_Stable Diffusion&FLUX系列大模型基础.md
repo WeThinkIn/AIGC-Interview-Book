@@ -3,22 +3,20 @@
 ## 第一章 Stable Diffusion 系列核心高频考点
 
 [1.介绍一下Stable Diffusion的原理](#q-028)
-  - [面试问题：Stable Diffusion 相比经典 Diffusion model 的核心优化是什么？](#q-029)
+  - [面试问题：Stable Diffusion相比经典Diffusion model的核心优化是什么？](#q-029)
   - [面试问题：介绍一下Stable Diffusion核心网络结构与训练/推理过程](#q-039)
   - [面试问题：Stable Diffusion中的图生图原理是什么？denoising strength起到什么作用？](#q-040a)
   - [面试问题：介绍一下Stable Diffusion中Inpaint和Outpaint的原理](#q-040)
   - [面试问题：介绍一下针对Stable Diffusion的模型融合技术](#q-033)
 
-[2.介绍一下 Stable Diffusion 中 VAE 的架构、原理和作用](#q-041)
-  - [面试问题：Stable Diffusion 模型中的 VAE 和单纯的 VAE 生成模型的区别是什么？](#q-044)
-  - [面试问题：从 SD 1.x → SDXL → SD 3 → FLUX.1，VAE 在通道数、下采样率、训练目标上的演进路线是怎样的？](#q-044a)
-  - [面试问题：VAE 编码后为什么要乘以 scale_factor？SD 各版本的 scale_factor 是如何确定的？](#q-044b)
-  - [面试问题：VAE / Tokenizer / Latent 空间为什么会影响图像生成质量和训练效率？](#q-044e)
-  - [面试问题：SDXL VAE 在 fp16 下出现"白图 / NaN"问题的原因是什么？工业上常见的修复方案有哪些？](#q-044c)
-  - [面试问题：大分辨率推理时如何降低 VAE 解码显存？VAE Tiling 与 TAESD 各自的取舍是什么？](#q-044d)
+[2.介绍一下Stable Diffusion中VAE的架构、原理和作用](#q-041)
+  - [面试问题：Stable Diffusion中的VAE和原生VAE生成模型的区别是什么？](#q-044)
+  - [面试问题：从SD 1.x → SDXL → SD 3 → FLUX.1，VAE在通道数、下采样率、训练目标上的演进路线是怎样的？](#q-044a)
+  - [面试问题：VAE编码后为什么要乘以scale_factor？SD各版本的 scale_factor是如何确定的？](#q-044b)
+  - [面试问题：VAE的Latent空间为什么会影响图像生成质量和训练效率？](#q-044e)
 
-[3.介绍一下 Stable Diffusion 中 Backbone 的架构、原理和作用](#q-045)
-  - [面试问题：介绍一下 Stable Diffusion 中的自注意力机制和交叉注意力机制](#q-047)
+[3.介绍一下Stable Diffusion中Backbone的架构、原理和作用](#q-045)
+  - [面试问题：介绍一下Stable Diffusion中的自注意力机制和交叉注意力机制的原理](#q-047)
   - [面试问题：为什么使用 U-Net 作为 Stable Diffusion 模型的核心架构？介绍一下 U-Net 架构](#q-049)
   - [面试问题：U-Net 与 DiT / MM-DiT 在 Backbone 设计哲学上的本质差异是什么？SD 系列从 U-Net 演进到 DiT 的根本原因是什么？](#q-049b)
   - [面试问题：SD Backbone 中 GroupNorm + SiLU + 残差连接的设计为何对训练稳定性很关键？换成 LayerNorm / BatchNorm 会有什么问题？](#q-049d)
@@ -76,7 +74,7 @@
 
 <h1 id="q-028">1.介绍一下Stable Diffusion的原理</h1>
 
-<h2 id="q-029">面试问题：Stable Diffusion 相比经典 Diffusion model 的核心优化是什么？</h2>
+<h2 id="q-029">面试问题：Stable Diffusion相比经典Diffusion model的核心优化是什么？</h2>
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
@@ -278,49 +276,35 @@ OUT区影响上采样过程对特征进行还原，层数从00到11，感受野�
 M区：影响最大的一层，甚至比IN11层的影响更大，起到了类似IN层的作用，可以看作IN12层，但也只能起到一层的作用，不如IN层中多层叠加后的影响大。该层越大，构图越向该模型靠拢。
 
 
-<h1 id="q-041">2.介绍一下 Stable Diffusion 中 VAE 的架构、原理和作用</h1>
+<h1 id="q-041">2.介绍一下Stable Diffusion中VAE的架构、原理和作用</h1>
 
-<h2 id="q-044">面试问题：Stable Diffusion 模型中的 VAE 和单纯的 VAE 生成模型的区别是什么？</h2>
+<h2 id="q-044">面试问题：Stable Diffusion中的VAE和原生VAE生成模型的区别是什么？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Stable Diffusion 中的 VAE 是连接像素空间与 Latent 隐空间的桥梁，核心职责是**图像压缩与图像重建**：Encoder 把图像压缩成低维空间特征供扩散模型学习，Decoder 再把去噪后的 Latent Feature 还原为像素级图像。
+传统深度学习时代的VAE是单独作为生成模型；而在AIGC时代，VAE只是作为特征编码器，提供特征给Diffusion用于图像的生成。Stable Diffusion中的VAE是连接像素空间与Latent隐空间的桥梁，核心职责是**图像压缩与图像重建**：Encoder部分把图像压缩成低维空间特征供扩散模型学习，Decoder部分再把去噪后的Latent隐空间还原为像素级图像。
 
-<div align="center"><img src="./imgs/stable-diffusion-vae-architecture.jpg" alt="Stable Diffusion VAE Encoder Decoder 与基础模块结构" /></div>
+本质上来看，两者的核心作用已经发生改变。
 
-### 1. 面试问题：VAE 为什么会导致图像变模糊？
-
-VAE 出现模糊，根因不是“变分”三个字本身，而是**有损压缩与重建目标之间的取舍**。图像先被压缩到低维 latent，细小纹理、高频边缘和文字笔画如果在编码阶段丢失，Decoder 只能依据 latent 中保留下来的统计信息进行重建；当 L1/MSE 等像素损失面对多个合理细节时，模型倾向输出平均解，于是边缘变软、纹理变平。
-
-在 Stable Diffusion 中，VAE 的下采样率、latent 通道数、感知损失（Perceptual loss）和对抗损失共同决定重建上限。VAE 不是负责凭空恢复已经丢失的信息，而是尽量在压缩率与重建质量之间取得平衡；后续 Diffusion 主要在 latent 空间建模，也不能稳定补回 VAE 完全没有编码进去的细节。
-
-### 2. 面试问题：为什么 VAE 单独做生成效果不好，但是 VAE + Diffusion 的图像生成效果就很好？
-
-**这个问题最本质的回答是：传统深度学习时代的VAE是单独作为生成模型；而在AIGC时代，VAE只是作为特征编码器，提供特征给Diffusion用于图像的生成。其实两者的本质作用已经发生改变。**
-
-同时传统深度学习时代的VAE的重构损失只使用了平方误差，而Stable Diffusion中的VAE使用了平方误差 + Perceptual损失 + 对抗损失。在正则项方面，传统深度学习时代的VAE使用了完整的KL散度项，而Stable Diffusion中的VAE使用了弱化的KL散度项。同时传统深度学习时代的VAE将图像压缩成单个向量，而Stable Diffusion中的VAE则将图像压缩成一个 $N \times M$ 的特征矩阵。
-
-上述的差别都导致了传统深度学习时代的VAE生成效果不佳。
-
-### 3. Stable Diffusion 模型中的 VAE 和单纯的 VAE 生成模型有何区别？
-
-**传统 VAE 生成模型**
+**传统VAE生成模型：**
 
 - **完整的生成系统**：从噪声直接生成数据
 - **核心机制**：变分推断 + 重参数化技巧
 - **目标**：学习数据分布，实现无条件生成
 - **挑战**：生成质量与多样性的平衡
 
-**Stable Diffusiuon模型中的 VAE**
+**Stable Diffusiuon中的VAE：**
 
 - **功能组件**：数据压缩器和重建器
 - **核心作用**：将图像压缩到潜在空间，降低计算成本
 - **目标**：高保真度重建，为扩散过程提供高效空间
 - **优势**：专注重建质量，与扩散模型协同工作
 
-### 4. Stable Diffusion VAE 的结构与训练目标
+同时传统深度学习时代的VAE的重构损失只使用了平方误差，而Stable Diffusion中的VAE使用了平方误差 + Perceptual损失 + 对抗损失。在正则项方面，传统深度学习时代的VAE使用了完整的KL散度项，而Stable Diffusion中的VAE使用了弱化的KL散度项。同时传统深度学习时代的VAE将图像压缩成单个向量，而Stable Diffusion中的VAE则将图像压缩成一个 $N \times M$ 的特征矩阵。
 
-SD 1.x 的 VAE Encoder 由卷积、DownBlock、ResNetBlock、MidBlock 和 Self-Attention 等模块组成，将输入图像转换为 Gaussian Latent Distribution；Decoder 使用对称的 UpBlock、ResNetBlock 与 MidBlock 将 Latent 重建为像素图。下采样率 $f=8$、Latent 通道数 $c=4$ 是压缩效率与重建质量之间的折中： $f$ 太小会让扩散主干承担过高计算成本， $f$ 太大又会丢失过多细节。
+SD 1.x 的 VAE Encoder 由卷积、DownBlock、ResNetBlock、MidBlock 和 Self-Attention 等模块组成，将输入图像转换为 Gaussian Latent Distribution；Decoder 使用对称的 UpBlock、ResNetBlock 与 MidBlock 将 Latent 重建为像素图。具体架构如下图所示。下采样率 $f=8$、Latent 通道数 $c=4$ 是压缩效率与重建质量之间的折中： $f$ 太小会让扩散主干承担过高计算成本， $f$ 太大又会丢失过多细节。
+
+<div align="center"><img src="./imgs/stable-diffusion-vae-architecture.jpg" alt="Stable Diffusion VAE Encoder Decoder 与基础模块结构" /></div>
 
 训练时并不只使用像素误差，而是组合多种目标：
 
@@ -331,16 +315,16 @@ SD 1.x 的 VAE Encoder 由卷积、DownBlock、ResNetBlock、MidBlock 和 Self-A
 
 这也解释了为什么 Stable Diffusion VAE 与传统“单独承担生成任务”的 VAE 不同：它不需要独自学习从标准正态分布生成所有图像内容，而是为 Diffusion 提供一个信息密度高、空间结构仍然完整、又足够低维的工作空间。
 
-原始 SD VAE 在压缩和重建时仍然存在信息损失，尤其容易影响小尺寸人脸、文字、细线条和高频纹理。工程上切换微调后的 VAE，通常会改变生成图像的颜色、对比度和局部细节，但不会像切换 U-Net 那样大幅改变主体构图；这说明 VAE 决定的是成像与重建上限，而 U-Net 决定主要生成分布。
+原始 SD VAE 在压缩和重建时仍然存在信息损失，尤其容易影响小尺寸人脸、文字、细线条和高频纹理。工程上切换微调后的 VAE，通常会改变生成图像的颜色、对比度和局部细节，但不会像切换 U-Net 那样大幅改变主体构图；这说明 VAE 决定的是成像与重建上限，而 U-Net 决定主要生成分布。下图是Stable Diffusion VAE在不同图像吃存在的重建效果：
 
 <div align="center"><img src="./imgs/sd-vae-reconstruction-comparison.jpg" alt="Stable Diffusion VAE 在不同图像尺寸下的压缩重建效果" /></div>
 
 
-<h2 id="q-044a">面试问题：从 SD 1.x → SDXL → SD 3 → FLUX.1，VAE 在通道数、下采样率、训练目标上的演进路线是怎样的？</h2>
+<h2 id="q-044a">面试问题：从SD 1.x → SDXL → SD 3 → FLUX.1，VAE在通道数、下采样率、训练目标上的演进路线是怎样的？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-VAE 是连接「像素世界」与「扩散世界」的桥梁，是 SD 系列代际跃迁中持续被升级的核心组件。整体演进可以概括为三条主线：**通道数从 4 → 16、下采样率稳定在 8x、训练目标从「像素重建」走向「感知 + 对抗 + 多尺度」**。
+VAE是连接「像素世界」与「扩散世界」的桥梁，是SD系列代际跃迁中持续被升级的核心组件。整体演进可以概括为三条主线：**通道数从 4 → 16、下采样率稳定在 8x、训练目标从「像素重建」走向「感知 + 对抗 + 多尺度」**。
 
 ### 1. 主流 SD 系列 VAE 演进对比
 
@@ -350,7 +334,7 @@ VAE 是连接「像素世界」与「扩散世界」的桥梁，是 SD 系列代
 | --- | --- | --- | --- | --- | --- |
 | **SD 1.x VAE** | 任意 | 8x | 4 | L1 + LPIPS + KL + PatchGAN | 基线 KL-f8 VAE |
 | **SD 2.x VAE** | 任意 | 8x | 4 | 同上 | 重训权重，与 SD 1.x 不通用 |
-| **SDXL VAE** | 任意 | 8x | 4 | L1 + LPIPS + KL + PatchGAN，重训数据更多 | 重建细节明显提升；fp16 数值不稳，需 fp16-fix |
+| **SDXL VAE** | 任意 | 8x | 4 | L1 + LPIPS + KL + PatchGAN，重训数据更多 | 重建细节明显提升 |
 | **SD 3 VAE** | 任意 | 8x | **16** | L1 + LPIPS + KL + Adversarial（更新版判别器） | **通道数翻 4 倍**，显著提升小物体（人脸、文字）重建质量 |
 | **FLUX.1 VAE** | 任意 | 8x | 16 | 同 SD 3 思路，配合 mean shift / scaling | 与 SD 3 类似的高通道路线；与 MM-DiT 联合优化 |
 
@@ -367,26 +351,26 @@ VAE 是连接「像素世界」与「扩散世界」的桥梁，是 SD 系列代
 - 下采样率减半（8x → 4x）会让 latent token 数量 4 倍化，所有扩散计算成本随之 4 倍化（attention 是 16 倍化），代价过大；
 - 通道数翻倍只增加每个 token 的 channel 维度，扩散网络的整体计算量增长可控，且能直接提升重建上限。
 
-**面试金句**：SD 系列 VAE 的代际演进是「**8x 下采样不动、通道数从 4 翻到 16、损失从 L1 走向感知 + 对抗**」。理解这条路线就理解了 SD 3 / FLUX 在小物体细节、文字渲染、人脸保真上跨越式提升的底层原因。
 
-
-<h2 id="q-044b">面试问题：VAE 编码后为什么要乘以 scale_factor？SD 各版本的 scale_factor 是如何确定的？</h2>
+<h2 id="q-044b">面试问题：VAE编码后为什么要乘以scale_factor？SD各版本的 scale_factor是如何确定的？</h2>
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-`scale_factor` 是把 VAE Encoder 输出的 latent 喂给扩散模型之前，要乘以的一个标量常数；推理时 VAE Decoder 之前再除回去。它的核心作用是：**让 latent 的统计分布近似单位方差的标准正态**，从而与扩散模型的噪声 schedule 相匹配。
+`scale_factor` 是把VAE Encoder输出的Latent Feature喂给扩散模型之前，要乘以的一个标量常数；推理时VAE Decoder之前再除回去。它的核心作用是：**让Latent Feature的统计分布近似单位方差的标准正态**，从而与扩散模型的噪声schedule相匹配。
+
+**从 VAE 输出到扩散输入的「分布对齐」**。VAE Encoder 训练时**并没有显式约束输出 Latent 的方差恰好为 1**。当扩散模型以这个 Latent 作为输入做 $x_t = \sqrt{\bar\alpha_t}x_0 + \sqrt{1-\bar\alpha_t}\epsilon$ 加噪时，`scale_factor` 的作用是把 Latent 的标准差缩放到接近1，让噪声调度公式背后的「数据分布近似 $\mathcal{N}(0, I)$」假设近似成立。
 
 **1. scale factor 的作用**
 
-- **统计对齐**：扩散模型默认假设输入分布近似 $\mathcal{N}(0, I)$（前向加噪、反向去噪都基于这个假设）。VAE Encoder 训练时只优化重建质量，并未约束输出 latent 的方差恰好为 1；如果不缩放，latent 的方差可能远大于或远小于 1，导致：
+- **统计对齐**：扩散模型默认假设输入分布近似 $\mathcal{N}(0, I)$（前向加噪、反向去噪都基于这个假设）。VAE Encoder训练时只优化重建质量，并未约束输出Latent的方差恰好为1；如果不缩放，latent的方差可能远大于或远小于1，导致：
   - 加噪过程把信号「淹没」过快或过慢；
-  - 同一 noise schedule 下信噪比错位，CFG / 采样器表现劣化。
-- **数值稳定**：把 latent 拉回 $\mathcal{O}(1)$ 量级有利于 fp16 / bf16 的数值范围。
-- **与已发布权重耦合**：scale factor 和扩散网络是**一体训练**的，所以推理时必须用与训练完全一致的常数，否则结果会整体偏色或塌缩。
+  - 同一noise schedule下信噪比错位，CFG/采样器表现劣化。
+- **数值稳定**：把Latent拉回 $\mathcal{O}(1)$ 量级有利于fp16/bf16的数值范围。
+- **与已发布权重耦合**：scale factor和扩散网络是**一体训练**的，所以推理时必须用与训练完全一致的常数，否则结果会整体偏色或塌缩。
 
 **2. 为什么不同版本 scale factor 不同**
 
-`scale_factor` 不是手工调出的「魔法数字」，而是按 **「在训练数据集上让 latent 的标准差近似 1」** 这个原则**统计估计**出来的：把 VAE 跑在大批训练图上，估出 latent 的 std，取倒数即为 scale factor。
+`scale_factor` 不是手工调出的「魔法数字」，而是按 **「在训练数据集上让 latent 的标准差近似 1」** 这个原则**统计估计**出来的：把VAE跑在大批训练图上，估出 Latent的std，取倒数即为scale factor。
 
 <div align="center">
 
@@ -398,18 +382,7 @@ VAE 是连接「像素世界」与「扩散世界」的桥梁，是 SD 系列代
 
 </div>
 
-**3. 工程注意事项**
-
-- **跨版本切换 VAE 必须同步 scale_factor**：把 SD 1.5 的 VAE 直接用到 SDXL 上、不改 scale factor，会导致明显偏色或细节崩溃。
-- **SD 3 / FLUX 的 latent 是「先减 shift 后乘 scale」**：忽略 shift 项是迁移代码时的高频踩坑点。
-- **diffusers / ComfyUI 中**这个常数通常已经写在 `vae.config.scaling_factor` 中，自定义 pipeline 时必须读取而不是硬编码。
-
-
-### 1. 从 VAE 输出到扩散输入的「分布对齐」
-
-VAE Encoder 训练时只优化 $`\text{Recon} + \text{KL} + \text{LPIPS} + \text{Adv}`$，**并没有显式约束输出 latent 的方差恰好为 1**。当扩散模型以这个 latent 作为输入做 $`x_t = \sqrt{\bar\alpha_t}x_0 + \sqrt{1-\bar\alpha_t}\epsilon`$ 加噪时，`scale_factor` 的作用是把 latent 的标准差缩放到接近 1，让噪声调度公式背后的「数据分布近似 $\mathcal{N}(0, I)$」假设近似成立。
-
-### 2. 各版本 scale_factor 的统计估计方式
+各版本 scale_factor 的统计估计方式：
 
 ```python
 with torch.no_grad():
@@ -421,139 +394,47 @@ scale_factor = 1.0 / sigma
 shift_factor = latents.mean()
 ```
 
-<div align="center">
-
-| 版本 | scale_factor | shift_factor | 是否需要 mean shift |
-| --- | --- | --- | --- |
-| SD 1.x / 2.x | 0.18215 | 0 | 否 |
-| SDXL | 0.13025 | 0 | 否 |
-| SD 3 | 由 `vae.config.scaling_factor` 给出 | 由 `vae.config.shift_factor` 给出 | **是** |
-| FLUX.1 | 由 `vae.config.scaling_factor` 给出 | 由 `vae.config.shift_factor` 给出 | **是** |
-
-</div>
 
 ### 3. 跨版本切换时的注意事项
 
 - 切换 VAE 必须**同步切换 scale_factor**；不切会出现整体偏色 / 饱和度异常，严重时直接塌缩。
-- SD 3 / FLUX 的 latent 公式为 `z = (raw_latent - shift_factor) * scaling_factor`，再喂给扩散网络；解码时反操作。漏掉 shift 是迁移代码时的高频踩坑点。
+- SD 3 / FLUX 的 Latent 公式为 `z = (raw_latent - shift_factor) * scaling_factor`，再喂给扩散网络；解码时反操作。漏掉 shift 是迁移代码时的高频踩坑点。
 - 自定义 pipeline 时优先读取 `vae.config.scaling_factor` 与 `vae.config.shift_factor`，避免硬编码导致后续模型升级时 bug。
-- LoRA / Dreambooth 训练时如果替换了 VAE，**训练数据预处理 / 训练 loop / 推理 pipeline 三处的 scale 都要保持一致**，否则训练目标与推理 pipeline 不匹配。
 
-**面试金句**：scale_factor 是「VAE 实际输出方差」的倒数，目的是让 latent 分布近似 $\mathcal{N}(0, I)$，与扩散模型的噪声调度匹配；它和扩散网络是绑定的一对常量，跨版本切换 VAE 必须同步更新；SD 3 / FLUX 还引入了 shift_factor，是 16 通道 VAE 的额外 mean 校正。
+总的来说，scale_factor 是「VAE 实际输出方差」的倒数，目的是让 Latent 分布近似 $\mathcal{N}(0, I)$，与扩散模型的噪声调度匹配；它和扩散网络是绑定的一对常量，跨版本切换 VAE 必须同步更新；SD 3 / FLUX 还引入了 shift_factor，是 16 通道 VAE 的额外 mean 校正。
 
-<h2 id="q-044e">面试问题：VAE / Tokenizer / Latent 空间为什么会影响图像生成质量和训练效率？</h2>
+<h2 id="q-044e">面试问题：VAE的Latent空间为什么会影响图像生成质量和训练效率？</h2>
 
 **难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-VAE、Tokenizer 和 Latent 空间决定了图像从像素空间进入生成模型训练空间的方式。它们不是 Stable Diffusion pipeline 里的辅助模块，而是现代高分辨率图像生成模型的底层信息瓶颈。
+VAE和其Latent空间决定了图像从像素空间进入生成模型训练空间的方式。它们不是 Stable Diffusion pipeline 里的辅助模块，**而是现代高分辨率图像生成模型的底层信息瓶颈**。
 
-Stable Diffusion、SDXL、SD 3、FLUX、Qwen-Image、Z-Image 这类模型通常不直接在像素空间训练，而是先用 VAE 或图像 Tokenizer 把图像压缩到 latent 空间，再由 U-Net / DiT / Flow 模型学习 latent 分布，最后再解码回像素图。这样做能显著降低计算成本，但也带来一个关键代价：**被 VAE 压缩丢掉的信息，后面的扩散主干很难稳定恢复。**
+先用 VAE 或图像 Tokenizer 把图像压缩到 Latent 空间，再由 U-Net / DiT模型学习 Latent 分布，最后再解码回像素图。这样做能显著降低计算成本，但也带来一个关键代价：**被 VAE 压缩丢掉的信息，后面的扩散主干很难稳定恢复。**
 
 它对模型质量和效率的影响主要体现在四个方面：
 
-1. **训练效率。**
-   压缩率越高，latent token 越少，U-Net / DiT 的计算量越低。对于 DiT 来说，token 数会直接影响 Attention 成本，所以 Z-Image 的紧凑 VAE、高压缩 latent 路线，本质上是在降低训练和推理成本。
+1. **训练效率。** 压缩率越高，latent token 越少，U-Net / DiT 的计算量越低。对于 DiT 来说，token 数会直接影响 Attention 成本，所以紧凑 VAE、高压缩 latent 路线，本质上是在降低训练和推理成本。
 
-2. **细节上限。**
-   如果 VAE 不能重建小字、笔画、边缘、纹理和细线结构，生成主干即使理解了 prompt，最终解码也会糊。Qwen-Image-VAE-2.0 这类面向富文本场景优化的 VAE，核心就是解决“语义知道了，但细节还原不出来”的问题。
+2. **细节上限。** 如果 VAE 不能重建小字、笔画、边缘、纹理和细线结构，生成主干即使理解了 prompt，最终解码也会糊。面向富文本场景优化的 VAE，核心就是解决“语义知道了，但细节还原不出来”的问题。
 
-3. **编辑保真。**
-   图像编辑要求保留原图身份、结构、背景和未编辑区域。VAE 重建质量不足时，即使编辑指令很简单，也可能出现人脸漂移、商品变形、背景纹理改变等问题。
+3. **编辑保真。** 图像编辑要求保留原图身份、结构、背景和未编辑区域。VAE 重建质量不足时，即使编辑指令很简单，也可能出现人脸漂移、商品变形、背景纹理改变等问题。
 
-4. **高分辨率支持。**
-   分辨率越高，latent token 越多。VAE 的压缩率、通道数、latent 尺度、scale_factor、shift_factor 和 tiling 策略，会共同决定模型能否稳定支持 2K、4K 甚至更大尺寸输出。
-
-面试中可以这样总结：**VAE 决定“模型看见什么”和“最终能还原什么”。扩散/Flow 主干决定生成能力，VAE / Tokenizer 决定信息瓶颈；文字渲染、细节保真、编辑稳定性和推理成本，都绕不开 latent 空间设计。**
-
-<h2 id="q-044c">面试问题：SDXL VAE 在 fp16 下出现"白图 / NaN"问题的原因是什么？工业上常见的修复方案有哪些？</h2>
-
-**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
-
-SDXL 官方 VAE 在 fp16 推理下经常出现整张白图、整张黑图或 NaN，是 SDXL 工业部署最知名的踩坑点之一。
-
-### 1. 根因分析
-
-- **fp16 数值范围只有约 $\pm 6.5\times 10^4$**。SDXL VAE 在解码过程中，某些中间激活值（尤其在带有 GroupNorm + 大尺寸卷积的层）会出现峰值绝对值非常大的 outlier，**超出 fp16 上限触发 inf**；inf 经过 GroupNorm / LayerNorm / sigmoid 这类算子后产生 NaN，再扩散到全图。
-- 这一现象在 SD 1.x / 2.x VAE 上很少见，但 SDXL VAE 的训练数据更广、参数更新后激活分布更长尾，导致问题集中爆发。
-- bf16 的范围与 fp32 同级，所以同一份 VAE 在 bf16 下几乎不会出现这个问题。
-
-### 2. 工业上常见的修复方案
-
-<div align="center">
-
-| 方案 | 思路 | 代价 |
-| --- | --- | --- |
-| **VAE 单独跑 fp32 / bf16** | U-Net 用 fp16，VAE 切回 fp32 / bf16 | 显存略增，速度略降；最稳妥 |
-| **使用 sdxl-vae-fp16-fix** | madebyollin 重训了一份在 fp16 下数值稳定的 VAE 权重，主流社区 / diffusers 已经默认推荐 | 与官方权重等价的视觉效果，无显存代价 |
-| **Force upcast** | diffusers 提供 `vae.enable_upcast()` 或 `force_upcast=True`，自动在解码时把激活上转 fp32 | 实现简单；速度略降 |
-| **bf16 全链路** | H100 / 4090 / 30 系等支持 bf16 的硬件直接走 bf16 | 推荐做法，新代码默认 |
-| **VAE Tiling + fp32**（极端低显存） | tiling 减少瞬时显存，VAE 仍走 fp32 | 速度损失大，仅低显存场景 |
-
-</div>
-
-### 3. 工程经验
-
-- 生产部署中**默认搭配 sdxl-vae-fp16-fix 或 bf16**，避免单点故障导致整张白图。
-- 若使用 ComfyUI / A1111，绝大多数发行版都已自动选择 fp16-fix VAE 或在 VAE 层面做 upcast，不需要额外配置。
-- 训练 SDXL LoRA / Dreambooth 时，VAE 推荐 fp32 或 bf16，不建议训练阶段冒险用 fp16，否则可能在数据预处理阶段就出现 NaN 样本。
-- 自定义 pipeline 中要做兜底：`if torch.isnan(latents).any(): fallback_to_fp32()`。
-
-**面试金句**：SDXL VAE 的 fp16 NaN 问题源于「fp16 数值范围太窄 + SDXL VAE 激活的长尾 outlier」；工业上的标准解法是 **bf16 全链路** 或者 **fp16 + sdxl-vae-fp16-fix**，并在 pipeline 层面加 NaN 兜底。
+4. **高分辨率支持。** 分辨率越高，latent token 越多。VAE 的压缩率、通道数、latent 尺度、scale_factor、shift_factor 和 tiling 策略，会共同决定模型能否稳定支持 2K、4K 甚至更大尺寸输出。
 
 
-<h2 id="q-044d">面试问题：大分辨率推理时如何降低 VAE 解码显存？VAE Tiling 与 TAESD 各自的取舍是什么？</h2>
+<h1 id="q-045">3.介绍一下Stable Diffusion中Backbone的架构、原理和作用</h1>
 
-**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐ (3/5)**
-
-VAE Decoder 的显存随分辨率呈 $\mathcal{O}(H \cdot W)$ 增长，是 SDXL / SD 3 / FLUX 在 1024×1024 及以上分辨率下的「显存最后一公里」。两种主流压缩方案有各自适用场景。
-
-### 1. VAE Tiling（分块解码）
-
-- **思路**：把 latent 切成多个空间小块，每块独立通过 Decoder 解码，再用**重叠 + 加权融合**策略拼接成完整像素图。
-- **优势**：完全无损（与一次性解码视觉一致，仅有亚像素级别的拼接差异）；不改变 VAE 权重，所有 SD 系列通用。
-- **代价**：解码时间延长（每块都要单独跑一次 conv stack）；拼接边界需要羽化 / overlap，否则可能出现接缝。
-- **diffusers 用法**：`pipe.vae.enable_tiling()`、可配 `tile_sample_min_size` 等参数。
-- **适用场景**：1536 / 2048 / 4K 等大尺寸生成、Outpaint、超分辨率图像 latent 解码。
-
-### 2. TAESD / TAESDXL（Tiny AutoEncoder for SD）
-
-- **思路**：训练一个**比官方 VAE 小一个数量级的微型 Encoder/Decoder**（通常只有几百万参数），用蒸馏方式逼近官方 VAE 的 latent 分布与重建。
-- **优势**：解码极快（数倍于官方 VAE）；显存占用极小；非常适合 **Live Preview**（边采样边解码预览）和 ComfyUI 的实时小图反馈。
-- **代价**：重建质量比官方 VAE 略低，**不能用于最终输出**——细节、文字、人脸的清晰度低于官方 VAE。
-- **适用场景**：交互式预览、采样过程中的中间帧可视化、低端硬件的非最终输出。
-
-### 3. 选型建议
-
-<div align="center">
-
-| 场景 | 推荐 |
-| --- | --- |
-| 1024×1024 最终输出 | 官方 VAE + bf16 / fp16-fix |
-| 2K / 4K 最终输出 | 官方 VAE + **VAE Tiling** |
-| 采样过程实时预览 | **TAESD / TAESDXL** |
-| 极低显存设备 | TAESD（预览） + 最终用云端官方 VAE |
-| 视频生成的逐帧解码 | 官方 VAE + Tiling，并配合 fp8 / int8 量化 |
-
-</div>
-
-**面试金句**：VAE Tiling 用「时间换空间」做无损降显存，是大分辨率最终输出的标准方案；TAESD 用「画质换速度」做轻量解码，是实时预览与端侧的首选；二者本质是「精度优先 vs 时延优先」的不同取舍，可以叠加使用。
-
-
-<h1 id="q-045">3.介绍一下 Stable Diffusion 中 Backbone 的架构、原理和作用</h1>
-
-<h2 id="q-047">面试问题：介绍一下 Stable Diffusion 中的自注意力机制和交叉注意力机制</h2>
+<h2 id="q-047">面试问题：介绍一下Stable Diffusion中的自注意力机制和交叉注意力机制的原理</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
 ### 1. 自注意力机制与交叉注意力机制的核心区别
 
-属于Transformer常见Attention机制，用于合并两个不同的sequence embedding。两个sequence是：Query、Key/Value。
+Cross-Attention和Self-Attention都属于Transformer常见Attention机制，计算过程一致，区别在于输入的差别，通过下图可以看出，Cross-Attention的两个embedding的sequence length和embedding_dim都不一样，故具备更好的扩展性，能够融合两个不同的维度向量，进行信息的计算交互。而Self-Attention的输入仅为一个。
 
 <div align="center"><img src="./imgs/cross-attention-detail-perceiver-io.png" alt="Cross-Attention 计算示意图" /></div>
 
-Cross-Attention和Self-Attention的计算过程一致，区别在于输入的差别，通过上图可以看出，两个embedding的sequence length 和embedding_dim都不一样，故具备更好的扩展性，能够融合两个不同的维度向量，进行信息的计算交互。而Self-Attention的输入仅为一个。
-
-在 Stable Diffusion U-Net 中，Self-Attention 和 Cross-Attention 并不是孤立模块，而是被组织进 Spatial Transformer：图像特征先经 GroupNorm 与投影变成图像 token，随后依次执行 Self-Attention、Cross-Attention 和 FeedForward，并通过残差连接写回卷积特征。Self-Attention 负责建立不同图像位置之间的全局联系，Cross-Attention 则负责把 Prompt 对应的文本语义写入这些图像位置。
+在Stable Diffusion U-Net中，Self-Attention和Cross-Attention并不是孤立模块，而是被组织进 Spatial Transformer：图像特征先经 GroupNorm 与投影变成图像 token，随后依次执行 Self-Attention、Cross-Attention 和 FeedForward，并通过残差连接写回卷积特征。Self-Attention 负责建立不同图像位置之间的全局联系，Cross-Attention 则负责把 Prompt 对应的文本语义写入这些图像位置。
 
 ### 2. Stable Diffusion 是如何在 U-Net 内部把文本与图像两种模态的语义对齐的？
 
