@@ -16,9 +16,9 @@
   - [面试问题：VAE的Latent空间为什么会影响图像生成质量和训练效率？](#q-044e)
 
 [3.介绍一下Stable Diffusion中Backbone的架构、原理和作用](#q-045)
-  - [面试问题：介绍一下Stable Diffusion中的自注意力机制和交叉注意力机制的原理](#q-047)
-  - [面试问题：为什么使用 U-Net 作为 Stable Diffusion 模型的核心架构？介绍一下 U-Net 架构](#q-049)
-  - [面试问题：U-Net 与 DiT / MM-DiT 在 Backbone 设计哲学上的本质差异是什么？SD 系列从 U-Net 演进到 DiT 的根本原因是什么？](#q-049b)
+  - [面试问题：介绍一下Stable Diffusion中自注意力机制和交叉注意力机制的原理](#q-047)
+  - [面试问题：为什么使用U-Net作为Stable Diffusion模型的核心Backbone？](#q-049)
+  - [面试问题：U-Net与DiT在Backbone设计哲学上的本质差异是什么？SD系列从U-Net演进到DiT的根本原因是什么？](#q-049b)
   - [面试问题：SD Backbone 中 GroupNorm + SiLU + 残差连接的设计为何对训练稳定性很关键？换成 LayerNorm / BatchNorm 会有什么问题？](#q-049d)
 
 [4.介绍一下 Stable Diffusion 中 Text Encoder 的架构、原理和作用](#q-050)
@@ -424,35 +424,35 @@ VAE和其Latent空间决定了图像从像素空间进入生成模型训练空�
 
 <h1 id="q-045">3.介绍一下Stable Diffusion中Backbone的架构、原理和作用</h1>
 
-<h2 id="q-047">面试问题：介绍一下Stable Diffusion中的自注意力机制和交叉注意力机制的原理</h2>
+<h2 id="q-047">面试问题：介绍一下Stable Diffusion中自注意力机制和交叉注意力机制的原理</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
 ### 1. 自注意力机制与交叉注意力机制的核心区别
 
-Cross-Attention和Self-Attention都属于Transformer常见Attention机制，计算过程一致，区别在于输入的差别，通过下图可以看出，Cross-Attention的两个embedding的sequence length和embedding_dim都不一样，故具备更好的扩展性，能够融合两个不同的维度向量，进行信息的计算交互。而Self-Attention的输入仅为一个。
+Cross-Attention和Self-Attention都属于Transformer框架下主流的Attention机制，计算过程一致，区别在于输入的差别，通过下图可以看出，Cross-Attention的两个embedding的sequence length和embedding_dim都不一样，故具备更好的扩展性，能够融合两个不同的维度向量，进行信息的计算交互。而Self-Attention的输入仅为一个。
 
 <div align="center"><img src="./imgs/cross-attention-detail-perceiver-io.png" alt="Cross-Attention 计算示意图" /></div>
 
-在Stable Diffusion U-Net中，Self-Attention和Cross-Attention并不是孤立模块，而是被组织进 Spatial Transformer：图像特征先经 GroupNorm 与投影变成图像 token，随后依次执行 Self-Attention、Cross-Attention 和 FeedForward，并通过残差连接写回卷积特征。Self-Attention 负责建立不同图像位置之间的全局联系，Cross-Attention 则负责把 Prompt 对应的文本语义写入这些图像位置。
+在Stable Diffusion U-Net中，Self-Attention和Cross-Attention并不是孤立模块，而是被组织进Spatial Transformer中：图像特征先经GroupNorm与投影变成图像token，随后依次执行Self-Attention、Cross-Attention和FeedForward，并通过残差连接写回卷积特征。Self-Attention负责建立不同图像位置之间的全局联系，Cross-Attention则负责把Prompt对应的文本语义写入这些图像位置。
 
-### 2. Stable Diffusion 是如何在 U-Net 内部把文本与图像两种模态的语义对齐的？
+### 2. Stable Diffusion是如何在U-Net内部把文本与图像两种模态的语义对齐的？
 
-Cross-Attention可以用于将图像与文本之间的关联建立，在stable-diffusion中的Unet部分使用Cross-Attention将文本prompt和图像信息融合交互，控制U-Net把噪声矩阵的某一块与文本里的特定信息相对应。
+Cross-Attention可以用于将图像与文本之间的关联建立，在stable diffusion中的U-Net部分使用Cross-Attention将文本prompt和图像信息融合交互，控制U-Net把噪声矩阵的某一块与文本里的特定信息相对应。
 
-在每一个交叉注意力层中，空间位置对应的图像 latent token 会根据当前图像特征查询文本 token：描述主体、属性、风格和空间关系的文本特征被写回相应图像位置。这个过程会在多次 U-Net 去噪步骤和多个尺度上重复，因此文本不是只在输入端控制一次，而是持续参与从噪声到图像 latent 的逐步重建。
+在每一个交叉注意力层中，空间位置对应的图像 Latent token 会根据当前图像特征查询文本 token：描述主体、属性、风格和空间关系的文本特征被写回相应图像位置。这个过程会在多次 U-Net 去噪步骤和多个尺度上重复，因此文本不是只在输入端控制一次，而是持续参与从噪声到图像 latent 的逐步重建。
 
 <div align="center"><img src="./imgs/sd-cross-attention-text-injection.jpg" alt="Stable Diffusion 中文本特征通过 Cross-Attention 注入 U-Net" /></div>
 
-### 3. Stable Diffusion 中 Cross-Attention 的 Q / K / V 分别是什么？为什么图像隐变量作为 Q，文本 Prompt 作为 K / V？
+### 3. Stable Diffusion中Cross-Attention的Q / K / V分别是什么？
 
-在 Stable Diffusion 的 Cross-Attention 中：
+在Stable Diffusion的Cross-Attention中：
 
-- **Q（Query）来自图像 latent feature**：U-Net 当前层的二维特征先展平为空间 token，再经过线性投影得到 Q；
-- **K（Key）和 V（Value）来自文本 Prompt 的 embedding**：CLIP Text Encoder 输出的文本 token 分别投影为 K 和 V；
+- **Q（Query）来自图像latent feature**：U-Net当前层的二维特征先展平为空间 token，再经过线性投影得到Q；
+- **K（Key）和 V（Value）来自文本Prompt的Text Embedding**：CLIP Text Encoder输出的文本token分别投影为K和V；
 - 注意力权重由 $QK^\top$ 计算，表示每一个图像位置应该关注哪些文本 token；再用该权重对 V 加权求和，把相关文本语义写回图像特征。
 
-图像隐变量作为 Q，是因为 Stable Diffusion 的直接优化对象是图像 latent：模型需要针对“当前图像位置缺少什么语义信息”向文本进行查询。文本作为 K/V，则相当于一个稳定的条件记忆库，用于提供主体、属性、关系和风格信息。如果反过来让文本作为 Q，得到的输出会以文本 token 为主，不能直接与 U-Net 的空间特征逐位置融合。
+图像隐变量作为Q，是因为Stable Diffusion的直接优化对象是图像Latent：模型需要针对“当前图像位置缺少什么语义信息”向文本进行查询。文本作为 K/V，则相当于一个稳定的条件记忆库，用于提供主体、属性、关系和风格信息。如果反过来让文本作为 Q，得到的输出会以文本 token 为主，不能直接与 U-Net 的空间特征逐位置融合。
 
 ### 4. 为什么 SD U-Net 中 Self-Attention 与 Cross-Attention 主要放在中、低分辨率层？高分辨率层为何以卷积为主？
 
@@ -480,9 +480,8 @@ SD U-Net 是「卷积 + 注意力」的混合架构，注意力的放置位置�
 - **SDXL**：把更多的 Transformer Block 集中到中分辨率（U-Net 中部更深的 attention stack），16×16 / 8×8 层 attention 数量从 SD 1.5 的 1 个增加到多个，主要为了提升大模型容量与高分辨率细节质量。
 - **SD 3 / FLUX（MM-DiT）**：彻底放弃多尺度 U-Net，改为单尺度 patchify + 全局 attention；本质上把整张图压成一个 token 序列做 Transformer，分辨率与 attention 解耦，但需要更大算力。
 
-**面试金句**：U-Net 把 Cross-Attention 集中在中、低分辨率，是因为「语义对齐 + 二次方复杂度」两个事实必须妥协；卷积负责高分辨率局部细节，注意力负责低分辨率全局语义，这是 SD 1 / SD 2 / SDXL 共享的设计哲学。SD 3 / FLUX 通过 MM-DiT 把这条妥协推翻，但代价是显著的算力上涨。
 
-<h2 id="q-049">面试问题：为什么使用 U-Net 作为 Stable Diffusion 模型的核心架构？介绍一下 U-Net 架构</h2>
+<h2 id="q-049">面试问题：为什么使用U-Net作为Stable Diffusion模型的核心Backbone？</h2>
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
@@ -494,15 +493,15 @@ SD U-Net 是「卷积 + 注意力」的混合架构，注意力的放置位置�
 
 <div align="center"><img src="./imgs/unet.jpg" alt="unet" /></div>
 
-U-Net 具有编码器部分和解码器部分，均由 ResNet 块组成。编码器将图像表示压缩为较低分辨率图像表示，并且解码器将较低分辨率图像表示解码回据称噪声较小的原始较高分辨率图像表示。更具体地说，U-Net 输出预测噪声残差，该噪声残差可用于计算预测的去噪图像表示。为了防止U-Net在下采样时丢失重要信息，通常在编码器的下采样ResNet和解码器的上采样ResNet之间添加快捷连接。
+U-Net具有编码器部分和解码器部分，均由ResNet块组成。编码器将图像表示压缩为较低分辨率图像表示，并且解码器将较低分辨率图像表示解码回据称噪声较小的原始较高分辨率图像表示。更具体地说，U-Net 输出预测噪声残差，该噪声残差可用于计算预测的去噪图像表示。为了防止U-Net在下采样时丢失重要信息，通常在编码器的下采样ResNet和解码器的上采样ResNet之间添加快捷连接。
 
-Stable Diffusion的U-Net 能够通过交叉注意力层在文本嵌入上调节其输出。交叉注意力层被添加到 U-Net 的编码器和解码器部分，通常位于 ResNet 块之间。
+Stable Diffusion的U-Net能够通过交叉注意力层在文本嵌入上调节其输出。交叉注意力层被添加到U-Net的编码器和解码器部分，通常位于ResNet块之间。
 
 <div align="center"><img src="./imgs/LDMs.png" alt="Latent Diffusion Models 架构示意图" /></div>
 
-### 2. Stable Diffusion U-Net 相比经典 U-Net 增加了什么？
+### 2. Stable Diffusion U-Net相比经典U-Net增加了什么？
 
-Stable Diffusion 沿用了经典 U-Net 的 Encoder、Decoder、多尺度特征和 Skip Connection，但为扩散生成增加了三类关键组件：
+Stable Diffusion沿用了经典U-Net的Encoder、Decoder、多尺度特征和Skip Connection，但为扩散生成增加了三类关键组件：
 
 1. **ResNetBlock + Time Embedding**：每个去噪阶段的噪声强度不同，Time Embedding 会告诉共享 U-Net 当前处于哪个 timestep，使网络能在早期优先恢复轮廓和低频结构，在后期补充纹理与高频细节。
 2. **Spatial Transformer**：由 Self-Attention、Cross-Attention 和 FeedForward 组成。Self-Attention 建模图像内部的长程关系，Cross-Attention 将 Text Embeddings 作为条件注入图像特征。
@@ -513,11 +512,11 @@ Stable Diffusion 沿用了经典 U-Net 的 Encoder、Decoder、多尺度特征�
 U-Net 适合 Stable Diffusion 的根本原因，是它同时满足了扩散去噪的三类需求：**多尺度结构用于先轮廓后细节，Skip Connection 保留高频空间信息，Time Embedding 与 Cross-Attention 分别注入噪声阶段和文本条件。**
 
 
-<h2 id="q-049b">面试问题：U-Net 与 DiT / MM-DiT 在 Backbone 设计哲学上的本质差异是什么？SD 系列从 U-Net 演进到 DiT 的根本原因是什么？</h2>
+<h2 id="q-049b">面试问题：U-Net与DiT在Backbone设计哲学上的本质差异是什么？SD系列从U-Net演进到DiT的根本原因是什么？</h2>
 
 **难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-从 SDXL 到 SD 3 / FLUX 的最大跃迁就是 Backbone 从 U-Net 切换到 MM-DiT。这不只是「换模型」，而是**整个生成范式的演进**：从「卷积归纳偏置 + 局部 attention」走向「无归纳偏置 + 全局 token Transformer」。
+从SDXL到SD 3/FLUX的最重要跃迁之一就是Backbone从U-Net切换到DiT/MM-DiT。这不只是「换Backbone模型架构」，而是**整个生成范式的演进**：从「卷积归纳偏置 + 局部 attention」走向「无归纳偏置 + 全局 token Transformer」。
 
 ### 1. 设计哲学对比
 
@@ -538,7 +537,7 @@ U-Net 适合 Stable Diffusion 的根本原因，是它同时满足了扩散去�
 
 ### 2. SD 系列从 U-Net 演进到 DiT 的根本原因
 
-1. **Scaling Law 驱动**：Transformer 在 NLP、ViT、视频生成上反复证明「越大越好」；U-Net 在 SDXL 这一规模（≈2.6B）已经接近边际收益拐点，继续加宽 / 加深收益不显著。DiT 论文（W. Peebles, S. Xie）首次系统性地证明 Transformer 在扩散模型上同样有清晰的 Scaling Law。
+1. **Scaling Law 驱动**：Transformer 在 NLP、ViT、视频生成上反复证明「越大越好」；U-Net 在 SDXL 这一规模（≈2.6B）已经接近边际收益拐点，继续加宽 / 加深收益不显著。DiT 论文首次系统性地证明 Transformer 在扩散模型上同样有清晰的 Scaling Law。
 2. **多模态联合建模**：MM-DiT 让文本与图像 token 在同一序列里做 self-attention，对**长 prompt、强语义、文字渲染**都更友好；U-Net 的 Cross-Attention 只能让图像 query 文本，缺乏「文本反向 query 图像」的双向信息流。
 3. **统一架构、便于跨任务复用**：DiT 与视频生成（DiT for Video / Sora-类）、3D / 多模态生成（W.A.L.T、MMDiT）共用一套 Transformer 范式，更容易被复用与扩展。
 4. **去除卷积的硬约束**：卷积假设平移等变性，但生成模型未必需要严格平移等变（不同分辨率、不同长宽比都要支持）；纯 Transformer + 位置编码反而更灵活。
@@ -548,8 +547,6 @@ U-Net 适合 Stable Diffusion 的根本原因，是它同时满足了扩散去�
 - DiT / MM-DiT 推理算力随分辨率快速上升，需要 FlashAttention、SDPA、序列并行等系统优化；
 - 弱归纳偏置带来更高的数据需求，SD 3 / FLUX 都使用了远比 SDXL 更大的训练数据；
 - 工程生态（蒸馏、ControlNet、LoRA 适配器）需要为新架构重新搭建。
-
-**面试金句**：U-Net 强归纳偏置 + 多尺度、DiT 弱归纳偏置 + 单尺度全局 attention；演进的根本动力是**扩散模型也开始遵循 Transformer 的 Scaling Law**，加上多模态联合建模的需求，这两点共同推动 SD 系列从 SDXL 的 U-Net 走向 SD 3 / FLUX 的 MM-DiT。
 
 
 <h2 id="q-049d">面试问题：SD Backbone 中 GroupNorm + SiLU + 残差连接的设计为何对训练稳定性很关键？换成 LayerNorm / BatchNorm 会有什么问题？</h2>
