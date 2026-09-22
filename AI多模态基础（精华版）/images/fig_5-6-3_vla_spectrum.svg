@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 452" font-family="'Microsoft YaHei','SimHei','Noto Sans CJK SC','PingFang SC',sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <text x="410" y="30" text-anchor="middle" font-size="19" font-weight="bold" fill="#000000">VLA 架构谱系：从离散动作 token 到连续策略与双系统</text>
+
+  <line x1="277" y1="52" x2="277" y2="370" stroke="#d9d9d9" stroke-width="1.5"/>
+  <line x1="547" y1="52" x2="547" y2="370" stroke="#d9d9d9" stroke-width="1.5"/>
+
+  <text x="140" y="76" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">第一代 · 动作即语言</text>
+  <text x="140" y="94" text-anchor="middle" font-size="11" fill="#595959">完全复用 VLM 自回归框架</text>
+
+  <rect x="40" y="106" width="200" height="50" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="140" y="127" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">RT-2</text>
+  <text x="140" y="146" text-anchor="middle" font-size="10.5" fill="#333333">基于 PaLI-X 55B</text>
+
+  <line x1="140" y1="156" x2="140" y2="174" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="178" width="200" height="54" rx="6" fill="#000000"/>
+  <text x="140" y="200" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">动作离散化为 token</text>
+  <text x="140" y="220" text-anchor="middle" font-size="10.5" fill="#ffffff">每维 256 bin · 并入词表</text>
+
+  <rect x="40" y="250" width="200" height="70" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="140" y="274" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">优点：继承互联网知识</text>
+  <text x="140" y="294" text-anchor="middle" font-size="10.5" fill="#333333">缺点：自回归解码限制</text>
+  <text x="140" y="310" text-anchor="middle" font-size="10.5" fill="#333333">控制频率 · 量化损失</text>
+
+  <text x="410" y="76" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">第二代 · 开源规模化</text>
+  <text x="410" y="94" text-anchor="middle" font-size="11" fill="#595959">中等参数 + 大规模真实轨迹</text>
+
+  <rect x="310" y="106" width="200" height="50" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="127" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">OpenVLA 7B</text>
+  <text x="410" y="146" text-anchor="middle" font-size="10.5" fill="#333333">SigLIP + DINOv2 双视觉塔</text>
+
+  <line x1="410" y1="156" x2="410" y2="174" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="310" y="178" width="200" height="54" rx="6" fill="#000000"/>
+  <text x="410" y="200" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">Open X-Embodiment</text>
+  <text x="410" y="220" text-anchor="middle" font-size="10.5" fill="#ffffff">约 97 万条轨迹 · 22 种本体</text>
+
+  <rect x="310" y="250" width="200" height="70" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="410" y="274" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">十分之一参数超 RT-2-X</text>
+  <text x="410" y="294" text-anchor="middle" font-size="10.5" fill="#333333">确立开源社区路线</text>
+  <text x="410" y="310" text-anchor="middle" font-size="10.5" fill="#333333">动作仍为离散 token</text>
+
+  <text x="680" y="76" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#000000">第三代 · 连续动作与双系统</text>
+  <text x="680" y="94" text-anchor="middle" font-size="11" fill="#595959">高频控制 · 灵巧操作</text>
+
+  <rect x="580" y="106" width="200" height="50" rx="6" fill="#f2f2f2" stroke="#333333" stroke-width="1.5"/>
+  <text x="680" y="127" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">π0 · flow matching</text>
+  <text x="680" y="146" text-anchor="middle" font-size="10.5" fill="#333333">连续动作块 · 50 Hz 控制</text>
+
+  <line x1="680" y1="156" x2="680" y2="174" stroke="#333333" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <rect x="580" y="178" width="200" height="54" rx="6" fill="#000000"/>
+  <text x="680" y="197" text-anchor="middle" font-size="12" font-weight="bold" fill="#ffffff">Helix / GR00T N1 双系统</text>
+  <text x="680" y="213" text-anchor="middle" font-size="10" fill="#ffffff">S2：7B VLM · 7~9 Hz 出语义</text>
+  <text x="680" y="226" text-anchor="middle" font-size="10" fill="#ffffff">S1：80M 策略 · 200 Hz 出动作</text>
+
+  <rect x="580" y="250" width="200" height="70" rx="6" fill="#ffffff" stroke="#595959" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="680" y="274" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">离散管认知 · 连续管控制</text>
+  <text x="680" y="294" text-anchor="middle" font-size="10.5" fill="#333333">语义层保留 VLM 知识</text>
+  <text x="680" y="310" text-anchor="middle" font-size="10.5" fill="#333333">控制层保证物理平滑</text>
+
+  <line x1="245" y1="352" x2="305" y2="352" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="515" y1="352" x2="575" y2="352" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="140" y="358" text-anchor="middle" font-size="11" fill="#333333">证明知识可迁移</text>
+  <text x="410" y="358" text-anchor="middle" font-size="11" fill="#333333">数据与开源规模化</text>
+  <text x="680" y="358" text-anchor="middle" font-size="11" fill="#333333">走向量产控制</text>
+
+  <rect x="60" y="384" width="700" height="46" rx="6" fill="#000000"/>
+  <text x="410" y="406" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">动作表示之争是 5.5 节离散与连续之争在动作域的重演</text>
+  <text x="410" y="423" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#ffffff">双系统以「离散管认知 · 连续管控制」调和两者</text>
+</svg>
