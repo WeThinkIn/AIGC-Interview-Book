@@ -28,20 +28,19 @@
   - [面试问题：从 SD 1.x → SDXL → SD 3 → FLUX.1，文本编码器与文本条件注入机制如何演进？这些变化如何影响提示词遵循与生成效果？](#q-053d)
   - [面试问题：如何优化Prompt和生成图像不对齐的问题？](#q-054)
 
-[5.Stable Diffusion XL 有哪些创新点？](#q-056)
-  - [面试问题：Stable Diffusion XL 的 VAE 部分有哪些创新？详细分析改进意图](#q-058)
-  - [面试问题：Stable Diffusion XL 的 Backbone 部分有哪些创新？详细分析改进意图](#q-059)
-  - [面试问题：Stable Diffusion XL 的 Text Encoder 部分有哪些创新？详细分析改进意图](#q-060)
-  - [面试问题：Stable Diffusion XL 中使用的训练方法有哪些创新点？](#q-061)
-  - [面试问题：介绍一下 Stable Diffusion XL Turbo 的原理](#q-063)
-  - [面试问题：什么是 SDXL Refiner？](#q-065)
+[5.介绍一下Stable Diffusion XL的原理和创新点](#q-056)
+  - [面试问题：Stable Diffusion XL的VAE部分有哪些创新？详细分析改进意图](#q-058)
+  - [面试问题：Stable Diffusion XL的Backbone部分有哪些创新？详细分析改进意图](#q-059)
+  - [面试问题：Stable Diffusion XL的Text Encoder部分有哪些创新？详细分析改进意图](#q-060)
+  - [面试问题：Stable Diffusion XL中使用的训练方法有哪些创新点？](#q-061)
+  - [面试问题：什么是SDXL Refiner？](#q-065)
 
-[6.介绍一下 Stable Diffusion 3的原理和创新点](#q-066)
-  - [面试问题：SD 3 的 VAE 部分有哪些创新？详细分析改进意图](#q-067)
-  - [面试问题：SD 3 的 Backbone 部分有哪些创新？详细分析改进意图](#q-067a)
-  - [面试问题：SD 3 的 Text Encoder 部分有哪些创新？详细分析改进意图](#q-067c)
-  - [面试问题：训练 Stable Diffusion 过程中官方使用了哪些训练技巧？](#q-069)
-  - [面试问题：Stable Diffusion 3.5 有哪些改进点？](#q-075)
+[6.介绍一下Stable Diffusion 3的原理和创新点](#q-066)
+  - [面试问题：SD 3的VAE部分有哪些创新？详细分析改进意图](#q-067)
+  - [面试问题：SD 3的Backbone部分有哪些创新？详细分析改进意图](#q-067a)
+  - [面试问题：SD 3的Text Encoder部分有哪些创新？详细分析改进意图](#q-067c)
+  - [面试问题：训练Stable Diffusion 3过程中官方使用了哪些训练技巧？](#q-069)
+  - [面试问题：Stable Diffusion 3.5有哪些改进点？](#q-075)
 
 
 ## 第二章 FLUX系列核心高频考点
@@ -772,49 +771,48 @@ Prompt与生成图像不对齐，不能只靠“继续堆 Prompt”解决。应�
 - **训练侧提升对齐**：使用更准确、更密集的 Caption，清理水印和错配数据；训练时通过条件丢弃学习 CFG，并用 CLIP score、人工偏好与组合关系测试同时评估，不只观察 FID。
 
 
-<h1 id="q-056">5.Stable Diffusion XL 有哪些创新点？</h1>
+<h1 id="q-056">5.介绍一下Stable Diffusion XL的原理和创新点]</h1>
 
-<h2 id="q-058">面试问题：Stable Diffusion XL 的 VAE 部分有哪些创新？详细分析改进意图</h2>
+<h2 id="q-058">面试问题：Stable Diffusion XL的VAE部分有哪些创新？详细分析改进意图</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-SDXL 仍然是 Latent Diffusion Model，VAE 负责把输入图像压缩为 latent，以及把去噪后的 latent 解码回像素图；文生图时不需要 Encoder，只使用 Decoder 完成重建。VAE 同时决定了高频细节、小物体特征和整体色彩的上限，因此不能把它当作扩散主干之外的“普通编解码器”。
+SDXL仍然是Latent Diffusion Model，VAE负责把输入图像压缩为Latent，以及把去噪后的Latent解码回像素图像；文生图时不需要 Encoder，只使用 Decoder 完成重建。VAE 同时决定了高频细节、小物体特征和整体色彩的上限，因此不能把它当作扩散主干之外的“普通编解码器”。下图是SDXL的整体流程图：
 
 <div align="center"><img src="./imgs/SDXL整体结构.png" alt="SDXL Base 与 Refiner 的级联结构" /></div>
 
 ### 1. 结构沿用 KL-f8，但训练配方升级
 
-SDXL 使用与早期 Stable Diffusion 相同的 KL-f8 VAE 结构：Encoder 将图像映射到 Gaussian latent 分布，Decoder 将 latent 重建为像素图；Encoder 与 Decoder 内部由 GSC（GroupNorm + SiLU + Conv）、Downsample（Padding + Conv）、Upsample（Interpolate + Conv）、ResNetBlock 和 Self-Attention 等组件组成。Encoder 包含三个 DownBlock、一个 ResNetBlock 和一个 MidBlock，Decoder 对称地包含三个 UpBlock、一个 ResNetBlock 和一个 MidBlock。
+SDXL使用与Stable Diffusion 1.5相同的KL-f8 VAE结构：Encoder将图像映射到Gaussian Latent分布，Decoder将Latent重建为像素图；Encoder与Decoder内部由GSC（GroupNorm + SiLU + Conv）、Downsample（Padding + Conv）、Upsample（Interpolate + Conv）、ResNetBlock 和 Self-Attention 等组件组成。
 
-真正的改进重点在训练而不是换掉 VAE 拓扑：SDXL 从头训练 VAE，使用更大的 batch size（256，相比早期配方的 9）并引入 EMA（Exponential Moving Average）权重平均，以提高重建质量和鲁棒性；损失仍以感知损失（perceptual loss）与 L1 回归损失为主，兼顾视觉相似度与像素级稳定性。
+Encoder 包含三个 DownBlock、一个 ResNetBlock 和一个 MidBlock，Decoder 对称地包含三个 UpBlock、一个 ResNetBlock 和一个 MidBlock。
+
+真正的改进重点在训练：SDXL从头训练VAE，使用更大的batch size（256，相比上个系列的9）并引入EMA（Exponential Moving Average）权重平均，以提高重建质量和鲁棒性；损失仍以感知损失（perceptual loss）与 L1 回归损失为主，兼顾视觉相似度与像素级稳定性。下图是SDXL VAE结构图：
 
 <div align="center"><img src="./imgs/SDXL-VAE完整结构.jpg" alt="Stable Diffusion XL VAE 完整结构" /></div>
 
-### 2. 重新训练改变 latent 分布，缩放系数同步调整
+### 2. 重新训练改变 Latent 分布，缩放系数同步调整
 
-SD 2.x 主要是在 SD 1.x VAE 基础上微调 Decoder、保持 Encoder 权重不变，因此两者的 latent 分布兼容；SDXL VAE 则重新训练，latent 分布发生变化。为了让送入 U-Net 的 latent 标准差接近 1，缩放系数从 SD 1.x/2.x 的 `0.18215` 调整为 SDXL 的 `0.13025`。这意味着 SDXL VAE 与旧版 VAE 不能直接互换：如果忽略缩放系数或跨版本替换 VAE，常见结果是偏色、噪声或细节崩溃。
+SD 2.x 主要是在 SD 1.x VAE 基础上微调 Decoder、保持 Encoder 权重不变，因此两者的 Latent 分布兼容；SDXL VAE 则重新训练，Latent 分布发生变化。为了让送入 U-Net 的 Latent 标准差接近 1，缩放系数从 SD 1.x/2.x 的 `0.18215` 调整为 SDXL 的 `0.13025`。这意味着 SDXL VAE 与旧版 VAE 不能直接互换：如果忽略缩放系数或跨版本替换 VAE，常见结果是偏色、噪声或细节崩溃。
 
-### 3. 工程落地与精度注意事项
+切换不同的 SDXL VAE 微调版本，通常只改变细节与颜色表现，不会大幅改变构图，可把它理解为对成像风格的后处理调节。
 
-- 切换不同的 SDXL VAE 微调版本，通常只改变细节与颜色表现，不会大幅改变构图，可把它理解为对成像风格的后处理调节。
-- 原生 SDXL VAE 在 fp16 解码时可能出现溢出与 NaN，最终表现为黑图或白图；生产推理应使用 fp32/bf16，或使用 `sdxl-vae-fp16-fix` 这类修复权重。
-- 训练 SDXL LoRA/DreamBooth 时，VAE 的版本、缩放系数和精度应与底模保持一致，避免数据预处理阶段就产生 NaN。
 
-**面试金句**：SDXL VAE 的核心不是改变 KL-f8 的基本拓扑，而是“从头重训 + 大 batch + EMA”带来的重建质量提升；重训改变了 latent 分布，所以缩放系数必须从 `0.18215` 同步改为 `0.13025`，并在 fp16 部署时处理 NaN 风险。
-
-<h2 id="q-059">面试问题：Stable Diffusion XL 的 Backbone 部分有哪些创新？详细分析改进意图</h2>
+<h2 id="q-059">面试问题：Stable Diffusion XL的Backbone部分有哪些创新？详细分析改进意图</h2>
 
 **难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-SDXL Base 的 Backbone 仍是 U-Net，但参数量扩展到约 2.6B，约为 SD 1.x/2.x 的三倍，目标是稳定支持 1024×1024 及以上分辨率。它的关键不是简单“加深加宽”，而是重新分配 Spatial Transformer 与下采样层的位置，把高成本的全局建模集中到更小的 feature map 上。
+SDXL Base 的 Backbone 仍是 U-Net，但参数量扩展到约 2.6B，约为 SD 1.x/2.x 的三倍，目标是稳定支持 1024×1024 及以上分辨率。它的关键不是简单“加深加宽”，**而是重新分配 Spatial Transformer 与下采样层的位置，把高成本的全局建模集中到更小的 feature map 上**。下图是SDXL Base的网络架构图：
 
 <div align="center"><img src="./imgs/SDXL-Base-UNet完整结构.jpg" alt="Stable Diffusion XL Base U-Net 完整结构" /></div>
 
 ### 1. 从四 stage 调整为三 stage，减少一次下采样/上采样
 
-SD 1.x/2.x 的 U-Net 通常采用四 stage（可概括为 `[1,1,1,1]`），并进行三次下采样与上采样；SDXL 调整为三 stage（`[0,2,10]`），只做两次下采样与上采样。Encoder 由两个 `CrossAttnDownBlock` 和一个 `SDXL_DownBlock` 组成，Decoder 由两个 `CrossAttnUpBlock` 和一个 `SDXL_UpBlock` 组成，中间通过 Skip Connection 传递和融合多尺度信息。
+SD 1.x/2.x 的 U-Net 通常采用四 stage（可概括为 `[1,1,1,1]`），并进行三次下采样与上采样；SDXL 调整为三 stage（`[0,2,10]`），只做两次下采样与上采样。
 
-第一个 stage 不再放置 Spatial Transformer，可以显著减少高分辨率 feature map 上的显存和二次复杂度；第二、第三 stage 的空间尺寸更小，却堆叠更多 Spatial Transformer（分别为 2 个和 10 个），从而在可控成本下提升全局语义建模能力。这种“高分辨率层少做 attention、低分辨率层集中堆 attention”的设计，使 SDXL 在扩大容量后推理耗时只比旧版增加约 20%～30%。
+Encoder 由两个 `CrossAttnDownBlock` 和一个 `SDXL_DownBlock` 组成，Decoder 由两个 `CrossAttnUpBlock` 和一个 `SDXL_UpBlock` 组成，中间通过 Skip Connection 传递和融合多尺度信息。
+
+第一个 stage 不再放置 Spatial Transformer，可以显著减少高分辨率 feature map 上的显存和二次复杂度；第二、第三 stage 的空间尺寸更小，却堆叠更多 Spatial Transformer（分别为 2 个和 10 个），从而在可控成本下提升全局语义建模能力。**这种“高分辨率层少做 attention、低分辨率层集中堆 attention”的设计，使 SDXL 在扩大容量后推理耗时只比旧版增加约 20%～30%。**
 
 ### 2. BasicTransformer Block 成为 U-Net 的容量核心
 
@@ -822,9 +820,9 @@ SDXL 新增的 `SDXL_Spatial Transformer_X` 由 `GroupNorm + Linear + X 个 Basi
 
 Cross-Attention 中，latent feature 作为 Q，两个 Text Encoder 的序列特征作为 K/V。由于 latent 是 `[B,C,H,W]` 四维张量，执行 attention 前先变换为 `[B,H×W,C]`，完成后再变回 `[B,C,H,W]`；Linear 投影负责对齐不同 feature 的通道维度。
 
-**面试金句**：SDXL U-Net 的创新可概括为“减少一次尺度变换、把 attention 从最大 feature map 移到中低分辨率层、用更深的 Spatial Transformer 扩容”。它同时提高了全局语义与高分辨率细节能力，并控制了 attention 的计算成本。
+总的来说，SDXL U-Net 的创新可概括为“减少一次尺度变换、把 attention 从最大 feature map 移到中低分辨率层、用更深的 Spatial Transformer 扩容”。它同时提高了全局语义与高分辨率细节能力，并控制了 attention 的计算成本。
 
-<h2 id="q-060">面试问题：Stable Diffusion XL 的 Text Encoder 部分有哪些创新？详细分析改进意图</h2>
+<h2 id="q-060">面试问题：Stable Diffusion XL的Text Encoder部分有哪些创新？详细分析改进意图</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
@@ -863,19 +861,15 @@ OpenCLIP ViT-bigG 由 32 个 CLIP Encoder 组成，特征维度更大、网络�
 - **OpenCLIP-bigG 的 Pooled Embedding 提供全局风格**：Cross-Attention 偏向局部对齐，Pooled Embedding 提供整体风格与主题约束，二者互补；
 - **细粒度 + 全局双通路**：为后续 SD 3、FLUX 的多模态条件注入提供了可复用的设计基础。
 
-### 3. 工程实现中的常见踩坑
+### 3. 工程实现中的常见注意事项
 
-1. **取倒数第二层而非最后一层**：SDXL 训练时使用两个编码器的倒数第二层 hidden state；手写 pipeline 误用最后一层可能造成画质下降。diffusers 中需要开启 `output_hidden_states=True`；
-2. **全局 Pooled Embedding 只取第二个编码器**：SDXL 使用 OpenCLIP-bigG 的 pooled output 作为全局文本条件，并不是把两个编码器的 pooled output 拼接；它对应 [EOT]（End of Text）token 位置的聚合表示，而不是 [CLS]；
-3. **两个编码器的 padding 策略要一致**：都需要 padding 到 77 tokens，并保持 attention mask 一致；
-4. **micro-conditioning 的融合顺序不能错**：`original_size`、`crop_top_left`、`target_size` 六个标量先分别做 sinusoidal embedding，再与 OpenCLIP-bigG 的 pooled embedding 拼接，经 add embedding MLP 后与 timestep embedding 融合；
-5. **两个编码器接收同一份 Prompt**：不是分别输入“主体 Prompt”和“风格 Prompt”；
-6. **CFG 的 unconditional 分支要分别准备**：两个编码器都要对空 Prompt 编码，拼接两路 uncond 序列特征，同时保留 OpenCLIP-bigG 对应的 uncond pooled embedding；
-7. **LoRA / Dreambooth 微调需明确编码器策略**：工程上通常冻结两个 Text Encoder，仅微调 U-Net 或其 LoRA 参数。
+1. **全局 Pooled Embedding 只取第二个编码器**：SDXL 使用 OpenCLIP-bigG 的 pooled output 作为全局文本条件，并不是把两个编码器的 pooled output 拼接；它对应 [EOT]（End of Text）token 位置的聚合表示，而不是 [CLS]；
+2. **两个编码器的 padding 策略要一致**：都需要 padding 到 77 tokens，并保持 attention mask 一致；
+3. **micro-conditioning 的融合顺序不能错**：`original_size`、`crop_top_left`、`target_size` 六个标量先分别做 sinusoidal embedding，再与 OpenCLIP-bigG 的 pooled embedding 拼接，经 add embedding MLP 后与 timestep embedding 融合；
+4. **CFG 的 unconditional 分支要分别准备**：两个编码器都要对空 Prompt 编码，拼接两路 uncond 序列特征，同时保留 OpenCLIP-bigG 对应的 uncond pooled embedding；
 
-**面试金句**：SDXL 的文本注入是「**两个 CLIP 的倒数第二层序列特征沿通道 concat，作为细粒度 Cross-Attention 条件；OpenCLIP-bigG 的 Pooled Embedding 再与 micro-conditioning 一起形成全局调制条件**」；取层、取 pooled 来源、padding 和 CFG uncond 准备，是手写 pipeline 时最容易出错的四个细节。
 
-<h2 id="q-061">面试问题：Stable Diffusion XL 中使用的训练方法有哪些创新点？</h2>
+<h2 id="q-061">面试问题：Stable Diffusion XL中使用的训练方法有哪些创新点？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
@@ -906,15 +900,6 @@ micro-conditioning 是 SDXL 论文中最有工程价值的「不起眼小创新�
 3. **解锁「分辨率风格控制」**：推理时把 `original_size` 设为高值（如 4096×4096）能让模型按「高清原图风格」生成；设低值则生成颗粒感更强的「低分辨率风格」；
 4. **零额外训练成本**：仅在 conditioning 部分加几个 MLP，参数量增量可忽略，但收益巨大。
 
-**工程经验**
-
-- 推理时**忘记设 `crop_top_left=(0,0)`** 是常见踩坑：会使生成图带有训练时随机裁剪的「构图偏移」；
-- diffusers 默认 pipeline 已经做好这些参数管理，但自定义 pipeline / 训练脚本时务必显式传入；
-- LoRA / Dreambooth 在 SDXL 上微调时，micro-conditioning 必须保持与训练时一致；
-- SDXL Refiner 也复用了 micro-conditioning，但额外加了 `aesthetic_score` 条件。
-
-**面试金句**：micro-conditioning 是 SDXL 把「数据预处理事实」从隐性变成显性，让模型「知道训练样本被怎么处理过」；这一步既扩大了可用训练数据 39%，又解决了人物头部缺失等典型构图问题，是 SDXL 工程化最高 ROI 的小改进。
-
 ### 2. 训练 Stable Diffusion XL 时为什么要使用 offset Noise？
 
 SDXL 在高分辨率图像上训练时，普通的逐像素独立高斯噪声主要覆盖局部高频变化，无法充分改变整张图像的亮度、色调等低频统计。模型因此容易学习到“中等亮度、低对比度”的生成分布，在纯色背景、极亮或极暗场景中表现受限。
@@ -929,11 +914,9 @@ offset Noise 的做法是在标准噪声之外，为每个样本和每个 latent
 \epsilon_{\mathrm{offset}}\sim\mathcal{N}(0,I_{B\times C\times1\times1})
 ```
 
-其中 $`\lambda`$ 是 offset Noise 的强度，`epsilon_offset` 在空间维度上保持一致，因此会整体推动某个通道的亮度或色彩，而不是只改变局部纹理。训练时使用 $`\epsilon'`$ 构造带噪 latent，推理时仍使用普通噪声；模型由此学会覆盖更宽的低频范围，生成纯黑、纯白、低照度和高对比度画面时更稳定。
+其中 $\lambda$ 是 offset Noise 的强度，`epsilon_offset` 在空间维度上保持一致，因此会整体推动某个通道的亮度或色彩，而不是只改变局部纹理。训练时使用 $`\epsilon'`$ 构造带噪 latent，推理时仍使用普通噪声；模型由此学会覆盖更宽的低频范围，生成纯黑、纯白、低照度和高对比度画面时更稳定。
 
 工程上需要注意三点：第一，offset Noise 是训练分布的改变，微调 SDXL 时应与基础模型的噪声配置保持一致，不能只在推理端临时添加；第二，$`\lambda`$ 过大可能造成颜色漂移、细节不稳定，通常从较小值开始调参；第三，它解决的是低频动态范围问题，不能替代 micro-conditioning，前者改变噪声覆盖，后者告诉模型图像尺寸和裁剪事实。
-
-**面试金句**：普通高斯噪声擅长破坏局部纹理，却不容易改变整幅图像的低频亮度和色调；offset Noise 通过空间共享的通道级噪声扩大低频覆盖，使 SDXL 能生成更明亮、更暗以及更高对比度的图像，但必须和训练阶段的噪声配置保持一致。
 
 ### 3. SDXL 的多尺度训练与 Ratio Bucketing 如何协同？
 
@@ -951,7 +934,7 @@ SDXL 的条件化并不只是一组 `time_ids`：`original_size`、`crop_top_lef
 
 这种设计把数据预处理事实、生成尺寸先验和文本整体语义放进同一条条件通路：训练时记录真实的原始长宽与裁剪左上角坐标，推理时通常设置 `crop_top_left=(0,0)` 以请求完整构图，再通过 `original_size/target_size` 控制目标尺寸风格。自定义训练脚本必须保证这些字段的顺序、单位和 CFG 的 unconditional 分支一致，否则会出现构图偏移或条件错位。
 
-### 5. SDXL 的训练目标与整体配方
+### 5. SDXL 的训练目标与策略
 
 在上述条件注入之外，SDXL 仍采用 1000 步 DDPM noise scheduler 与 ε-prediction 目标。公开文章对训练配方的整理显示，模型先在 256×256 和 512×512 阶段分别进行约 600,000 步与 200,000 步预训练（batch size=2048），再在 1024×1024 为中心的多尺度桶上微调；这一安排先扩大数据覆盖，再让模型适应目标分辨率。带噪 latent 可写为
 
@@ -981,77 +964,16 @@ ADD 模型的结构包括三个核心组件：
 2. **判别器 (Discriminator)**：用来区分生成的样本和真实图像，通过对抗性训练来提升生成图像的真实感。
 3. **DM 教师模型 (Teacher Model)**：这是一个冻结权重的扩散模型，作为知识的教师，为学生模型提供目标图像来实现知识蒸馏。
 
-<div align="center"><img src="./imgs/SDXL-Turbo-ADD蒸馏结构.jpg" alt="SDXL Turbo ADD 蒸馏方法结构示意图" /></div>
 
-**核心原理**
-
-ADD 的核心原理是通过两个损失函数的结合实现蒸馏过程：
-
-1. **对抗性损失 (Adversarial Loss)**：学生模型生成的样本被输入判别器，判别器尝试将生成的样本与真实图像区分开。学生模型则优化生成图像，使其更难被判别器检测到为假，从而提升图像的细节和逼真度。官方配方借鉴 GAN 的 Hinge loss，使学生在一到两步的极短轨迹上仍保持纹理保真度，减少少步蒸馏常见的模糊与失真。
-2. **蒸馏损失 (Distillation Loss)**：ADD 使用另一个冻结的强扩散模型作为教师，并通过蒸馏损失指导学生模型生成与教师模型相似的图像。教师模型对学生生成的噪声数据进行去噪，从而提供高质量的生成目标；该项通常用 L2 距离约束学生与教师的输出，使学生继承教师的语义一致性。
-
-训练时将两项损失加权求和，官方示例中的权重为 `λ=2.5`。SDXL-Turbo 本质上仍是 SDXL Base 的 U-Net、VAE 和双 Text Encoder，不包含 Refiner；蒸馏改变的是采样轨迹与步数，而不是把 Backbone 换成轻量 GAN。官方报告在 A100 上给出约 207 ms 的 512×512 单步端到端耗时（含 prompt encoding、一次去噪和解码），因此它适合实时交互，但默认不使用 CFG 和 `negative_prompt`。
-
-ADD 模型具有以下优势：
-
-- **高速生成**：仅需 1-4 步采样即可生成高质量图像，显著减少了生成时间，适用于实时应用。
-- **高质量图像**：通过结合对抗性损失和蒸馏损失，生成的图像在细节和逼真度上优于现有的快速生成模型，如单步 GAN 和一些少步扩散模型。
-- **灵活性**：支持进一步的多步采样，从而在单步生成的基础上通过迭代增强图像细节。
-
-### 2. 相比 SDXL-Turbo，新一代少步蒸馏方法有哪些进步？
-
-SDXL-Turbo（ADD）开启了 SDXL 的少步生成时代，但也存在「单步质量上限有限、CFG 不可用、画风偏写实」等问题。**SDXL Lightning、DMD / DMD2、Hyper-SD** 等新一代蒸馏方法在「质量、可控性、训练稳定性」上做了系统性升级，是当前少步生成的主流。
-
-**主流少步蒸馏方法对比**
-
-<div align="center">
-
-| 方法 | 提出方 | 核心思想 | 步数 | 是否支持 CFG | 训练稳定性 |
-| --- | --- | --- | --- | --- | --- |
-| **SDXL-Turbo (ADD)** | Stability AI | 对抗 + 蒸馏，像素空间判别器 | 1 ~ 4 | 不支持（已固化） | 中 |
-| **SDXL Lightning** | ByteDance | **渐进式蒸馏 + 对抗 + 多步组合**，支持 1/2/4/8 步多档 | 1 ~ 8 | 受限 | 高，多档统一 |
-| **DMD（Distribution Matching Distillation）** | MIT / Adobe | **分布匹配蒸馏**，让学生模型的输出分布逼近教师 | 1 ~ 4 | 不支持 | 中 |
-| **DMD2** | MIT / Adobe | DMD 升级版：双判别器 + GAN loss 稳定化 | 1 ~ 4 | 不支持 | 高，画质显著提升 |
-| **Hyper-SD** | ByteDance | **轨迹分段一致性蒸馏 + 人类反馈对齐 + LoRA 形式发布** | 1 ~ 8 | 部分支持 | 高，可作为 LoRA 适配器 |
-| **PCM（Phased Consistency Model）** | 上海 AI Lab | **分相位的一致性蒸馏**，缓解一致性模型在 SDXL 上的画质塌缩 | 1 ~ 8 | 受限 | 高 |
-
-</div>
-
-**相比 SDXL-Turbo 的关键进步**
-
-1. **多步档位统一**：SDXL Lightning、Hyper-SD 用一份权重支持 1 / 2 / 4 / 8 步推理，而 Turbo 通常一档一个权重，部署成本大幅下降；
-2. **质量显著提升**：DMD2、Hyper-SD 在 4 步推理上的 FID / 视觉质量已经接近教师 SDXL 25 步的水平，远超 SDXL-Turbo；
-3. **画风更通用**：Turbo 偏写实、对动漫 / 二次元支持差；Lightning / Hyper-SD 等保留了原始 SDXL 的画风分布；
-4. **LoRA 形式发布**：Hyper-SD、Lightning 都提供 LoRA 权重，可以叠加在自定义 SDXL 模型上，而不破坏用户已有的 LoRA 生态；
-5. **训练稳定性提升**：DMD2 的双判别器、Hyper-SD 的轨迹分段一致性、PCM 的分相位一致性都解决了「对抗训练塌缩」的工程难题；
-6. **部分支持 CFG**：Hyper-SD 支持有限 CFG（小尺度），缓解了 Turbo「CFG 失效」的可控性问题；
-7. **配套 reward model 与人类反馈**：Hyper-SD 显式引入了人类偏好对齐，是 SDXL 蒸馏方法中第一个引入 RLHF 思路的。
-
-**工程选择建议**
-
-- **要求最快、可接受质量妥协**：SDXL-Turbo / DMD（1 步）；
-- **追求质量与速度均衡**：SDXL Lightning 4 步 / Hyper-SD 4-8 步；
-- **要叠在已有 SDXL fine-tune / LoRA 上**：Hyper-SD（LoRA 形式）；
-- **追求新一代最佳画质**：DMD2（4 步）。
-
-**跨周期价值**
-
-少步蒸馏方法是「**扩散模型从研究走向实时应用**」的关键技术路线；**ADD → DMD → Lightning → Hyper-SD → DMD2** 这条主线后续被 FLUX、SD 3 全部继承，理解 SDXL 上的演进有助于看懂 FLUX-schnell、SD3-Turbo、SD 3.5-Turbo 等新一代 Turbo 模型。
-
-**面试金句**：SDXL-Turbo 解决了「能不能 4 步出图」，新一代 Lightning / DMD2 / Hyper-SD 解决的是「**能不能在 4 步出图同时保留画风、支持 CFG、用 LoRA 发布、训练稳定**」；这是「**研究 demo → 工业可用**」的工程化跃迁。
-
-
-<h2 id="q-065">面试问题：什么是 SDXL Refiner？</h2>
+<h2 id="q-065">面试问题：什么是SDXL Refiner？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-SDXL Refiner是Stability AI推出的图像精细化模型，作为SDXL生态系统的第二阶段，专门负责提升图像细节质量。它采用了"专家集成"的设计理念：Base模型生成基础结构，Refiner模型优化细节表现。
+SDXL Refiner是图像精细化模型，作为SDXL生态系统的第二阶段，专门负责提升图像细节质量。它采用了"专家集成"的设计理念：Base模型生成基础结构，Refiner模型优化细节表现。具体流程如下图所示：
 
 <div align="center"><img src="./imgs/SDXL-Base与Refiner流程.jpg" alt="SDXL Base 与 Refiner 级联流程" /></div>
 
-SDXL 是二阶段级联 Latent Diffusion Model：Base 负责文生图、图生图和 inpainting，先生成结构稳定的 latent；Refiner 接收 Base latent，在较低噪声区间继续去噪，重点补足纹理、背景和人脸等高频细节。这个过程本质上是 latent 空间的 img2img，而不是重新从文本开始生成。
-
-<div align="center"><img src="./imgs/pipeline.png" alt="SDXL Base + Refiner 两阶段流程" /></div>
+Base 负责文生图、图生图和 inpainting，先生成结构稳定的 latent；Refiner 接收 Base latent，在较低噪声区间继续去噪，重点补足纹理、背景和人脸等高频细节。这个过程本质上是 latent 空间的 img2img，而不是重新从文本开始生成。
 
 ### 核心工作原理
 
@@ -1084,12 +1006,10 @@ SDXL 是二阶段级联 Latent Diffusion Model：Base 负责文生图、图生�
 
 <div align="center"><img src="./imgs/SDXL-Base与Refiner效果对比.jpg" alt="SDXL Base 与 Base+Refiner 生成效果对比" /></div>
 
-- SDXL Refiner通过专门的精细化设计，成功解决了AI图像生成中的细节问题。它与Base模型的配合使用，让SDXL成为目前最优秀的开源图像生成方案之一。对于追求高质量图像输出的用户，Refiner是不可或缺的工具。
-
 由于 Refiner 主要学习低噪声细节迁移，它也可以作为 Stable Diffusion、Midjourney、DALL·E、GAN 或其他 VAE/扩散模型的级联后处理组件；工程上可按延迟预算选择“Base-only”或“Base + Refiner”，并不要求所有场景都启用第二阶段。
 
 
-<h1 id="q-066">6.介绍一下 Stable Diffusion 3的原理和创新点</h1>
+<h1 id="q-066">6.介绍一下Stable Diffusion 3的原理和创新点</h1>
 
 <h2 id="q-067">面试问题：SD 3 的 VAE 部分有哪些创新？详细分析改进意图</h2>
 
@@ -1099,25 +1019,13 @@ SDXL 是二阶段级联 Latent Diffusion Model：Base 负责文生图、图生�
 
 Stable Diffusion 3 是 Stability AI 发布的文生图大模型。相比此前的 Stable Diffusion 系列，它在多主题提示词的控制一致性（multi-subject prompts）、文字渲染能力（spelling abilities）以及整体图像质量（image quality）三个维度都有明显提升。
 
-SD 3 依旧是一个 End-to-End 模型，最大的架构亮点是扩散 Backbone 使用全新的 MM-DiT（Multimodal Diffusion Transformer）；训练目标则采用优化后的 Flow Matching，使训练过程更加高效稳定，并支持更快的采样生成。为了适配不同应用场景和硬件环境，SD 3 的扩散 Backbone 覆盖约 800M 到 8B 参数的多个版本，也进一步体现了 Transformer 架构的 Scaling 能力。
+SD 3 依旧是一个 End-to-End 模型，最大的架构亮点是扩散 Backbone 使用全新的 MM-DiT（Multimodal Diffusion Transformer）；训练目标则采用优化设计的Flow Matching，使训练过程更加高效稳定，并支持更快的采样生成。
 
-以开源的 Stable Diffusion 3 Medium 为例，FP16 权重约 15.8GB，其中 MM-DiT 约 4.17GB、参数量约 2B；VAE 约 168MB、参数量约 80M；CLIP ViT-L 约 246MB、参数量约 124M；OpenCLIP ViT-bigG 约 1.39GB、参数量约 695M；T5-XXL 在 FP16 下约 9.79GB、参数量约 4.7B，在 FP8 下约 4.89GB。这个参数构成也解释了为什么 Text Encoder 缓存、T5-XXL 量化和模块卸载会成为 SD 3 工程部署中的核心问题。
+以开源的 Stable Diffusion 3 Medium 为例，FP16 权重约 15.8GB，其中 MM-DiT 约 4.17GB、参数量约 2B；VAE 约 168MB、参数量约 80M；CLIP ViT-L 约 246MB、参数量约 124M；OpenCLIP ViT-bigG 约 1.39GB、参数量约 695M；T5-XXL 在 FP16 下约 9.79GB、参数量约 4.7B，在 FP8 下约 4.89GB。
 
-从技术演进的角度看，Stable Diffusion 3 的价值类似于传统深度学习时代的 YOLOv4：它把多模态表示、生成骨干和训练工程放在同一个系统中协同优化，因而具有较强的学习与借鉴价值。相较于此前系列，核心改进可以概括为：
+从技术演进的角度看，Stable Diffusion 3的价值类似于传统深度学习时代的 YOLOv4：它把多模态表示、生成骨干和训练工程放在同一个系统中协同优化，因而具有较强的学习与借鉴价值。
 
-1. 使用多模态DiT作为扩散模型核心：多模态DiT（MM-DiT）将图像的Latent tokens和文本的tokens拼接在一起，并采用两套独立的权重处理，但是在进行Attention机制时统一处理。
-2. 改进VAE：通过增加VAE通道数来提升图像的重建质量。
-3. 3个文本编码器：SD 3中使用了三个文本编码器，分别是CLIP ViT-L（参数量约124M）、OpenCLIP ViT-bigG（参数量约695M）和T5-XXL encoder（参数量约4.7B）。
-4. 采用优化的Rectified Flow：采用Rectified Flow来作为SD 3的采样方法，并在此基础上通过对中间时间步加权能进一步提升效果。
-5. 采用QK-Normalization：当模型变大，而且在高分辨率图像上训练时，attention层的attention-logit（Q和K的矩阵乘）会变得不稳定，导致训练出现NAN，为了提升混合精度训练的稳定性，MM-DiT的self-attention层采用了QK-Normalization。
-6. 多尺寸位置编码：SD 3会先在256x256尺寸下预训练，再以1024x1024为中心的多尺度上进行微调，这就需要MM-DiT的位置编码需要支持多尺度。
-7. timestep schedule进行shift：对高分辨率的图像，如果采用和低分辨率图像的一样的noise schedule，会出现对图像的破坏不够的情况，所以SD 3中对noise schedule进行了偏移。
-8. 强大的模型Scaling能力：SD 3中因为核心使用了transformer架构，所以有很强的scaling能力，当模型变大后，性能稳步提升。
-9. 训练细节：数据预处理（去除离群点数据、去除低质量数据、去除NSFW数据）、图像Caption精细化、预计算图像和文本特征、Classifier-Free Guidance技术、DPO（Direct Preference Optimization）技术
-
-下面先聚焦分析 SD 3 的 VAE 部分；Backbone 与 Text Encoder 的设计分别在后续子问题中展开，训练目标和数据工程则统一放在训练技巧子问题中说明。
-
-### Stable Diffusion 3的VAE部分的创新
+### Stable Diffusion 3 VAE部分的创新
 
 **VAE（变分自编码器，Variational Auto-Encoder）在 Stable Diffusion 3（SD 3）中依旧是不可或缺的组成部分**。从更长周期看，它仍会在 AIGC 工作流中持续承担压缩与重建职责。
 
@@ -1137,7 +1045,7 @@ SD 3 依旧是一个 End-to-End 模型，最大的架构亮点是扩散 Backbone
 
 我们可以看到，当设置 $d=16$ 时，VAE模型的整体性能（FID指标降低、Perceptual Similarity指标降低、SSIM指标提升、PSNR指标提升）比 $d=4$ 时有较大的提升，所以SD 3确定使用了 $d=16$ （16通道）的VAE模型。
 
-与此同时，随着VAE的通道数增加到16，扩散模型部分（U-Net或者DiT）的通道数也需要跟着修改（修改扩散模型与VAE Encoder衔接的第一层和与VAE Decoder衔接的最后一层的通道数），虽然不会对整体参数量带来大的影响，但是会增加任务整体的训练难度。**因为当通道数从4增加到16，SD 3要学习拟合的内容也增加了4倍**，我们需要增加整体参数量级来提升**模型容量（model capacity）**。下图是SD 3论文中模型通道数与模型容量的对比实验结果：
+与此同时，随着VAE的通道数增加到16，扩散模型部分（U-Net或DiT）的通道数也需要跟着修改（修改扩散模型与VAE Encoder衔接的第一层和与VAE Decoder衔接的最后一层的通道数），虽然不会对整体参数量带来大的影响，但是会增加任务整体的训练难度。**因为当通道数从4增加到16，SD 3要学习拟合的内容也增加了4倍**，我们需要增加整体参数量级来提升**模型容量（model capacity）**。下图是SD 3论文中模型通道数与模型容量的对比实验结果：
 
 <div align="center"><img src="./imgs/SD3模型容量和VAE通道数之间的关系.png" alt="SD 3模型容量和VAE通道数之间的关系" /></div>
 
@@ -1161,13 +1069,12 @@ SD 3 依旧是一个 End-to-End 模型，最大的架构亮点是扩散 Backbone
 
 在高分辨率场景下，SD 3 VAE 的重建优势更加明显。以 1024×1024 和 2048×2048 分辨率图像为例，SDXL VAE 在 2048×2048 图像上会出现较明显的内容和文字信息损失，而 SD 3 VAE 能够更好地完成高分辨率图像的压缩与重建。
 
-<div align="center"><img src="./imgs/SDXL-SD3-FLUX.1-VAE重建效果对比.jpg" alt="SDXL、SD 3 与 FLUX.1 VAE 重建效果对比" /></div>
 
-<h2 id="q-067a">面试问题：SD 3 的 Backbone 部分有哪些创新？详细分析改进意图</h2>
+<h2 id="q-067a">面试问题：SD 3的Backbone部分有哪些创新？详细分析改进意图</h2>
 
 **难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-DiT（Diffusion Transformer）是把扩散模型的 Backbone 从 U-Net 换成 Transformer 的奠基工作；MM-DiT（Multimodal DiT）则是 DiT 在「文本-图像联合建模」上的关键升级，是 SD 3、FLUX.1 共同的 Backbone 设计模板。
+DiT（Diffusion Transformer）是把扩散模型的 Backbone 从 U-Net 换成 Transformer 的奠基工作；MM-DiT（Multimodal DiT）则是 DiT 在「文本-图像联合建模」上的关键升级，是 SD 3、FLUX.1 共同的 Backbone 架构基石。
 
 ### 1. 原始 DiT 的核心结构
 
@@ -1208,8 +1115,6 @@ DiT（Diffusion Transformer）是把扩散模型的 Backbone 从 U-Net 换成 Tr
 3. **多模态扩展性**：未来扩展到「文本 + 参考图 + 深度 + 姿态」多条件生成，MM-DiT 的拼接式注入可以无缝扩展为更多模态序列；
 4. **保留 DiT 的 Scaling Law**：MM-DiT 仍然是纯 Transformer，沿用 DiT 的良好 scaling 性质。
 
-**面试金句**：DiT 把扩散 Backbone 从 U-Net 升级为 Transformer，但仍把文本当作「全局调制」；**MM-DiT 把文本和图像放进同一个 token 序列做双向 self-attention，配合「双权重 + 单注意力」的设计**，让 SD 3 / FLUX 在长 prompt、文字渲染、多模态扩展上获得了 DiT 无法达到的能力。
-
 ### MM-DiT Block 组成、位置编码与 Scaling 能力
 
 从实现结构看，SD 3 的 MM-DiT 主要包含以下核心模块：
@@ -1226,7 +1131,7 @@ SD 3 论文还将 MM-DiT 与引入 Cross-Attention 的 CrossDiT、U-Net 和 Tran
 
 这说明基于 Transformer 的 SD 3 具备较好的 Scaling 能力。当模型参数量持续增加时，验证损失呈现平滑下降趋势，并且与 T2I-CompBench、GenEval 和人类视觉偏好等指标具有较强相关性。不过，参数规模扩大后，学习率等超参数也需要更细致地调整，否则大模型训练可能出现发散。整体而言，SD 3 的实验仍未观察到明显的性能饱和，Scaling Law 仍然是其持续提升的重要工程基础。
 
-<h2 id="q-067c">面试问题：SD 3 的 Text Encoder 部分有哪些创新？详细分析改进意图</h2>
+<h2 id="q-067c">面试问题：SD 3的Text Encoder部分有哪些创新？详细分析改进意图</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
@@ -1256,66 +1161,6 @@ Stable Diffusion 3的文字渲染能力很强，同时遵循文本Prompts的图�
 
 虽然 CLIP ViT-L、OpenCLIP ViT-bigG 与 T5-XXL Encoder 的组合带来了文字渲染和文本一致性增益，但也存在上下文长度上的约束：CLIP ViT-L 和 OpenCLIP ViT-bigG 默认只能编码 77 tokens，这使原本能够处理 512 tokens 的 T5-XXL 在 SD 3 中也受限于 77 tokens。作为对比，DALL-E 3 只使用 T5-XXL 作为 Text Encoder，可以输入 512 tokens，从而更充分地发挥其长上下文能力。
 
-
-### 为什么 Stable Diffusion 3 使用三个文本编码器？
-
-上文已经介绍了三个 Text Encoder 如何分别提供全局语义与细粒度文本特征，下面进一步从训练与推理的角度说明这一设计。
-
-Stable Diffusion 3作为一款先进的文本到图像模型,采用了三重文本编码器的方法。这一设计选择显著提升了模型的性能和灵活性。
-
-<div align="center"><img src="./imgs/sd3pipeline.png" alt="Stable Diffusion 3 Pipeline 示意图" /></div>
-
-**（1）三个文本编码器**
-
-Stable Diffusion 3使用以下三个文本编码器:
-
-1. CLIP-L/14
-2. CLIP-G/14
-3. T5 XXL
-
-**（2）使用多个文本编码器的原因**
-
-**（2.1）提升性能**
-
-使用多个文本编码器的主要动机是提高整体模型性能。通过组合不同的编码器,模型能够捕捉更广泛的文本细微差别和语义信息,从而实现更准确和多样化的图像生成。
-
-**（2.2）推理时的灵活性**
-
-多个文本编码器的使用在推理阶段提供了更大的灵活性。模型可以使用三个编码器的任意子集,从而在性能和计算效率之间进行权衡。
-
-**（2.3）通过dropout增强鲁棒性**
-
-在训练过程中,每个编码器都有46.3%的独立dropout率。这种高dropout率鼓励模型从不同的编码器组合中学习,使其更加鲁棒和适应性强。
-
-**（3）各个编码器的影响**
-
-**（3.1）CLIP编码器(CLIP-L/14和OpenCLIP-G/14)**
-
-- 这些编码器对大多数文本到图像任务至关重要。
-- 它们在广泛的提示范围内提供强大的性能。
-
-**（3.2）T5 XXL编码器**
-
-- 虽然对复杂提示很重要,但其移除的影响较小:
-  - 对美学质量评分没有影响(人类偏好评估中50%的胜率)
-
-  - 对提示遵循性有轻微影响(46%的胜率)
-
-  - 对生成书面文本的能力有显著贡献(38%的胜率)
-
-    （胜率是完整版对比其他模型的效果，下图是对比其他模型以及不使用T5的sd3的胜率图）
-
-    <div align="center"><img src="./imgs/sd3实验.png" alt="SD 3 文本编码器消融实验对比" /></div>
-
-**（3.3）实际应用**
-
-1. **内存效率**: 用户可以在大多数提示中选择排除T5 XXL编码器(拥有47亿参数),而不会造成显著的性能损失,从而节省大量显存。
-
-2. **任务特定优化**: 对于涉及复杂描述或大量书面文本的任务,包含T5 XXL编码器可以提供明显的改进。
-
-3. **可扩展性**: 多编码器方法允许在模型的未来迭代中轻松集成新的或改进的文本编码器。
-
-
 ### 三个 Text Encoder 的结构与工程取舍
 
 从模型结构看，SD 3 的三个 Text Encoder 都是已经预训练好的语言模型。CLIP ViT-L 只包含 Transformer 结构，由 12 个 CLIPEncoderLayer 模块组成；每个 CLIPEncoderLayer 包含一个 Self-Attention 层和一个 MLP 层。OpenCLIP ViT-bigG 同样只包含 Transformer 结构，由 32 个 CLIPEncoderLayer 模块组成，每个模块也包含 Self-Attention 层和 MLP 层。T5-XXL 则由 24 个 T5-XXL Block 模块组成，每个 Block 包含 T5LayerFF 层和 T5Self-Attention 层，与 CLIP 系列的网络结构存在明显差异。
@@ -1324,13 +1169,11 @@ Stable Diffusion 3使用以下三个文本编码器:
 
 T5-XXL 的参数量最大，因此在 2080Ti 等显存有限的 GPU 上部署 SD 3 时，可以只加载 CLIP ViT-L 与 OpenCLIP ViT-bigG，并将 T5-XXL 特征设置为 zero。这样整体图像质量通常不会明显下降，但文本理解和文字渲染能力会下降，尤其是文字渲染效果更依赖 T5-XXL。若希望进一步降低显存占用，可以使用 FP8 精度的 T5-XXL 替代 FP16，通常能够节省约 6GB 显存，同时只损失少量生成精度；这仍然优于完全移除 T5-XXL 的方案。
 
-<h2 id="q-069">面试问题：训练 Stable Diffusion 过程中官方使用了哪些训练技巧？</h2>
+<h2 id="q-069">面试问题：训练Stable Diffusion 3过程中官方使用了哪些训练技巧？</h2>
 
 **难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
 Stable Diffusion 3 的官方训练技巧并不是某一个孤立技巧，而是围绕**训练目标、噪声调度、数据工程、蒸馏加速与资源优化**形成的一套完整方法。下面按训练目标、噪声调度、标签与数据配方、蒸馏、缓存和稳定性优化等方面展开。
-
-### 1. SD 3 的 Rectified Flow 训练目标相比 ε-prediction 的本质差别是什么？给少步采样带来了哪些工程优势？
 
 SD 3 不再使用 DDPM 作为扩散模型，而是改用优化后的 Rectified Flow。图像生成任务本质上是让模型学习一个图像数据集所表达的数据分布，之后再从这个数据分布中进行随机采样。由于复杂的数据分布很难直接表达，扩散模型通常先选择标准正态分布作为容易采样的简单分布，再学习从噪声分布到真实数据分布的映射。
 
@@ -1401,9 +1244,6 @@ x_t = (1 - t)\, x_0 + t\, \epsilon,\quad t \in [0, 1]
 - **不能直接复用 DDPM 的预训练权重**：训练目标不同，权重不通用，需要从头训或用 RF 重训。
 
 **面试金句**：RF 把数据-噪声路径**显式定义为直线**，把网络从「预测噪声」升级为「预测速度场」，让**少步采样精度**与**二次蒸馏（reflow）** 两项工程能力都成为天然属性；这是 SD 3 / FLUX 在 4 步出图质量上跨越式提升的根本原因。
-
-
-### 2. SD 3 / SD 3.5 在高分辨率训练中对 timestep schedule 做的 shift 具体是怎么做的？为什么对大尺寸训练至关重要？
 
 SD 3 论文中明确提出，在做大分辨率训练（如 1024×1024 及以上）时，必须对 Rectified Flow 的 timestep schedule 做 **shift（偏移）**，否则模型在高分辨率下会出现「破坏不够」「低频结构残留」的现象。这是 SD 3、SD 3.5、FLUX.1 共享的关键训练技巧。
 
@@ -1479,10 +1319,7 @@ t_m=\frac{\sqrt{\frac{m}{n}}t_n}{1+\left(\sqrt{\frac{m}{n}}-1\right)t_n}
 
 timestep schedule shift 不只对 SD 3 / FLUX 有效；它揭示了一个**普适规律**：随着扩散模型分辨率提升，需要重新设计 noise schedule，让加噪过程在视觉上「真正破坏图像」。这一思路在 EDM2、Karras 系列、Cosmos、视频生成模型中都有相似的体现。
 
-**面试金句**：高分辨率图像低频信号更强，固定 noise schedule 在高 $t$ 处「破坏不够」，模型学不到从纯噪声起步的能力；SD 3 用 shift 公式把 timestep 偏向高噪声端，让训练 / 推理 / 少步采样都获得正确的噪声水平分布。这是 SD 3、SD 3.5、FLUX.1 在 1024+ 分辨率下能稳定训练并少步出图的关键工程细节。
-
-
-### 3. Stable Diffusion 3 中数据标签工程的具体流程是什么样的？
+### Stable Diffusion 3 中数据标签工程的具体流程是什么样的？
 
 除了训练目标与噪声调度，训练数据的 Caption 质量也直接决定模型的文本理解和 Prompt Following 能力。
 
@@ -1511,31 +1348,7 @@ SD 3 沿用了 DALL-E 3 的数据标注思路，只是将 Image Captioner 从 Co
 <div align="center"><img src="./imgs/SD3数据标注工程.png" alt="SD 3数据标注工程" /></div>
 
 
-### 4. SD 3-Turbo 用的蒸馏方法是什么？
-
-在完成基础模型训练后，SD3-Turbo 进一步通过蒸馏压缩推理步数。
-
-论文链接:[2403.12015](https://arxiv.org/pdf/2403.12015)
-
-**方法结构**
-
-论文提出了一种新的蒸馏方法——**潜在对抗扩散蒸馏（Latent Adversarial Diffusion Distillation, LADD）**，用于将大规模的扩散模型高效地蒸馏成快速生成高分辨率图像的模型。该方法主要用于基于**Stable Diffusion 3**的优化，目标是生成多比例、高分辨率的图像。与传统的对抗扩散蒸馏（ADD）方法不同，LADD直接在潜在空间（latent space）中进行训练，从而减少了内存需求，并避免了从潜在空间解码到像素空间的昂贵操作。其整体架构包括以下几个关键组件：
-
-1. **生成器（Teacher Model）**：用于生成潜在空间的表示，以进行合成数据的生成。
-2. **学生模型（Student Model）**：学习生成器在潜在空间中的分布，以实现快速生成。
-3. **判别器（Discriminator）**：用于区分学生模型生成的图像和真实图像的潜在表示，通过对抗训练优化学生模型。
-
-<div align="center"><img src="./imgs/SD3Turbo.jpg" alt="SD3-Turbo LADD 蒸馏方法结构示意图" /></div>
-
-LADD（潜在对抗扩散蒸馏）与ADD（对抗扩散蒸馏）有几个关键区别，主要体现在训练方式、判别器的使用以及生成流程的简化上：
-
-1. **潜在空间训练**：LADD直接在潜在空间（latent space）进行蒸馏，而ADD则需要将图像解码到像素空间，以便判别器进行判别。这种在潜在空间中训练的方式，使得LADD的计算需求更少，因为它避免了从潜在空间到像素空间的解码过程，大幅降低了内存和计算成本。
-2. **生成器特征作为判别特征**：ADD使用预训练的DINOv2网络来提取判别特征，但这种方式限制了分辨率（最高518×518像素），且不能灵活调整判别器的反馈层次。LADD则直接利用生成器的潜在特征作为判别器的输入，通过控制生成特征中的噪声水平，可以在高噪声时侧重全局结构，在低噪声时侧重细节，达到了更灵活的判别效果。
-3. **判别器和生成器的统一**：在LADD中，生成器和判别器是通过生成特征集成的，避免了额外的判别网络。这种方式不仅降低了系统的复杂度，还可以通过调整噪声分布，直接控制图像生成的全局和局部特征。
-4. **多长宽比支持**：LADD能够直接支持多长宽比的训练，而ADD由于解码和判别过程的限制，不易实现这一点。因此，LADD生成的图像在各种长宽比下具有较好的适应性。
-
-
-### 5. Stable Diffusion 3 的图像特征和文本特征在训练前缓存策略有哪些优缺点？
+### Stable Diffusion 3的图像特征和文本特征在训练前缓存策略有哪些优缺点？
 
 在训练资源优化层面，官方还分析了冻结模块的特征预计算与缓存策略。
 
@@ -1549,19 +1362,7 @@ SD 3与之前的版本相比，整体的参数量级大幅增加，这无疑也�
 
 整体上看，**其实SD 3的预计算策略是一个空间换时间的技术**。
 
-### 6. SD 3 训练数据预处理与数据配方
-
-SD 3 技术报告没有公布预训练数据集的完整来源分布，但其中的数据预处理方法仍然值得借鉴。官方训练数据工程主要包括以下环节：
-
-1. **NSFW 风险内容过滤**：使用 NSFW 检测模型过滤风险数据。
-2. **筛除美学分数较低的数据**：使用美学评分系统预测图像美学分数并移除低分样本。
-3. **数据去重**：使用基于聚类的去重方法移除重复图像，降低模型对重复样本中特征的过拟合风险。
-
-SD 3 的去重流程使用 SSCD 作为 Backbone 生成数据集的高质量 Embedding，再结合 autoFAISS 的大规模聚类能力高效移除重复样本。这种方法在保留训练数据多样性的同时，能够减少潜在的记忆化样本，为扩散模型的安全性和数据隐私提供保障。
-
-完成数据预处理后，官方筛选出 1B+ 数据进行训练：先在约 1B 数据上进行预训练，再使用约 30M 专注于特定视觉内容和风格的高质量美学数据微调，最后使用约 3M 偏好数据进行精细化训练。这个“海量通用数据预训练—高质量数据微调—偏好数据精调”的数据配方，与后续的 DPO 和 Caption 工程共同构成了 SD 3 的训练闭环。
-
-### 7. Classifier-Free Guidance 如何参与 SD 3 训练
+### Classifier-Free Guidance 如何参与 SD 3 训练
 
 Classifier-Free Guidance（CFG）从 SD 1.x 到 SD 3、FLUX.1 都是文本条件生成的重要训练技术。它通过在训练时以一定概率将条件标签置空，让同一个模型同时学习条件分支与无条件分支，从而避免额外训练一个显式分类器。
 
@@ -1575,13 +1376,13 @@ v_{\mathrm{cfg}}=v_{\mathrm{uncond}}+s\left(v_{\mathrm{cond}}-v_{\mathrm{uncond}
 
 其中 $s$ 是 guidance scale。这样不需要额外训练一个显式分类器，就能在采样阶段调节文本条件的引导强度；三个编码器独立 Dropout 则进一步让模型学会不同编码器子集的组合，而不是只能依赖完整的三编码器输入。
 
-### 8. DPO 偏好微调
+### DPO 偏好微调
 
 DPO（Direct Preference Optimization）最初应用于 NLP 领域，后来也用于 AI 绘画模型的偏好微调。与 SDXL 使用的 RLHF 相比，DPO 不需要单独训练 Reward Model，而是直接基于成对的人类偏好数据设计损失函数，使模型倾向于生成更符合偏好的图像。它省去了强化学习中的试错过程，训练过程更稳定，也更适合拥有大量图像偏好数据的场景。
 
 SD 3 的官方实验没有直接微调整个网络，而是在 2B 和 8B 模型上引入 Rank=128 的 LoRA 权重，分别进行约 4000 次和 2000 次迭代的偏好微调。微调后图像生成质量有所提升，尤其是文字渲染能力更强。换句话说，DPO 在这里不仅是一种优化算法，也是一种利用偏好数据校正生成分布的训练思想。
 
-### 9. QK-Normalization 稳定高分辨率训练
+### QK-Normalization 稳定高分辨率训练
 
 随着 SD 3 参数量增大，官方发现在高分辨率混合精度训练时，Attention 层的 attention-logit（Q 和 K 的矩阵乘）可能变得不稳定，导致梯度出现 NaN。为提升训练稳定性，SD 3 在 MM-DiT 的 Self-Attention 层使用 RMSNorm 对 Q-Embeddings 和 K-Embeddings 进行归一化，这就是技术报告中的 QK-Normalization。
 
@@ -1593,24 +1394,24 @@ RMSNorm 不再计算均值和方差，而是基于参数激活值的均方根进
 
 它的优势在于计算量相对较小、不依赖 Batch Size，并能在小批量或单样本训练中缓解梯度爆炸和梯度消失问题。
 
-### 10. 多尺度位置编码
+### 多尺度位置编码
 
 SD 3 先在 256×256 分辨率数据上预训练，再围绕 1024×1024 进行多尺寸微调，因此 MM-DiT 的位置编码必须支持多尺度，否则在 256×256 上学习到的位置编码无法直接适配其他分辨率。SD 3 借鉴 ViT 的二维 Frequency Embeddings，将两个一维 Frequency Embeddings 拼接，并在此基础上进行插值与扩展。
 
 假设目标分辨率的像素量为 $S^2$，SD 3 还使用 bucketed sampling，使数据集中各尺寸图像满足 $H\times W\approx S^2$，例如 2048×2048、1024×4096 和 4096×1024。由于 VAE 进行 8 倍下采样、Patch Size=2 又带来 2 倍下采样，输入 MM-DiT 的 Patch 网格相当于进行了 16 倍下采样，因此位置编码需要同时适配不同的 $h\times w$ 网格。工程上可以先将 256×256 的位置编码插值到目标正方形网格，再扩展到最大宽高，最后对具体尺寸进行 Center Crop。
 
-### 11. 基于 DiT 的 Scaling 能力
+### 基于 DiT 的 Scaling 能力
 
 相比 U-Net，Transformer Backbone 的重要优势是具备稳定的 Scaling 能力：增加模型参数量、训练数据量和计算资源，通常可以持续提升生成能力与泛化性能。SD 3 论文设置了深度为 15、18、21、30、38 的多种 MM-DiT 规模，其中深度 38 对应约 8B 参数模型。
 
 实验显示，MM-DiT 参数量持续增加时，模型性能稳步提升，验证损失平滑下降，并与 T2I-CompBench、GenEval 和人类视觉偏好等指标保持较强相关性。不过，大模型训练也需要更细致的超参数管理：例如深度为 38 的模型训练到约 $3\times10^5$ 步时需要调整学习率以避免发散。当前参数规模下尚未出现明显的性能饱和，说明 Scaling Law 仍是 SD 3 及后续 DiT 图像模型的重要增长路径。
 
 
-<h2 id="q-075">面试问题：Stable Diffusion 3.5 有哪些改进点？</h2>
+<h2 id="q-075">面试问题：Stable Diffusion 3.5有哪些改进点？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Stable Diffusion 3.5 是 Stable Diffusion 3 的升级系列，包含 Stable Diffusion 3.5 Large、Stable Diffusion 3.5 Large Turbo 和 Stable Diffusion 3.5 Medium 三个主要版本：
+Stable Diffusion 3.5 是 Stable Diffusion 3 的升级版本，包含 Stable Diffusion 3.5 Large、Stable Diffusion 3.5 Large Turbo 和 Stable Diffusion 3.5 Medium 三个主要版本：
 
 1. **Stable Diffusion 3.5 Large**：参数量约 8B，重点提升图像生成质量和提示词遵循能力，能够生成约百万像素级的高质量图像。
 2. **Stable Diffusion 3.5 Large Turbo**：Large 的蒸馏版本，只需约 4 步即可生成高质量图像，适合需要快速批量生成的场景。
