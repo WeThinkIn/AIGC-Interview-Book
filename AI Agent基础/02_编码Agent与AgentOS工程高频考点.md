@@ -1067,9 +1067,6 @@ $$
 
 ## 参考资料
 
-- 本地研究资料：`/Users/rocky/Desktop/AIGC技术知识/研究项目/claude-code`，用于提炼通用编码 Agent 工程模式。
-- 本地研究资料：`/Users/rocky/Desktop/AIGC技术知识/研究项目/Claude Code泄漏源码干货资源`，仅作为架构研究素材使用，本文不复刻具体实现细节。
-- 本地研究资料：`/Users/rocky/Desktop/AIGC技术知识/AI Agent/openclaw`，用于提炼通用 AgentOS、Gateway、Session、Runtime、Sandbox、Hooks 与后台任务设计。
 - Anthropic, [**Claude Code Documentation**](https://docs.anthropic.com/en/docs/claude-code/overview).
 - agentsmd, [**AGENTS.md: A Simple Open Format for Guiding Coding Agents**](https://github.com/agentsmd/agents.md).
 - OpenAI, [**Codex Documentation**](https://developers.openai.com/codex/).
