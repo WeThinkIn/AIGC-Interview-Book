@@ -1,16 +1,15 @@
 # 目录
 
-[1.主流的AIGC图像生成框架有哪些？应该如何选型？](#q-001)
-  - [面试问题：目前主流的AIGC图像生成框架有哪些？它们分别解决什么问题？](#q-002)
-  - [面试问题：在AIGC图像生成框架中，从Prompt到图像生成过程通常经历哪些环节？](#q-003)
+[1.主流的AIGC图像创作框架有哪些？应该如何选型？](#q-001)
+  - [面试问题：目前主流的AIGC图像创作框架有哪些？它们分别解决什么问题？](#q-002)
+  - [面试问题：在AIGC图像创作框架中，从Prompt到图像生成过程通常经历哪些环节？](#q-003)
 
 [2.ComfyUI为什么会成为AIGC图像创作领域的重要工作流框架？](#q-004)
   - [面试问题：ComfyUI的节点图和工作流架构是什么？](#q-005)
   - [面试问题：ComfyUI为什么适合复杂AIGC图像工作流和生产化场景？](#q-006)
   - [面试问题：ComfyUI全新动态显存（Dynamic VRAM）优化机制是什么？](#q-006b)
-  - [面试问题：ComfyUI中常见核心节点类型有哪些？](#q-007)
 
-[3.Diffusers为什么是AIGC图像生成模型研发和部署的重要工程库？](#q-012)
+[3.介绍一下Diffusers框架的原理](#q-012)
   - [面试问题：Diffusers框架的核心设计思想是什么？](#q-013)
   - [面试问题：Pipeline、Scheduler、Adapter和Model Component在Diffusers中分别起什么作用？](#q-014)
   - [面试问题：Diffusers在训练、推理优化和生产部署中有哪些关键能力？](#q-015)
@@ -28,21 +27,19 @@
 
 ---
 
-<h1 id="q-001">1.主流的AIGC图像生成框架有哪些？应该如何选型？</h1>
+<h1 id="q-001">1.主流的AIGC图像创作框架有哪些？应该如何选型？</h1>
 
-<h2 id="q-002">面试问题：目前主流的AIGC图像生成框架有哪些？它们分别解决什么问题？</h2>
+<h2 id="q-002">面试问题：目前主流的AIGC图像创作框架有哪些？它们分别解决什么问题？</h2>
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Rocky认为，AIGC图像生成框架不能只理解为“一个能跑扩散模型或者AIGC图像创作大模型的界面”。到了FLUX、SD3/SD3.5、Qwen-Image、HiDream、Z-Image、Seedream、GPT-Image、Nano Banana这一代AIGC图像创作大模型之后，框架的本质已经变成三件事：**模型接入层、创作工作流层、工程部署层**。
-
-我们从使用场景看，主流框架可以分成五类：
+Rocky认为，AIGC图像生成框架的核心包括**模型接入层、创作工作流层、工程部署层**。在此基础上，不同框架有不同的侧重点，主流框架可以分成以下五类：
 
 <div align="center">
 
 | 框架类型 | 代表框架 | 核心价值 | 适合人群/场景 |
 |---|---|---|---|
-| 可视化工作流框架 | ComfyUI | 用节点图把模型、采样器、VAE、ControlNet、LoRA、后处理串成可复现流程 | 复杂工作流、批量生产、影视/电商/设计Pipeline |
+| 可视化工作流框架 | ComfyUI | 用节点图把模型、采样器、VAE、ControlNet、LoRA、后处理模块串成可复现流程 | 复杂工作流、批量生产、影视/电商/设计Pipeline |
 | 参数面板式创作框架 | Stable Diffusion WebUI | 以Gradio界面承载txt2img、img2img、inpaint、插件和参数调试 | 新手、社区插件、快速出图、提示词实验 |
 | WebUI增强分支 | Stable Diffusion WebUI Forge、SD.Next | 在WebUI范式上强化资源管理、模型兼容、实验特性或多模型支持 | 低显存、本地部署、多模型尝试 |
 | 低门槛产品化工具 | Fooocus等 | 尽量隐藏采样器、CFG、ControlNet等复杂参数，让用户像使用产品一样生成图像 | 非技术用户、快速创意验证、轻量设计 |
@@ -50,38 +47,30 @@ Rocky认为，AIGC图像生成框架不能只理解为“一个能跑扩散模�
 
 </div>
 
-Rocky认为，最有跨周期价值的不是某一个框架本身，而是每个框架背后的精华**产品构建思想**：
+Rocky认为，最有跨周期价值的不是某一个框架本身，而是我们逐步提炼出来的每个框架背后的精华**构建技术思想**：
 
-1. **WebUI类框架把复杂模型包装成可操作产品。**  
-   它的价值是降低使用门槛，让更多创作者能通过提示词、采样器、CFG、Seed、Hires.fix、ControlNet等参数完成图像创作。
+1. **WebUI类框架把复杂模型包装成可操作产品。** Stable Diffusion WebUI如下图所示，它的价值是降低使用门槛，让更多创作者能通过提示词、采样器、CFG、Seed、Hires.fix、ControlNet等参数完成图像创作。
 
 ![Stable Diffusion WebUI](./imgs/WebUI图标.png)
 
-2. **ComfyUI类框架把图像生成变成可编排工作流。**  
-   它的价值不是“界面更酷”，而是在AIGC创作画布上把复杂生成流程拆成节点，让每个节点的输入、输出、参数和依赖关系可见、可复现、可自动化。
+2. **ComfyUI类框架把图像生成变成可编排工作流。** ComfyUI界面如下图所示，它的价值是在AIGC创作画布上把复杂生成流程拆成节点，让每个节点的输入、输出、参数和依赖关系可见、可复现、可自动化。
 
 ![ComfyUI](./imgs/comfyui图标.png)
 
-3. **Diffusers类框架把图像生成变成可研发、可部署、可测试的软件工程。**  
-   它的价值是把模型组件、Scheduler、Adapter、量化、offload、torch.compile、训练脚本和推理服务整合到Python生态里。
+3. **Diffusers类框架把图像生成变成可研发、可部署、可测试的软件工程。** 它的价值是把模型组件、Scheduler、Adapter、量化、offload、torch.compile、训练脚本和推理服务整合到Python生态里。
 
 ![diffusers](./imgs/diffusers图标.png)
 
-4. **插件生态把基础模型扩展成完整AIGC图像创作系统。**  
-   ControlNet注入特征控制，IP-Adapter进行图像参考，LoRA控制风格和角色，ADetailer补局部修复，Tiled VAE/Tiled Diffusion进行超高清图像生成和低显存推理，Ultimate SD Upscale进行超分和细节重绘等。
+4. **繁荣的开源插件生态把基础模型扩展成完整AIGC图像创作系统。** ControlNet注入特征控制，IP-Adapter进行图像参考，LoRA控制风格和角色，ADetailer补局部修复，Tiled VAE/Tiled Diffusion进行超高清图像生成和低显存推理，Ultimate SD Upscale进行超分和细节重绘等。
 
-可以说，**AIGC图像生成框架的竞争，已经从“谁能启动模型”变成“谁能承载更复杂的模型生态、更稳定的工作流复现、更低成本的推理部署和更高效率的创作生产线”。**
-
-<div align="center">
-
-</div>
+可以说，**AIGC图像生成框架的竞争，聚焦于谁能承载更复杂的模型生态、更稳定的工作流复现、更低成本的推理部署和更高效率的创作生产线”。**
 
 
-<h2 id="q-003">面试问题：在AIGC图像生成框架中，从Prompt到图像生成过程通常经历哪些环节？</h2>
+<h2 id="q-003">面试问题：在AIGC图像创作框架中，从Prompt到图像生成过程通常经历哪些环节？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-一个AIGC图像生成框架看起来是在“输入prompt，点击生成”，但底层通常会经历一条完整的推理链路：
+一个AIGC图像创作框架核心底层通常会经历一条完整的推理链路：
 
 ```text
 用户输入Prompt/参考图/控制图
@@ -90,32 +79,26 @@ Rocky认为，最有跨周期价值的不是某一个框架本身，而是每个
 → 扩散模型权重与Adapter模型权重加载
 → 初始噪声/Latent初始化
 → Scheduler/KSampler多步去噪
-→ ControlNet/IP-Adapter/LoRA等条件注入
+→ ControlNe/LoRA/IP-Adapter等条件注入
 → VAE Decode解码成像素图
-→ 后处理、GAN超分、局部修复、保存与元数据记录
+→ GAN超分、局部修复、图像编辑等后处理
 ```
 
 我们可以把这条链路拆成七个关键环节：
 
 <div align="center">
 
-| 执行环节 | 核心任务 | 框架中对应的典型组件 | 关键风险 |
-|---|---|---|---|
-| 输入层 | 接收prompt、负向prompt、参考图、mask、Control图、Seed和尺寸参数 | WebUI参数面板、ComfyUI输入节点、Diffusers函数参数 | 输入不完整、参数冲突、尺寸不兼容 |
-| 条件编码层 | 把文本、图像参考和控制信号转成模型可用的条件表示 | CLIP/T5/VLM Encoder、IP-Adapter、ControlNet预处理器 | 文本截断、条件弱化、多条件冲突 |
-| 模型加载层 | 加载Base Model、VAE、LoRA、ControlNet、Text Encoder、Tokenizer | Checkpoint Loader、LoRA Loader、Diffusers Components | 权重版本不匹配、显存不足、低精度误差 |
-| 采样调度层 | 决定从噪声到图像的去噪路径 | KSampler、Scheduler、Sampler、CFG、Steps | 步数过少、CFG过高、Scheduler不适配模型 |
-| 条件注入层 | 在去噪过程中注入文本、结构、参考图、风格和局部控制 | Cross-Attention、ControlNet、IP-Adapter、LoRA、Regional Prompt | 过度控制、局部破坏、风格污染 |
-| 解码输出层 | 把latent解码成RGB图像并保存元数据 | VAE Decode、Save Image、PNG info | VAE色偏、细节损失、元数据缺失 |
-| 后处理层 | 做超分、局部修复、大图切块、脸手修复和批处理 | Hires.fix、Ultimate SD Upscale、ADetailer、Tiled VAE | 接缝、局部不一致、过度重绘 |
+| 执行环节 | 核心任务 | 框架中对应的典型组件 |
+|---|---|---|
+| 输入层 | 接收prompt、参考图、mask、Control条件图、Seed和尺寸参数 | WebUI参数面板、ComfyUI输入节点、Diffusers函数参数 |
+| 条件编码层 | 把文本、图像参考和控制信号转成模型可用的条件表示 | CLIP/T5/VLM Encoder、IP-Adapter、ControlNet预处理器 |
+| 模型加载层 | 加载Base Model、VAE、LoRA、ControlNet、Text Encoder、Tokenizer | Checkpoint Loader、LoRA Loader、Diffusers Components |
+| 采样调度层 | 决定从噪声到图像的去噪路径 | KSampler、Scheduler、Sampler、CFG、Steps |
+| 条件注入层 | 在去噪过程中注入文本、结构、参考图、风格和局部控制等 | Cross-Attention、ControlNet、IP-Adapter、LoRA等 |
+| 解码输出层 | 把Latent解码成RGB图像并保存元数据 | VAE Decode、Save Image、PNG info |
+| 后处理层 | 做超分、局部修复、大图切块、脸手修复和批处理等 | Hires.fix、Ultimate SD Upscale、ADetailer、Tiled VAE |
 
 </div>
-
-Rocky认为，理解框架执行链路有两个跨周期的行业思想价值：
-
-第一，**能够定位问题**。如果生成结果不遵循prompt，可能是caption/文本编码/CFG/条件注入的问题；如果大图爆显存，可能是VAE解码、attention序列长度或tile策略的问题；如果局部人脸坏了，可能不是主模型不行，而是分辨率和局部像素不足，需要ADetailer或局部inpaint。
-
-第二，**能够做工程选型**。ComfyUI适合把上述链路可视化成稳定工作流，WebUI适合快速调参，Diffusers适合把链路写成可测试、可部署、可扩展的Python服务。
 
 
 <h1 id="q-004">2.ComfyUI为什么会成为AIGC图像创作领域的重要工作流框架？</h1>
@@ -124,37 +107,21 @@ Rocky认为，理解框架执行链路有两个跨周期的行业思想价值：
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-ComfyUI的核心不是“又一个图像生成界面”，而是一个**以创作画布为中心的节点图工作流引擎**。它把图像生成过程拆成一系列可连接、可复用、可保存的节点，例如加载模型、编码prompt、采样、解码、加载LoRA、应用ControlNet、超分、保存图像等。
+ComfyUI的核心本质是一个**以创作画布为中心的节点图工作流引擎**。它把图像创作过程拆成一系列可连接、可复用、可保存的节点，例如加载模型、编码prompt、采样、解码、加载LoRA、应用ControlNet、超分、保存图像等。
 
-这里的“创作画布”不是一个简单的UI概念，而是ComfyUI在竞争激烈的AI绘画框架中脱颖而出的底层设计思想。传统WebUI更像一个参数面板：用户在固定表单里填写prompt、seed、steps、CFG、采样器和插件参数，然后等待结果。ComfyUI则更像一张可以无限展开的视觉工程画布：模型、文本条件、图像条件、局部mask、ControlNet、IP-Adapter、LoRA、采样器、VAE、超分、局部修复、保存节点，都可以被放在同一张画布上，并通过连线显式表达它们之间的因果关系。
+这里的“创作画布”不是一个简单的UI概念，而是ComfyUI在竞争激烈的AIGC图像创作框架中脱颖而出的底层设计思想。传统WebUI更像一个参数面板：用户在固定表单里填写prompt、seed、steps、CFG、采样器和插件参数，然后等待结果。ComfyUI则更像一张可以无限展开的视觉工程画布：模型、文本条件、图像条件、局部mask、ControlNet、IP-Adapter、LoRA、采样器、VAE、超分、局部修复、保存节点，都可以被放在同一张画布上，并通过连线显式表达它们之间的因果关系。
 
-Rocky认为，**创作画布的跨周期价值，是把AIGC图像创作从“调参数”升级为“搭系统”**。在早期AI绘画阶段，用户关心的是如何用一个prompt生成一张好图；但到了多模型、多参考图、多ControlNet、多LoRA、多区域编辑和批量生产阶段，真正重要的已经不是某个单独参数，而是整条创作链路如何被组织、复现、调试和复用。ComfyUI的画布正好承载了这种复杂性。
+Rocky认为，**创作画布的跨周期价值，是把AIGC图像创作从“调参数”升级为“搭系统”**。在早期AI绘画阶段，用户关心的是如何用一个prompt生成一张优质的图像；但到了多模型、多参考图、多ControlNet、多LoRA、多区域编辑和批量生产阶段，真正重要的已经不是某个单独参数，而是整条创作链路如何被组织、复现、调试和复用。ComfyUI的画布正好承载了这种复杂性。
 
-一个最基础的Stable Diffusion/FLUX类工作流可以抽象成：
+ComfyUI的节点图有四个设计关键点：
 
-```mermaid
-graph LR
-    A[Load Checkpoint] --> B[CLIP Text Encode]
-    A --> C[KSampler]
-    B --> C
-    D[Empty Latent Image] --> C
-    C --> E[VAE Decode]
-    E --> F[Save Image]
-```
+1. **节点是功能单元。** 每个节点只做一件相对清晰的事，例如加载模型、编码文本、采样、解码、保存。它让复杂生成流程从“黑盒按钮”变成“可拆解流程”。
 
-节点图有四个关键设计：
+2. **连线是数据依赖。** 节点之间传递的不是抽象概念，而是具体数据类型，例如 `MODEL`、`CLIP`、`VAE`、`CONDITIONING`、`LATENT`、`IMAGE`、`MASK`。这使得用户可以明确知道信息如何流动。
 
-1. **节点是功能单元。**  
-   每个节点只做一件相对清晰的事，例如加载模型、编码文本、采样、解码、保存。它让复杂生成流程从“黑盒按钮”变成“可拆解流程”。
+3. **画布是创作过程的空间化表达。** 在ComfyUI里，用户不是在一个表单里线性填写参数，而是在画布上组织一个视觉生产系统。哪一路是正向prompt，哪一路是负向prompt，哪一路是参考图条件，哪一路是局部mask，哪一步做latent upscale，哪一步做VAE decode，都会被空间化地呈现出来。**这让复杂图像创作从“脑子里记流程”变成“画布上看流程”**。
 
-2. **连线是数据依赖。**  
-   节点之间传递的不是抽象概念，而是具体数据类型，例如 `MODEL`、`CLIP`、`VAE`、`CONDITIONING`、`LATENT`、`IMAGE`、`MASK`。这使得用户可以明确知道信息如何流动。
-
-3. **画布是创作过程的空间化表达。**  
-   在ComfyUI里，用户不是在一个表单里线性填写参数，而是在画布上组织一个视觉生产系统。哪一路是正向prompt，哪一路是负向prompt，哪一路是参考图条件，哪一路是局部mask，哪一步做latent upscale，哪一步做VAE decode，都会被空间化地呈现出来。**这让复杂图像创作从“脑子里记流程”变成“画布上看流程”**。
-
-4. **工作流是可复现资产。**  
-   ComfyUI可以保存/加载JSON工作流，也可以从生成图片中恢复工作流元数据。对团队协作来说，这比“截图一堆参数”更可靠。
+4. **工作流是可复现资产。** ComfyUI可以保存/加载JSON工作流，也可以从生成图片中恢复工作流元数据。对团队协作来说，这比“截图一堆参数”更可靠。
 
 ComfyUI一个自定义节点的基本形式通常包含输入类型、输出类型、执行函数和分类信息：
 
@@ -178,9 +145,9 @@ class CustomNode:
         return (output,)
 ```
 
-这个设计的长期价值在于：**AIGC图像创作越来越不是单次生成，而是“模型加载、条件控制、编辑、超分、局部修复、批处理、评测和自动化”的组合工程。ComfyUI真正抓住的不是节点本身，而是把节点组织到创作画布里的能力。节点负责模块化，画布负责系统化；节点让能力可复用，画布让创作流程可理解、可调试、可迁移。**
+这个设计的跨周期价值在于顺应了**AIGC图像创作逐渐向“模型加载、条件控制、编辑、超分、局部修复、批处理、评测和自动化”的组合工程的发展趋势**。ComfyUI把节点组织到创作画布里的能力。节点负责模块化，画布负责系统化；节点让能力可复用，画布让创作流程可理解、可调试、可迁移。
 
-这也是ComfyUI能够在众多AI绘画框架中形成差异化的原因：它没有只把扩散模型包装成一个更好用的面板，而是把AIGC图像创作抽象成一张可编排、可扩展、可复现的视觉工作流画布。**当AIGC图像创作进入复杂工作流时代，创作画布就不再是交互形式，而是生产力基础设施。**
+这也是ComfyUI能够在众多AI绘画框架中形成差异化的原因：把AIGC图像创作抽象成一张可编排、可扩展、可复现的视觉工作流画布。**当AIGC图像创作进入复杂工作流时代，创作画布就不再是交互形式，而是生产力基础设施。**
 
 
 <h2 id="q-006">面试问题：ComfyUI为什么适合复杂AIGC图像工作流和生产化场景？</h2>
@@ -189,26 +156,19 @@ class CustomNode:
 
 ComfyUI适合复杂工作流，本质上是因为它解决了AIGC图像生产中的四个痛点：**流程不可见、参数不可复现、局部修改要全量重跑、复杂模型组合难以管理**。
 
-ComfyUI官方也强调了几个很关键的能力：节点/图/流程图界面、异步队列、只重新执行发生变化的工作流部分、智能显存管理、工作流JSON保存和从生成图片恢复工作流等。这些能力对普通玩家是效率提升，对生产团队则是流程资产化。
+我们可以从五个角度理解它的价值：
 
-可以从五个角度理解它的价值：
+1. **流程透明。** WebUI里很多流程被封装在面板和脚本后面；ComfyUI把流程展开成节点图。用户可以明确看到prompt如何编码、ControlNet在哪一步注入、Latent在哪里被放大、VAE在哪里解码等AIGC图像创作过程的进展与关键节点。
 
-1. **流程透明。**  
-   WebUI里很多流程被封装在面板和脚本后面；ComfyUI把流程展开成节点图。用户可以明确看到prompt如何编码、ControlNet在哪一步注入、latent在哪里被放大、VAE在哪里解码。
+2. **复现能力强。** 一个复杂工作流可以保存成JSON，也可以随图片一起保存元数据。团队成员之间传的不是“你把CFG调到7.5，再开某个插件”，而是一份可执行工作流。
 
-2. **复现能力强。**  
-   一个复杂工作流可以保存成JSON，也可以随图片一起保存元数据。团队成员之间传的不是“你把CFG调到7.5，再开某个插件”，而是一份可执行工作流。
+3. **局部重算效率高。** 如果只改prompt，理论上模型加载节点、VAE加载节点、部分预处理节点不需要重新执行。对大模型、多ControlNet、多LoRA场景来说，这种增量执行能显著提升迭代效率。
 
-3. **局部重算效率高。**  
-   如果只改prompt，理论上模型加载节点、VAE加载节点、部分预处理节点不需要重新执行。对大模型、多ControlNet、多LoRA场景来说，这种增量执行能显著提升迭代效率。
+4. **复杂组合能力强。** 多LoRA、多ControlNet、IP-Adapter、多图参考、区域prompt、mask编辑、Tiled VAE、超分、ADetailer这类链路在面板式工具里容易混乱，在节点图里更容易管理。
 
-4. **复杂组合能力强。**  
-   多LoRA、多ControlNet、IP-Adapter、多图参考、区域prompt、mask编辑、Tiled VAE、超分、ADetailer这类链路在面板式工具里容易混乱，在节点图里更容易管理。
+5. **更接近自动化和后端服务。** ComfyUI不仅是GUI，也可以通过API和队列系统接入自动化生产流程。很多团队会把它作为视觉工作流后端，而不是只当本地绘图软件。
 
-5. **更接近自动化和后端服务。**  
-   ComfyUI不仅是GUI，也可以通过API和队列系统接入自动化生产流程。很多团队会把它作为视觉工作流后端，而不是只当本地绘图软件。
-
-**ComfyUI的跨周期价值，是把AIGC图像生成从“参数调试工具”推进到“视觉生成工作流编排系统”。当模型越来越多、插件越来越多、任务越来越复杂时，节点图不是界面偏好，而是一种工程必然。**
+下图是ComfyUI的经典工作流示意图：
 
 <div align="center">
 
@@ -225,16 +185,13 @@ ComfyUI的全新动态显存（Dynamic VRAM）优化，本质上不是“把模�
 
 在SDXL、FLUX、WAN、Qwen-Image、HiDream这类大模型生态中，一个真实工作流往往不只加载一个U-Net/DiT，还会同时涉及文本编码器、VAE、LoRA、ControlNet、IP-Adapter、视频模型、局部修复模型和超分模型。传统显存管理通常依赖三种方式：
 
-1. **预估模型需要多少显存。**  
-   框架先估算模型、激活、中间结果和插件需要多少显存，再决定哪些权重放GPU，哪些权重放CPU。
+1. **预估模型需要多少显存。** 框架先估算模型、激活参数、中间结果和插件需要多少显存，再决定哪些权重放GPU，哪些权重放CPU。
 
-2. **在GPU和CPU之间搬运权重。**  
-   显存不够时，把部分权重卸载到系统内存；需要计算时，再搬回GPU。
+2. **在GPU和CPU之间搬运权重。** 显存不够时，把部分权重卸载到系统内存；需要计算时，再搬回GPU。
 
-3. **依赖操作系统分页兜底。**  
-   当系统内存也不够时，Windows页面文件或Linux swap可能被动介入，导致模型虽然“没崩”，但速度会急剧下降，甚至卡死。
+3. **依赖操作系统分页兜底。** 当系统内存也不够时，Windows页面文件或Linux swap可能被动介入，导致模型虽然“没崩”，但速度会急剧下降，甚至卡死。
 
-这套方式在小模型时代还能接受，但在大模型和复杂工作流时代会遇到三个问题：**预估不准、搬运太多、OOM风险不可控**。尤其是多个模型、多个LoRA和视频生成任务叠加时，框架很难提前知道后面每一步到底会访问哪些权重、保留哪些中间状态、释放哪些缓存。
+这套方式在小模型时代还能接受，但在大模型和复杂工作流时代会遇到三个问题：**预估不准、搬运太多、OOM风险不可控**。尤其是多个模型、多个LoRA和多个生成任务叠加时，框架很难提前知道后面每一步到底会访问哪些权重、保留哪些中间状态、释放哪些缓存。
 
 Dynamic VRAM的核心思想是：**把显存管理从“静态预估占用”改造成“按需物理化、按压力淘汰、按计算路径调度”的动态权重工作集管理。**
 
@@ -254,23 +211,17 @@ Dynamic VRAM的核心思想是：**把显存管理从“静态预估占用”改
 
 从执行机制看，Dynamic VRAM大致可以分成六步：
 
-1. **模型加载阶段不急于深拷贝全部权重。**  
-   ComfyUI对safetensors加载路径做了更贴近动态显存的处理。权重可以先以mmap或文件切片引用的方式存在，框架记录每个tensor对应的文件偏移、大小和几何信息，而不是一上来就把所有权重完整复制成常驻PyTorch张量。
+1. **模型加载阶段不急于深拷贝全部权重。** ComfyUI对safetensors加载路径做了更贴近动态显存的处理。权重可以先以mmap或文件切片引用的方式存在，框架记录每个tensor对应的文件偏移、大小和几何信息，而不是一上来就把所有权重完整复制成常驻PyTorch张量。
 
-2. **模型准备阶段建立VBAR和动态pin状态。**  
-   在本地ComfyUI代码里，`ModelPatcherDynamic`会为非CPU加载设备维护 `dynamic_vbars` 和 `dynamic_pins`。模型被准备为Dynamic VRAM加载时，权重不再全部强制加载到GPU，而是优先进入“可按需加载”的状态。
+2. **模型准备阶段建立VBAR和动态pin状态。** 在本地ComfyUI代码里，`ModelPatcherDynamic`会为非CPU加载设备维护 `dynamic_vbars` 和 `dynamic_pins`。模型被准备为Dynamic VRAM加载时，权重不再全部强制加载到GPU，而是优先进入“可按需加载”的状态。
 
-3. **算子执行前触发权重物理化。**  
-   进入具体Linear、Conv或Attention相关模块时，ComfyUI会检查模块是否有 `_v` 这类VBAR分配信息。执行前通过 `vbar_fault` 判断这段权重是否已经驻留。如果已经驻留，就直接使用；如果没有驻留，就从文件切片、pinned host buffer或缓存路径把当前算子需要的权重加载到合适的位置。
+3. **算子执行前触发权重物理化。** 进入具体Linear、Conv或Attention相关模块时，ComfyUI会检查模块是否有 `_v` 这类VBAR分配信息。执行前通过 `vbar_fault` 判断这段权重是否已经驻留。如果已经驻留，就直接使用；如果没有驻留，就从文件切片、pinned host buffer或缓存路径把当前算子需要的权重加载到合适的位置。
 
-4. **显存够用时缓存权重，显存紧张时动态释放。**  
-   如果GPU显存足够，当前层权重会被保留在VRAM里，后续重复访问可以更快。如果显存压力上升，ComfyUI可以从VBAR里释放一部分低优先级权重，而不是让整条工作流直接OOM。当前活跃模型、最近访问的VBAR和即将参与计算的权重会拥有更高优先级。
+4. **显存够用时缓存权重，显存紧张时动态释放。** 如果GPU显存足够，当前层权重会被保留在VRAM里，后续重复访问可以更快。如果显存压力上升，ComfyUI可以从VBAR里释放一部分低优先级权重，而不是让整条工作流直接OOM。当前活跃模型、最近访问的VBAR和即将参与计算的权重会拥有更高优先级。
 
-5. **加载失败时走临时张量兜底。**  
-   如果某段权重无法长期驻留在VBAR里，Dynamic VRAM并不必然崩溃。它可以只为当前层创建临时GPU张量，把本次计算需要的权重拷进去，用完后释放或复用。这意味着显存压力从“全模型必须同时住进VRAM”变成“当前计算窗口需要什么就加载什么”。
+5. **加载失败时走临时张量兜底。** 如果某段权重无法长期驻留在VBAR里，Dynamic VRAM并不必然崩溃。它可以只为当前层创建临时GPU张量，把本次计算需要的权重拷进去，用完后释放或复用。这意味着显存压力从“全模型必须同时住进VRAM”变成“当前计算窗口需要什么就加载什么”。
 
-6. **预取与异步offload降低等待时间。**  
-   ComfyUI还引入了动态VBAR预取和异步offload能力。比如 `model_prefetch.py` 会根据 `prefetch_dynamic_vbars` 准备后续模块的权重；启动参数里也提供了 `--async-offload`、`--disable-async-offload`、`--fast-disk` 等选项，让快NVMe、pinned memory和GPU stream之间的配合更灵活。
+6. **预取与异步offload降低等待时间。** ComfyUI还引入了动态VBAR预取和异步offload能力。比如 `model_prefetch.py` 会根据 `prefetch_dynamic_vbars` 准备后续模块的权重；启动参数里也提供了 `--async-offload`、`--disable-async-offload`、`--fast-disk` 等选项，让快NVMe、pinned memory和GPU stream之间的配合更灵活。
 
 所以，Dynamic VRAM真正改变的不是某个单点参数，而是模型权重的生命周期：
 
@@ -289,68 +240,32 @@ Dynamic VRAM的核心思想是：**把显存管理从“静态预估占用”改
 
 这套机制带来的直接收益，可以概括为四点：
 
-第一，**降低复杂工作流的系统内存压力。**  
-Dynamic VRAM减少了“GPU一份、CPU再常驻一份、页面文件再兜底一份”的低效内存形态。模型权重可以更多依赖文件映射、切片读取和按需加载，系统内存不再需要长期承载那么多完整副本。
+第一，**降低复杂工作流的系统内存压力。** Dynamic VRAM减少了“GPU一份、CPU再常驻一份、页面文件再兜底一份”的低效内存形态。模型权重可以更多依赖文件映射、切片读取和按需加载，系统内存不再需要长期承载那么多完整副本。
 
-第二，**显著降低因权重卸载不足导致的OOM风险。**  
-传统低显存方案经常遇到“前面能跑，后面突然爆”的问题。Dynamic VRAM把释放、重载和临时张量兜底放到运行时路径里，目标是让工作流在显存紧张时降速，而不是直接崩溃。
+第二，**显著降低因权重卸载不足导致的OOM风险。** 传统低显存方案经常遇到“前面能跑，后面突然爆”的问题。Dynamic VRAM把释放、重载和临时张量兜底放到运行时路径里，目标是让工作流在显存紧张时降速，而不是直接崩溃。
 
-第三，**在部分场景下提升模型加载和LoRA应用速度。**  
-因为模型加载节点不一定要立刻把所有权重深拷贝到PyTorch常驻张量里，所以首次加载、切换prompt、加载LoRA等动作在一些大模型场景中会更快。公开测试中，类似FLUX 2 Dev bf16这类任务的首次启动、改prompt和加载LoRA耗时都有明显下降；WAN 2.2 14B双模型视频任务在32GB内存机器上也能看到端到端耗时的大幅改善。
+第三，**在部分场景下提升模型加载和LoRA应用速度。** 因为模型加载节点不一定要立刻把所有权重深拷贝到PyTorch常驻张量里，所以首次加载、切换prompt、加载LoRA等动作在一些大模型场景中会更快。公开测试中，类似FLUX 2 Dev bf16这类任务的首次启动、改prompt和加载LoRA耗时都有明显下降；WAN 2.2 14B双模型视频任务在32GB内存机器上也能看到端到端耗时的大幅改善。
 
-第四，**让“高VRAM占用”不再等同于内存泄漏。**  
-Dynamic VRAM倾向于把最快的VRAM用作真实工作集缓存。如果监控面板里看到GPU显存占用较高，不一定是坏事；关键要看工作流是否稳定、是否触发OOM、端到端耗时是否下降。现代推理系统的目标不是让显存看起来很空，而是让显存被有效利用，并且在压力到来时能及时释放。
-
-在面试里，如果被问到“Dynamic VRAM为什么比普通lowvram更高级”，可以这样回答：
-
-> 普通lowvram更像人工规定哪些模块放CPU、哪些模块放GPU；Dynamic VRAM更像给ComfyUI引入了一个面向模型权重的运行时内存调度器。它不要求一开始就把模型全部装进物理显存，而是通过VBAR、按需fault、权重切片读取、优先级释放和异步预取，把模型权重变成可动态调度的工作集。
+第四，**让“高VRAM占用”不再等同于内存泄漏。** Dynamic VRAM倾向于把最快的VRAM用作真实工作集缓存。如果监控面板里看到GPU显存占用较高，不一定是坏事；关键要看工作流是否稳定、是否触发OOM、端到端耗时是否下降。现代推理系统的目标不是让显存看起来很空，而是让显存被有效利用，并且在压力到来时能及时释放。
 
 当然，Dynamic VRAM也不是“无限显存魔法”。它仍然受三个因素约束：
 
-1. **硬件平台约束。**  
-   这类优化对NVIDIA GPU、Windows/Linux和CUDA生态更友好；不同平台、WSL、AMD或其他后端的支持程度需要看具体版本。
+1. **硬件平台约束。** 这类优化对NVIDIA GPU、Windows/Linux和CUDA生态更友好；不同平台、WSL、AMD或其他后端的支持程度需要看具体版本。
 
-2. **I/O和带宽约束。**  
-   如果模型反复从慢盘或低带宽路径加载，Dynamic VRAM可以避免OOM，但不保证每个场景都更快。快NVMe、足够PCIe带宽、合理的pinned memory和异步stream会影响收益。
+2. **I/O和带宽约束。** 如果模型反复从慢盘或低带宽路径加载，Dynamic VRAM可以避免OOM，但不保证每个场景都更快。快NVMe、足够PCIe带宽、合理的pinned memory和异步stream会影响收益。
 
-3. **工作流整体约束。**  
-   显存优化只能解决权重驻留和搬运问题，不能消除高分辨率latent、长视频序列、attention中间激活和VAE解码本身的计算/内存成本。评估时不能只看单步it/s，而要看完整工作流从加载到出图/出视频的端到端时间。
-
-这也是为什么Dynamic VRAM对ComfyUI的长期价值很大：它让ComfyUI不只是一个“节点画布”，而更像一个能承载大模型时代本地推理压力的**视觉生成工作流运行时**。当AIGC图像和视频模型继续变大，框架竞争就不再只是UI交互、插件数量和节点生态，而会进入更底层的资源调度能力竞争。
+3. **工作流整体约束。** 显存优化只能解决权重驻留和搬运问题，不能消除高分辨率latent、长视频序列、attention中间激活和VAE解码本身的计算/内存成本。评估时不能只看单步it/s，而要看完整工作流从加载到出图/出视频的端到端时间。
 
 **总的来说，Dynamic VRAM的本质，是把模型权重从静态常驻资源变成动态工作集；把显存不足从一次性OOM问题，转化为运行时调度、释放、预取和按需加载问题。**
 
 
-<h2 id="q-007">面试问题：ComfyUI中常见核心节点类型有哪些？</h2>
-
-**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
-
-ComfyUI节点很多，我们没必要背插件名。更重要的是按生成链路理解节点类型：
-
-<div align="center">
-
-| 节点类型 | 典型节点 | 输入/输出 | 解决的问题 |
-|---|---|---|---|
-| 模型加载节点 | Load Checkpoint、Load Diffusion Model、Load VAE、Load LoRA、Load ControlNet | 输出MODEL、CLIP、VAE等 | 把模型权重变成可执行组件 |
-| 文本编码节点 | CLIP Text Encode、T5 Text Encode、Prompt组合节点 | 文本到CONDITIONING | 把自然语言转成条件向量 |
-| Latent节点 | Empty Latent Image、VAE Encode、Latent Upscale | LATENT | 管理扩散/Flow模型实际操作的潜空间 |
-| 采样节点 | KSampler、KSampler Advanced、SamplerCustom | MODEL + CONDITIONING + LATENT到LATENT | 完成多步去噪生成 |
-| 图像解码节点 | VAE Decode、Save Image、Preview Image | LATENT到IMAGE | 把潜变量解码成可见图像并输出 |
-| 控制节点 | ControlNet Apply、IP-Adapter Apply、Conditioning Combine、Mask节点 | 控制图/参考图/条件融合 | 引入姿态、深度、边缘、参考图和区域约束 |
-| 后处理节点 | Upscale、Tiled VAE、Face Detailer、Image Blend | IMAGE/MASK | 超分、修复、融合和细节增强 |
-
-</div>
-
-这些节点背后有一条统一逻辑：**模型生成不是一口气完成，而是由“条件构造、latent采样、像素解码、后处理增强”四类计算组合而成。** 熟悉节点类型，本质上就是熟悉AIGC图像生成系统的模块边界。
-
-
-<h1 id="q-012">3.Diffusers为什么是AIGC图像生成模型研发和部署的重要工程库？</h1>
+<h1 id="q-012">3.介绍一下Diffusers框架的原理</h1>
 
 <h2 id="q-013">面试问题：Diffusers框架的核心设计思想是什么？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Diffusers是Hugging Face生态中用于扩散/生成模型推理、训练和部署的重要Python库。它不是给普通用户点按钮的应用工具，而是给算法工程师和研究者使用的**模型工程库**。
+Diffusers是Hugging Face生态中用于扩散/生成模型推理、训练和部署的重要Python库。
 
 Diffusers的核心抽象是 `DiffusionPipeline`。它把图像生成所需的多个组件封装成一个可调用对象：
 
@@ -371,26 +286,20 @@ image = pipe(
 
 这个抽象的价值在于：
 
-1. **统一不同模型的调用方式。**  
-   Stable Diffusion、SDXL、SD3、FLUX、Z-Image、GLM-Image、video diffusion等模型架构不同，但都可以被封装成pipeline形式。
+1. **统一不同模型的调用方式。** Stable Diffusion、SDXL、SD3、FLUX、Z-Image、GLM-Image、video diffusion等模型架构不同，但都可以被封装成pipeline形式。
 
-2. **组件可替换。**  
-   Scheduler、VAE、U-Net/DiT、Text Encoder、LoRA、ControlNet、IP-Adapter等都可以组合或替换，方便研究和工程实验。
+2. **组件可替换。** Scheduler、VAE、U-Net/DiT、Text Encoder、LoRA、ControlNet、IP-Adapter等都可以组合或替换，方便研究和工程实验。
 
-3. **贴近生产部署。**  
-   Diffusers支持offload、量化、torch.compile、xFormers/SDPA等推理优化策略，也能和Transformers、Accelerate、PEFT、Hub生态打通。
+3. **贴近生产部署。** Diffusers支持offload、量化、torch.compile、xFormers/SDPA等推理优化策略，也能和Transformers、Accelerate、PEFT、Hub生态打通。
 
-4. **兼顾训练和推理。**  
-   它不仅能进行模型推理，还提供训练脚本、LoRA微调、DreamBooth、Textual Inversion、ControlNet训练等工程入口。
+4. **兼顾训练和推理。** 它不仅能进行模型推理，还提供训练脚本、LoRA微调、DreamBooth、Textual Inversion、ControlNet训练等工程入口。
 
-Rocky认为，Diffusers的跨周期价值是：**把AIGC图像生成从“模型仓库里的权重文件”变成“可组合、可测试、可部署的软件组件”。** 这对算法岗很重要，因为真实业务不是在本地进行图像创作，而是要把模型接进服务、评测、数据回流和产品链路。
+Rocky认为，Diffusers的跨周期价值是：**把AIGC图像生成从“模型仓库里的权重文件”变成“可组合、可测试、可部署的软件组件”。** 这很重要，因为真实业务不是在本地进行图像创作，而是要把模型接进服务、评测、数据回流和产品链路。
 
 
 <h2 id="q-014">面试问题：Pipeline、Scheduler、Adapter和Model Component在Diffusers中分别起什么作用？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
-
-Diffusers里最重要的不是背API，而是理解几个核心抽象：
 
 <div align="center">
 
