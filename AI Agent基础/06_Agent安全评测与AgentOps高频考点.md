@@ -940,3 +940,4 @@ Agent 事故包括：
 - LangSmith, [**Observability and Evaluation for LLM Applications**](https://docs.smith.langchain.com/).
 - Arize Phoenix, [**LLM Tracing and Evaluation**](https://docs.arize.com/phoenix).
 - OrcaReplay, [**本地录制与离线重放 Agent 运行轨迹**](https://github.com/Continuum-AI-Corp/OrcaReplay)：夹在 Agent 与模型厂商之间的 HTTP 代理 + shim，把提示词、工具调用、响应与原始字节原样录成本地 trace，可完全离线重放以复现失败运行、diff 两次运行或把录像 fork 到另一个模型上重跑；另提供 MCP server 读取本地 trace 库。Apache-2.0，npm 包 orcareplay。
+- Orca AI Incident Archive, [**AI Agent 安全事件档案**](https://github.com/Continuum-AI-Corp/Orca-AI-Incident-Archive)：公开的 AI Agent 安全事件数据集，每个事件一份 Markdown 记录，附公开来源链接和来源质量分级，并用 `real_harm` 字段区分已确认造成损害的事故与研究演示；收录的案例覆盖本章「Agent 事故响应」一节列出的多类事故，如编码 Agent 删除生产数据库、间接提示注入导致数据外泄、恶意技能与被投毒的扩展（供应链），可作为复盘与评测用例的来源。
