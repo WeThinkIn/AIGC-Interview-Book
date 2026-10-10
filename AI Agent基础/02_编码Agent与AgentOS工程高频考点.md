@@ -1075,4 +1075,4 @@ $$
 - Model Context Protocol, [**Specification**](https://modelcontextprotocol.io/specification/2025-06-18).
 - A2A Project, [**Agent2Agent Protocol Specification**](https://a2aproject.github.io/A2A/latest/specification/).
 - LangChain, [**LangGraph Documentation**](https://docs.langchain.com/oss/python/langgraph/overview).
-- OrcaPromptVault, [**上线编码 Agent 的系统提示词与工具 schema 实抓归档**](https://github.com/Continuum-AI-Corp/OrcaPromptVault)：按产品分目录，每份文物标明是线上实抓还是厂商公布，工具 schema 以 JSON 保存，可用来对照本章「上下文层」与 trace 字段里的「系统提示词版本 / 工具列表」。
+- OrcaPromptVault, [**上线编码 Agent 的系统提示词与工具 schema 实抓归档**](https://github.com/Continuum-AI-Corp/OrcaPromptVault)：按产品分目录，每份文物标明是线上实抓还是模型自述，工具 schema 以 JSON 保存，可用来对照本章「上下文层」与 trace 字段里的「系统提示词版本 / 工具列表」。
