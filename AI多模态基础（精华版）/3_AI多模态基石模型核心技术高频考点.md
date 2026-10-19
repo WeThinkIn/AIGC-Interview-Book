@@ -124,7 +124,7 @@ CLIP 的目标是对齐、检索和零样本分类，用细粒度交互换来大
 
 3. **和大 batch、海量噪声数据契合。** InfoNCE 在大 batch 下负样本多，监督信号丰富。4 亿网络图文对里有一部分错配，对比目标拉近正例、推远负例，是在整批样本上做统计平均，受单条噪声 caption 的影响一般比逐词生成小。
 
-形式化地看，CLIP 要让匹配图文对的相似度高于同一 batch 里所有不匹配的对，即满足 $`\text{sim}(f_v(v_i), f_t(t_i)) > \text{sim}(f_v(v_i), f_t(t_j)),\ j \neq i`$。实现这一目标的是对称 InfoNCE 损失，它把图到文、文到图两个方向的损失相加。符号与 [5.1.3.1](1_AI多模态理论基础高频考点.md#q5131) 一致，损失写作：
+形式化地看，CLIP 要让匹配图文对的相似度高于同一 batch 里所有不匹配的对，即满足 $`\text{sim}(f_v(v_i), f_t(t_i)) > \text{sim}(f_v(v_i), f_t(t_j)),\ j \neq i`$。实现这一目标的是对称 InfoNCE 损失，它把图到文、文到图两个方向的损失相加。符号与 [5.1.2.2](1_AI多模态理论基础高频考点.md#q5122) 一致，损失写作：
 
 $$\mathcal{L}_{\text{ITC}} = -\frac{1}{2N}\sum_{i=1}^{N}\left[\log\frac{e^{\text{sim}(t_i,v_i)/\tau}}{\sum_{j=1}^{N}e^{\text{sim}(t_i,v_j)/\tau}}+\log\frac{e^{\text{sim}(t_i,v_i)/\tau}}{\sum_{j=1}^{N}e^{\text{sim}(t_j,v_i)/\tau}}\right]$$
 
