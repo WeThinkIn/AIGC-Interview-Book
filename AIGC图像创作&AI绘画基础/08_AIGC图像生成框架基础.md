@@ -15,10 +15,10 @@
 
 [4.Stable Diffusion WebUI、SD.Next和Fooocus分别适合什么场景？](#q-008)
   - [面试问题：Stable Diffusion WebUI的核心功能和长期价值是什么？](#q-009)
-  - [面试问题：Stable Diffusion WebUI Forge、SD.Next和Fooocus各自有哪些跨周期价值？](#q-010)
-  - [面试问题：Variation Seed、Hires.fix和提示词权重控制如何在WebUI中发挥作用？](#q-011)
+  - [面试问题：Stable Diffusion WebUI Forge、SD.Next和Fooocus有哪些跨周期价值？](#q-010)
+  - [面试问题：Variation Seed、Hires.fix和提示词权重控制如何在WebUI中发挥作用？(进阶)](#q-011)
 
-[5.介绍一下AIGC图像创作框架中常用插件扩展能力的底层原理](#q-016)
+[5.介绍一下AIGC图像创作框架中常用插件扩展能力的底层原理(进阶)](#q-016)
   - [面试问题：Tiled VAE和Tiled Diffusion为什么能降低大分辨率生成的显存压力？](#q-018)
   - [面试问题：Ultimate SD Upscale的工作原理是什么？](#q-017)
   - [面试问题：ADetailer为什么能自动修复脸部、手部和局部细节？](#q-019)
@@ -319,82 +319,80 @@ Pipeline接收prompt和参数
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Stable Diffusion WebUI是Stable Diffusion生态里非常重要的参数面板式创作框架之一。它基于Gradio实现，把txt2img、img2img、inpainting、outpainting、upscale、prompt权重、X/Y/Z Plot、Textual Inversion、LoRA、ControlNet、ADetailer等多维能力放进统一界面。**它曾经是很多人学习应用Stable Diffusion的第一选择，但今天再看SD WebUI，它已经不是“领先的主流AIGC图像创作框架”，而是一个已经完成历史使命、被ComfyUI取代、但仍然有跨周期价值的AIGC创作框架样本**。
-
-我们需要知道，**WebUI不是因为功能太少而衰落，而是因为它的“参数面板范式”跟不上复杂AIGC工作流的结构化需求。** 它在SDXL阶段之后仍有过维护和新模型适配，例如后续版本继续补充SD 3支持、采样器和性能优化；但从生态势能看，WebUI的主战场已经被ComfyUI系统性取代。原因不只是ComfyUI“更新更快”，而是ComfyUI把创作过程从表单调参升级成了节点化、画布化、可复现的工作流系统。
-
-WebUI的核心功能可以概括为三层，如下表所示：
+Stable Diffusion WebUI是Stable Diffusion生态里非常重要的参数面板式创作框架之一。它基于Gradio实现，把txt2img、img2img、inpainting、outpainting、upscale、prompt权重、X/Y/Z Plot、Textual Inversion、LoRA、ControlNet等多维能力在创作面板上直接展示，具体页面如下图所示：
 
 <div align="center">
-
-| 层次 | WebUI提供的能力 | 解决的问题 | 后来被谁继承或升级 |
-|---|---|---|---|
-| 基础生成层 | txt2img、img2img、inpaint、outpaint、upscale | 让普通用户不用写代码就能调用扩散模型 | ComfyUI节点、Diffusers Pipeline、各类商业绘图产品 |
-| 参数控制层 | Prompt权重、Seed、CFG、Steps、Sampler、Hires.fix、Denoising Strength | 把扩散模型推理过程暴露为可调参数 | ComfyUI工作流参数、Diffusers Scheduler和Pipeline配置 |
-| 生态扩展层 | LoRA、Textual Inversion、ControlNet、ADetailer、Ultimate SD Upscale、X/Y/Z Plot | 让社区快速试验新能力和新插件 | ComfyUI自定义节点、Forge、SD.Next、产品化插件市场 |
-
-</div>
-
-WebUI不是一个单纯的“画图网页”，而是把扩散模型从研究代码翻译成AIGC创作者能理解的交互语言和可操作的控制面板里：
 
 ![Stable Diffusion WebUI](./imgs/WebUI图标.png)
 
-但它的局限也非常明显：
+</div>
 
-1. **复杂流程被折叠在多个Tab和插件参数里。** 当任务只是“出一张图”时，WebUI足够高效；但当任务变成角色一致性、局部重绘、多ControlNet、多LoRA组合、分阶段超分、批量生产和版本复现时，页面参数会迅速变成隐式状态，流程不容易被看见、复用和传递。
+**它曾经是很多人学习应用Stable Diffusion的第一选择，但今天再看SD WebUI，它已经不是“领先的主流AIGC图像创作框架”，而是一个已经完成历史使命、被ComfyUI取代、同时仍然有跨周期价值的AIGC创作框架样本**。
 
-2. **参数面板擅长调试，不擅长表达因果链路。** WebUI能告诉用户“这里有一个Hires.fix开关、这里有一个ControlNet参数”，但很难像ComfyUI那样把prompt编码、ControlNet注入、latent upscale、VAE decode、局部修复和保存节点展开成一条清晰的生成图。
+我们需要知道，**WebUI不是因为功能太少而衰落，而是因为它的“参数面板范式”跟不上复杂AIGC工作流的架构升级需求。** 从生态势能看，WebUI的主战场已经被ComfyUI系统性取代。
 
-3. **插件生态强，但系统边界容易变脆。** WebUI的插件生态曾经极大降低创新门槛，可插件越多，版本兼容、参数冲突、显存占用、批处理稳定性和工作流复现问题就越明显。到了SDXL、SD3、FLUX、Qwen-Image这类模型不断变化的阶段，参数面板式架构很难继续承载最复杂的生产化链路。
-
-因此，WebUI被ComfyUI打败，本质上是**创作范式从参数面板走向创作画布，从手工调参走向工作流编排，从单次出图走向可复现生产链路**趋势变革。ComfyUI赢在它把AIGC图像生成过程显式组织成节点图，让复杂任务可以被保存、复用、分享、调试和工程化。
-
-但WebUI仍然有值得学习和借鉴的跨周期价值：
-
-1. **产品化价值：把研究能力翻译成大众入口。** 早期Stable Diffusion需要命令行和脚本，WebUI把模型选择、prompt、Seed、CFG、尺寸、Hires.fix和插件变成可视化控件，完成了从“研究代码”到“AIGC创作工具”的关键一步。
-
-2. **参数抽象价值：让用户理解扩散模型的可控维度。** 很多人第一次理解Seed控制随机性、CFG控制文本条件强度、Denoising Strength控制重绘幅度、Hires.fix控制两阶段高分辨率生成，都是通过WebUI。这些抽象后来被ComfyUI、Diffusers和商业产品继续继承。
-
-3. **生态验证价值：用低门槛插件市场验证新能力。** ControlNet、ADetailer、Ultimate SD Upscale、Regional Prompter、OpenPose Editor、Segment Anything、ReActor等能力，曾经都可以在WebUI生态中快速被创作者试用、传播和迭代。它证明了AIGC框架的竞争力不只来自模型本身，也来自扩展机制和社区反馈速度。
-
-4. **反面样本价值：说明参数面板的上限。** **WebUI最值得后来的框架学习的地方，恰恰包括它的失败**：当系统从“单模型出图”进入“多模型、多条件、多阶段、多插件、多版本复现”后，隐式表单状态会逐渐输给显式工作流图。这个经验对AI Agent、视频生成、3D生成和多模态内容生产系统同样成立。
-
-Rocky认为，**Stable Diffusion WebUI的历史价值，是把扩散模型变成普通创作者可用的参数化AIGC工具；它被ComfyUI取代的原因，是参数面板无法承载复杂工作流的可视化、可复现和生产化需求。工具会过时，但它沉淀下来的参数抽象、插件生态和产品化路径，仍然值得长期学习。**
-
-
-<h2 id="q-010">面试问题：Stable Diffusion WebUI Forge、SD.Next和Fooocus各自有哪些跨周期价值？</h2>
-
-**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
-
-Forge、SD.Next和Fooocus都不是简单的“WebUI换皮”。它们更本质上是WebUI范式衰落之后分化出的三条支线：**Forge保留专家参数面板，但对其工程底座进行效率优化；SD.Next保留WebUI入口，但扩展成多模型平台；Fooocus反过来隐藏复杂参数，把WebUI能力产品化成低门槛创作体验。**
-
-Rocky认为，理解这三个工具，不要只问“它们能不能替代ComfyUI”。更重要的问题是：当ComfyUI已经赢得复杂工作流主战场后，WebUI系工具还留下了哪些值得学习的跨周期经验。答案是三种产品化方向：**资源效率、平台兼容、体验抽象**。
+WebUI的核心功能可以概括为四类，如下表所示：
 
 <div align="center">
 
-| 工具 | 核心定位 | 核心特点 | 跨周期价值 |
-|---|---|---|---|
-| Stable Diffusion WebUI Forge | WebUI增强平台 | 在Stable Diffusion WebUI之上优化资源管理、推理速度、新模型适配和实验特性 | 说明老框架想延寿，首先要补底层工程能力，而不是堆更多按钮 |
-| SD.Next | 多模型、多平台WebUI | 把WebUI扩展成支持图像、视频、caption、upscale和处理流程的综合平台 | 说明开源工具要长期存活，需要从单模型界面走向模型路由和平台化兼容 |
-| Fooocus | 低门槛图像生成产品 | 隐藏复杂参数，自动处理采样、提示词增强和质量策略，让用户专注prompt与图像 | 说明好的产品不是暴露全部能力，而是替用户折叠复杂性 |
+| 能力 | 典型功能 |
+|---|---|
+| 生成与编辑 | txt2img、img2img、局部重绘、扩图等生成功能 | 
+| 参数与资源配置 | Checkpoint、VAE、LoRA、Embedding等模型资源配置，以及Prompt、Seed、CFG、Steps、Sampler等参数配置 |
+| 分辨率与细节处理 | Hires.fix、Extras超分等 | 
+| 对照与复用 | X/Y/Z Plot、PNG Info、生成参数保存和可复用回填 |
+</div>
+
+Stable Diffusion WebUI的创作迭代机制如下图所示：
+
+<div align="center">
+
+![Stable Diffusion WebUI的创作迭代机制：参数配置、生成编辑、结果对照与参数复用](./imgs/webui_core_value_q009_4k.png)
 
 </div>
 
-**第一，Forge的跨周期价值，是把“参数面板工具”往“运行性能增强”方向优化。**
+同时它的局限也非常明显：
 
-原始WebUI最强的是交互入口和插件生态，但它的短板是资源管理、新模型适配、低显存运行和复杂扩展兼容。Forge的意义不是重新发明一套创作范式，而是在WebUI这个旧范式上强化底层：显存管理、模型加载、offload、量化模型、FLUX等新模型尝试、ControlNet/IP-Adapter/LoRA等扩展兼容。
+1. **复杂流程被折叠在多个Tab和插件参数里。** 当任务只是“生成一张图像”时，SD WebUI足够高效；但当任务变成角色一致性、局部重绘、多ControlNet、多LoRA组合、分阶段超分、批量生产等高度复杂任务时，复杂流程无法在参数页面上直接体现，隐式状态的流程不容易组合、构建和优化。多个页面和扩展共同影响结果时，执行顺序、条件依赖和隐藏设置不容易一眼看清；扩展之间还可能存在兼容性、参数覆盖和资源竞争问题
+2. **参数面板擅长调试，不擅长表达因果链路。** SD WebUI能告诉用户“这里有一个Hires.fix开关、这里有一个ControlNet参数”，但很难像ComfyUI那样把prompt编码、ControlNet注入、Latent upscale、VAE decode、局部修复和保存节点展开成一条清晰的工作流程。
+3. **插件生态强，但系统边界容易变脆弱。** WebUI的插件生态曾经极大降低创作门槛，可插件越多，版本兼容、参数冲突、显存占用、批处理稳定性和工作流复现问题就越明显。随着AIGC图像创作大模型不断更新迭代，参数面板式架构很难继续承载越发复杂和商业化的AIGC工作流链路。
 
-这背后给我们的长期启发是：**当一个框架的交互范式已经老化，但用户迁移成本很高时，最现实的优化方式不是重做产品外壳，而是对运行性能进行增强。** 很多AI Agent平台、向量数据库、模型服务框架都会遇到类似问题：用户已经习惯旧入口，但新模型和新任务要求更强的资源调度、缓存、插件兼容和故障恢复能力。Forge值得学的不是WebUI界面，而是“在存量生态上做工程增强”的思路。
+因此，WebUI被ComfyUI打败，本质上是**创作范式从参数面板走向创作画布，从手工调参走向工作流编排，从单次出图走向可复现生产链路**趋势变革。ComfyUI赢在它把AIGC图像生成过程显式组织成节点图，让复杂任务可以被保存、复用、分享、调试和工程化。
 
-Forge也有边界。它依然没有真正跳出参数面板式交互，复杂流程的可视化表达和版本复现仍然不如ComfyUI。它更像老WebUI用户通往新模型时代的一座桥，而不是下一代AIGC工作流的最终形态。
+Rocky认为，**Stable Diffusion WebUI的历史价值，是把扩散模型变成普通创作者可用的参数化AIGC工具；它被ComfyUI取代的原因，是参数面板无法承载复杂工作流的可视化、可复现和生产化需求。工具会过时，但它沉淀下来的参数抽象、插件生态和低入门门槛，仍然值得我们长期学习。**
 
-**第二，SD.Next的跨周期价值，是把“单一WebUI”往“多模型平台”方向扩展。**  
 
-SD.Next的重点是把生成、编辑、caption、upscale、图像和视频处理等能力放在一个更综合的WebUI平台里，并强调多模型、多平台、性能、灵活性和用户体验。
+<h2 id="q-010">面试问题：Stable Diffusion WebUI Forge、SD.Next和Fooocus有哪些跨周期价值？</h2>
 
-这条路线的长期价值在于“平台化兼容”。模型生态不会停在SD1.5、SDXL或某一个AIGC大模型系列上，工具层迟早要面对不同模型结构、不同推理后端、不同硬件、不同任务形态之间的路由问题。SD.Next给我们的启发是：**一个AIGC工具如果只绑定一个大模型系列，很容易随模型过时；如果能把大模型接入、任务类型、硬件适配和后处理能力抽象成平台，就有更长的生存空间。**
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-但SD.Next同样有取舍。它保留了WebUI式综合面板的复杂度，适合愿意学习参数和配置的高级用户；对于极复杂的节点化工作流，ComfyUI仍然更清晰；对于真正工程部署，Diffusers式代码管线仍然更容易测试、自动化和集成。
+Forge、SD.Next和Fooocus这三种AIGC图像创作框架，本质上是SD WebUI范式衰落之后分化出的三条支线：**Forge保留SD WebUI参数面板，同时对其工程底座进行效率优化；SD.Next在SD WebUI基础上扩展成多模型兼容的创作平台；Fooocus反过来隐藏复杂参数，把SD WebUI能力产品化成低门槛的创作工具。**
+
+Rocky认为，当ComfyUI已经赢得复杂AIGC图像工作流的主战场后，这三个SD WebUI系框架还留下了**资源效率、多领域兼容、体验抽象**这些值得学习的跨周期经验，具体如下表所示：
+
+<div align="center">
+
+| 工具 | 核心定位 | 核心特点 |
+|---|---|---|
+| Stable Diffusion WebUI Forge | SD WebUI增强框架 | 在SD WebUI之上优化资源管理、推理速度、新模型适配和实验特性 |
+| SD.Next | 多领域兼容的SD WebUI | 把WebUI扩展成支持图像、视频、多模态等综合处理流程平台 |
+| Fooocus | 低门槛图像生成产品 | 隐藏复杂参数，自动处理采样、提示词增强和质量策略，让用户专注prompt与图像 |
+
+</div>
+
+<div align="center">
+
+![Forge、SD.Next与Fooocus的工程侧重点：资源管理、平台兼容与体验简化](./imgs/webui_branches_q010_4k.png)
+
+</div>
+
+**首先我们看Forge的跨周期价值，它是把“参数面板框架”往“运行性能增强”方向优化。**
+
+原始SD WebUI的短板是资源管理、新模型适配、低显存运行和复杂扩展兼容。Forge的意义是在这个旧范式上强化底层：显存管理、模型加载、offload、量化模型、FLUX等新模型扩展兼容。**Forge这一思路的长期价值，是在保留用户操作习惯的同时更新底层资源调度**。
+
+当然的，Forge也有局限。它依然没有真正跳出参数面板式交互，复杂流程的可视化表达仍然不如ComfyUI。
+
+**接着我们再看SD.Next的跨周期价值，它是把“单一Stable Diffusion模型”往“多模型兼容平台”方向扩展。** 下图是SD.Next界面示意图：
 
 <div align="center">
 
@@ -402,11 +400,11 @@ SD.Next的重点是把生成、编辑、caption、upscale、图像和视频处�
 
 </div>
 
-**第三，Fooocus的跨周期价值，是把“专家参数”往“产品体验”方向折叠。**  
+SD.Next的重点是把图像、视频、多模态等处理等能力放在一个更综合的WebUI平台里，并强调多模型、多平台、性能、灵活性和用户体验。
 
-Fooocus最有意思的地方，是它几乎反着WebUI走。WebUI把尽可能多的参数暴露给用户，Fooocus则尽量减少手动调参，让用户把注意力放在提示词和图像结果上。它借鉴了Midjourney式体验：默认策略替用户处理采样、提示词增强、图像质量和部分编辑流程。
+**这条路线的长期价值在于“兼容性优化”**。模型生态不会永远停在某一个AIGC大模型系列上，框架层迟早要面对不同模型结构、不同推理后端、不同硬件、不同任务形态之间的路由与切换。**一个AIGC图像创作框架如果只绑定一个大模型系列，很容易随模型迭代而过时。**
 
-这条路线的长期价值在于“复杂性折叠”。当底层模型越来越强，普通用户并不一定需要看到Sampler、Steps、CFG、Denoising Strength、Scheduler、VAE、Clip Skip等所有参数。真正好的产品，会把专家经验沉淀为默认策略，把模型能力包装成稳定体验，**这与后来的主流AIGC创作平台逻辑暗合**。只是Fooocus后来进入有限支持状态，但它已经证明了一件很重要的事：**不是所有AIGC工具都要变成专家控制台，面向大众创作时，隐藏复杂性本身就是产品能力。**
+**最后我们再看看Fooocus的跨周期价值，它是把“各种参数”往“低参数简化体验”方向推进。**  下图是Fooocus页面示意图：
 
 <div align="center">
 
@@ -414,118 +412,109 @@ Fooocus最有意思的地方，是它几乎反着WebUI走。WebUI把尽可能多
 
 </div>
 
-Rocky认为，这三者体现了AIGC工具演进的一个规律：
+Fooocus最有意思的地方，是它几乎反着SD WebUI的特点进行构建。SD WebUI把尽可能多的参数暴露给用户，Fooocus则尽量减少手动调参，让用户把注意力放在提示词和图像结果上。它借鉴了Midjourney式体验：默认策略替用户处理采样、提示词增强、图像质量和部分编辑流程。
 
-> **WebUI主线虽然输给了ComfyUI，但WebUI生态没有白走。Forge留下的是运行性能增强经验，SD.Next留下的是平台化兼容经验，Fooocus留下的是产品化抽象经验。真正有长期价值的不是某个工具会不会过时，而是它把“模型能力如何进入用户工作流”这件事拆成了不同答案。**
+**这条路线的长期价值在于“创作体验简化”**。当底层大模型越来越强，普通用户并不一定需要看到Sampler、Steps、CFG、Denoising Strength、Scheduler、VAE、Clip Skip等所有复杂参数。真正好的产品，会把专家调参经验沉淀为默认策略，把大模型能力包装成稳定体验，**这与后来的主流AIGC创作平台逻辑暗合**。
 
-总的来说，**如果要做复杂可复现流程，优先使用ComfyUI；如果要做研发部署，优先选择Diffusers；如果要理解WebUI系工具的历史价值，可以研究Forge、SD.Next和Fooocus如何分别处理资源效率、模型兼容和体验简化。AI技术工具不是护城河，AI行业的认知判断才是护城河。**
+Rocky认为，这三者体现了AIGC图像创作框架演进的一个规律：**SD WebUI主线虽然输给了ComfyUI，但其分支Forge留下的是运行性能增强经验，SD.Next留下的是多模型生态兼容经验，Fooocus留下的是产品化体验经验。**
+
+总的来说，**如果要理解SD WebUI系工具的历史价值，可以研究Forge、SD.Next和Fooocus如何分别处理资源效率、模型兼容和体验简化。**
 
 
-<h2 id="q-011">面试问题：Variation Seed、Hires.fix和提示词权重控制如何在WebUI中发挥作用？</h2>
+<h2 id="q-011">面试问题：Variation Seed、Hires.fix和提示词权重控制如何在WebUI中发挥作用？(进阶)</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-WebUI里很多参数看似是操作技巧，底层其实对应扩散模型推理过程中的关键思考。
+WebUI里的这三个功能控制着生成过程的不同位置：**Variation Seed改变初始噪声，Hires.fix组织不同分辨率下的两次生成，提示词权重调整文本条件表示。** 
 
-### 1. Variation Seed控制的是初始噪声的相似性 
+<div align="center">
 
-Seed决定初始噪声，Variation Seed则引入第二个噪声源，通过Variation Strength做插值：
+![WebUI三种控制机制：噪声插值、两阶段高分辨率生成与文本条件加权](./imgs/webui_controls_q011_4k.png)
+
+</div>
+
+### 1、 Variation Seed：在噪声空间探索变体
+
+Seed决定初始噪声，Variation Seed则引入第二个噪声源，ariation Strength则决定它们的插值程度：
 
 $$
 N_{\text{final}}=(1-\alpha)N_{\text{original}}+\alpha N_{\text{variation}}
 $$
 
-当 $\alpha$ 较小时，图像保留原始构图，只改变局部纹理、光影或细节；当 $\alpha$ 较大时，生成结果会逐渐接近新Seed。它适合做“保留方向、探索变体”的功能。
+当 $\alpha$ 较小时，图像保留原始构图，只改变局部纹理、光影或细节；当 $\alpha$ 较大时，生成结果会逐渐接近新Seed。总的来说，Variation Seed适合做“保留方向、探索变体”的功能。
 
-### 2. Hires.fix解决的是直接高分辨率生成不稳定的问题
+### 2、 Hires.fix：解决超高分辨率生成不稳定的问题
 
-早期Stable Diffusion在低分辨率训练较多，直接生成高分辨率容易出现多头、多肢体、结构重复。Hires.fix通常采用两阶段流程：
+早期Stable Diffusion在低分辨率训练较多，直接生成高分辨率容易出现多头、多肢体、结构重复。Hires.fix把一次高分辨率创作拆成两个阶段：
 
 ```text
 低分辨率先生成稳定构图
-→ 使用超分算法或Latent Upscale算法放大
+→ 使用超分算法或Latent Upscale算法放大中间结果
 → 在较低denoising strength下进行二次img2img细化
 ```
 
-它的本质是：先让模型在熟悉分辨率里确定全局结构，再在高分辨率里补细节。
+它的本质是先让模型在熟悉分辨率里确定全局结构，再在高分辨率里补细节。
 
-### 3. 提示词权重影响的是文本条件在交叉注意力中的竞争强度 
+### 3、 提示词权重：影响文本条件在交叉注意力中的强度 
 
-我们已经知道，Stable Diffusion这类文生图模型是先把提示词编码成文本token embedding，再在U-Net去噪过程中通过Cross-Attention注入图像特征。可以把它简单理解为：
+我们已经知道，Stable Diffusion这类文生图模型是先把提示词编码成文本token embedding，再在去噪过程中通过Cross-Attention注入。可以把它简单理解为：
 
 $$
 \text{Attention}(Q,K,V)=\text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
 $$
 
+```math
+\widetilde Z_{i,:}=w_iZ_{i,:},\qquad
+Z'=\widetilde Z\frac{\mathrm{mean}(Z)}{\mathrm{mean}(\widetilde Z)}.
+```
+
 其中 $Q$ 来自当前图像latent特征，$K$ 和 $V$ 来自文本条件。WebUI里的提示词权重，例如 `(word:1.3)`、`(word)`、`[word]`，本质上是在提高或降低某些文本token对注意力分布的影响，让模型在去噪时更偏向某个主体、风格、材质、构图或局部属性。
 
 但提示词权重不是“越高越好”。权重过低，模型可能忽略关键词；权重过高，注意力会过度集中，容易出现画面僵硬、局部过饱和、主体变形、风格压倒内容等问题。
 
-总的来说，**Variation Seed修改的是噪声起点，Hires.fix是分辨率生成策略，提示词权重调的是文本条件在注意力机制中的竞争强度。只有深入理解这三者，才算真正理解WebUI主流参数背后的扩散模型可控生成逻辑。**
+总的来说，**Variation Seed修改的是噪声起点，Hires.fix是分辨率生成策略，提示词权重调的是文本条件在注意力机制中的竞争强度。只有深入理解这三者，才算真正理解SD WebUI背后跨周期的高价值知识。**
 
 
-<h1 id="q-016">5.介绍一下AIGC图像创作框架中常用插件扩展能力的底层原理</h1>
+<h1 id="q-016">5.介绍一下AIGC图像创作框架中常用插件扩展能力的底层原理(进阶)</h1>
 
 <h2 id="q-018">面试问题：Tiled VAE和Tiled Diffusion为什么能降低大分辨率生成的显存压力？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Tiled VAE和Tiled Diffusion都利用了一个朴素但长期有效的工程思想：**大分辨率整体推理生成消耗资源较大，就切成小块进行；小块之间不一致，就通过重叠、加权融合和全局共享状态来进行修正。** 但二者切的位置不一样：
+Tiled VAE和Tiled Diffusion都利用了一个朴素但长期有效的工程思想：**大分辨率整体推理生成消耗资源较大，就进行分块让网络每次只处理一个窗口或少量窗口，从而减少资源消耗。**
+
+两者的具体区别如下表所示：
 
 <div align="center">
 
-| 方法 | 切分对象 | 主要目标 | 核心风险 |
-|---|---|---|---|
-| Tiled VAE | VAE Encode/Decode阶段的图像或Latent | 降低大图编码/解码显存 | 接缝、颜色不一致、GroupNorm统计不准 |
-| Tiled Diffusion | 扩散采样阶段的Latent Tile | 在低显存下生成/重绘超大图 | Tile之间语义不一致、边缘断裂、全局结构漂移 |
+| 方法 | 切分对象 | 主要目标 |
+|---|---|---|
+| Tiled VAE | VAE Encode/Decode阶段的图像或Latent特征 | 降低大图编码/解码显存消耗 |
+| Tiled Diffusion | 扩散采样阶段的Latent特征 | 在低显存下生成/重绘大分辨图像 |
 
 </div>
 
-**Tiled VAE**主要解决VAE显存问题。VAE Decoder在高分辨率下很吃显存，因为它要把Latent特征解码成RGB图像。如果把整张大图一次性解码，容易爆显存。Tiled VAE把图像分块解码，再通过重叠区域和归一化统计修正减少接缝。
+**我们先看Tiled VAE的核心功能**。编码时，将输入图像切成重叠窗口，分别转换为局部Latent特征；解码时，切分对象则是Latent特征，局部结果经过VAE Decoder转换成图像块，再按位置融合。这样，高分辨率特征的计算就被拆到多次前向推理中完成。一般来说，Tiled VAE分两种模式，分别是VAE tiling按空间切块和VAE slicing沿batch分开处理不同样本。
 
-**Tiled Diffusion**则是在扩散采样阶段分块。它比Tiled VAE更深一层：不是等图像生成完再切开处理，而是在Latent去噪过程中就把大画布切成多个局部窗口，让每个窗口分别预测噪声或去噪方向，再把这些局部预测融合回同一个全局Latent。
+使用Tiled VAE后，卷积边缘的上下文、跨空间归一化统计，以及模型中的注意力范围，都可能与整图计算不同。我们可以进行重叠融合来缓解边缘痕迹，或者汇总/估计GroupNorm统计来减轻颜色偏移，需要根据实际情况进行选择性处理。
 
-它背后的关键思想与**MultiDiffusion**高度相关。MultiDiffusion要解决的问题是：如何在不重新训练或微调基础文生图模型的情况下，让多个局部扩散生成过程共同满足同一个全局结果。它不是把多张小图最后拼起来，而是把多个扩散路径绑定到一套共享参数或共享画布上，在每一步采样时共同更新同一个全局图像。具体效果如下图所示：
+**我们再来看Tiled Diffusion的核心功能**。它在扩散采样阶段进行分块操作，比Tiled VAE更深一层。每个采样步都要从当前全局Latent特征中裁出多个重叠窗口，让同一个去噪模型分别处理，再把局部结果按坐标融合回全局状态，进入下一采样步。每一步的局部计算都从共同状态出发，因此相邻窗口可以在重叠区域形成约束。
 
-<div align="center">
+我们可以把Tiled Diffusion理解成一种“共享画布上的多路局部去噪”：
 
-![Tiled Diffusion分块逻辑](./imgs/Tiled-Diffusion分块逻辑.png)
-
-</div>
-
-可以把MultiDiffusion理解成一种“共享画布上的多路局部去噪”：
-
-1. **先有一个全局Latent画布。** 这张画布代表最终要生成的大图，不是每个tile各自维护一张完全独立的小图。
-
+1. **先有一个全局Latent特征画布。** 这张画布维护最终要生成的Latent特征。
 2. **从全局画布裁出多个重叠窗口。** 每个窗口对应一个局部视野，可以有自己的prompt、mask、区域约束或结构条件，也可以共享同一个全局prompt。
-
-3. **每个窗口调用同一个扩散大模型预测去噪方向。** 模型仍然只处理自己熟悉的小分辨率patch，所以显存压力下降；但这些patch都来自同一张全局Latent。
-
+3. **每个窗口调用同一个扩散模型预测噪声。** 模型只处理小分辨率patch，所以显存压力下降。这些patch都来自同一个全局Latent特征。
 4. **把局部预测写回全局画布。** 对于重叠区域，不是简单覆盖，而是做加权平均或融合，相当于让多个局部扩散路径对同一片区域“投票”。
+5. **重复上述2-4过程直到采样结束。** 因为每一步都在共享画布上融合，tile之间会逐渐形成一致的边界、纹理和语义。
 
-5. **重复这个过程直到采样结束。** 因为每一步都在共享画布上融合，tile之间会逐渐形成一致的边界、纹理和语义，而不是最后才硬拼。
+Tiled VAE和Tiled Diffusion具体效果如下图所示：
 
-从更抽象的角度看，MultiDiffusion像是在每个去噪步解一个一致性问题：
+<div align="center">
 
-```text
-每个局部窗口都希望按照自己的条件生成合理局部
-全局画布又要求所有局部窗口在重叠区域保持一致
-最终结果是在“局部可控”和“全局一致”之间做折中
-```
+![Tiled VAE与Tiled Diffusion：局部中间特征、分块转换与逐步融合](./imgs/tiled_generation_q018_4k.png)
 
-这就是它比普通切图拼接更高级的地方。普通切图是“先分裂、后缝合”；MultiDiffusion/Tiled Diffusion是“边生成、边对齐”。前者容易接缝明显、语义断裂；后者在每个去噪步都让局部路径回到同一个全局latent里，天然更适合超宽图、超高图、全景图、区域控制和大图重绘。
-
-我们可以把Tiled Diffusion理解成：
-
-```text
-初始化全局Latent
-→ 切成多个重叠tile
-→ 每个tile分别运行扩散模型，预测噪声/去噪方向
-→ 把所有tile的预测写回全局Latent
-→ 对重叠区域做加权融合，保证局部一致
-→ 更新全局Latent
-→ 重复直到采样结束
-```
+</div>
 
 下图是Tiled Diffusion生成高分辨率图像的例子：
 
@@ -535,17 +524,7 @@ Tiled VAE和Tiled Diffusion都利用了一个朴素但长期有效的工程思�
 
 </div>
 
-Tiled VAE/Tiled Diffusion虽然能大幅节省超大图推理生成的资源，但也存在一些工程取舍：
-
-1. **显存下降，但时间会上升。** 大图被拆成多个tile后，每个tile显存更低，但需要多次前向推理，整体耗时通常更长。
-
-2. **重叠越大，一致性越好，但计算越重。** overlap太小容易接缝明显；overlap太大又会增加重复计算。
-
-3. **局部一致不等于全局语义一定正确。** Tiled Diffusion能缓解边界不连续，但如果全局构图本身没有被prompt、ControlNet或低分辨率初稿约束好，大图仍然可能出现主体重复、空间关系漂移或局部语义不一致。
-
-4. **Tiled VAE解决的是编码/解码显存，Tiled Diffusion解决的是采样显存。** 前者偏后处理和latent/RGB转换，后者直接影响扩散生成过程。面试中把这两者混在一起讲，是很常见的失分点。
-
-Rocky认为，Tiled类插件的跨周期价值不在某个具体插件，而在它体现了一种长期有效的工程范式：**当大模型能力强于硬件承载能力时，不一定要立刻换更大的显卡，也可以把问题拆成局部计算、共享状态和全局融合。** 这套思想不仅适用于超高清图像创作领域，也适用于视频生成里的分段一致性、3D生成里的多视角一致性、多图拼接里的局部约束融合，甚至适用于更广义的AI系统工程。
+Rocky认为，Tiled类插件的跨周期价值是它体现了一种长期有效的工程范式：**当大模型能力强于硬件承载能力时，不一定要立刻更换更大的算力资源，也可以把问题拆成局部计算、共享状态和全局融合来进行解决。**
 
 
 <h2 id="q-017">面试问题：Ultimate SD Upscale的工作原理是什么？</h2>
@@ -572,7 +551,7 @@ Rocky认为，它本质上是一个把传统超分、扩散模型img2img、Tile�
 
 <div align="center">
 
-![Ultimate SD Upscale工作流程图](./imgs/Ultimate-SD-Upscale工作流程图.png)
+![Ultimate SD Upscale工作流程图](./imgs/ultimate_sd_upscale_q017_4k.png)
 
 </div>
 
