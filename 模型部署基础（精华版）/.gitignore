@@ -8,3 +8,7 @@
 SKILLS/
 api-key
 *.docx
+prompt*.md
+
+# Generated image URL sidecar files
+*.url.txt
