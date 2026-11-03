@@ -29,7 +29,7 @@
   - [面试问题：MoE-LoRA如何通过路由和专家适配器提升条件容量？](#q-025)
   - [面试问题：MoE-LoRA的工程收益、训练风险与适用场景是什么？](#q-026)
 
-[6.介绍一下PEFT技术在AIGC图像生成领域的应用（进阶）](#q-027)
+[6.介绍一下PEFT技术在AIGC图像创作领域的应用（进阶）](#q-027)
   - [面试问题：PEFT的核心技术路线有哪些？LoRA属于哪个细分类别？](#q-028)
   - [面试问题：Textual Inversion的原理、优势与局限是什么？](#q-029)
   - [面试问题：DreamBooth和DreamBooth LoRA的原理是什么？](#q-030)
@@ -43,23 +43,23 @@
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-LoRA（Low-Rank Adaptation）本质上是对特征矩阵进行低秩分解的一种近似数值分解技术，可以大幅降低特征矩阵的参数量，但是会伴随着一定的有损压缩。从传统深度学习时代走来的读者，可以发现其实LoRA本质上是基于Stable Diffusion/FLUX的一种轻量化训练微调技术。
+LoRA（Low-Rank Adaptation）本质上是对特征矩阵进行低秩分解的一种近似数值分解技术，可以大幅降低特征矩阵的参数量，但是会伴随着一定的有损压缩。从传统深度学习时代走来的读者，**可以发现其实LoRA本质上是基于Stable Diffusion（SD）/FLUX的一种轻量化训练微调技术**。
 
 在AIGC图像创作领域，我们可以使用SD/FLUX模型+LoRA模型的组合微调训练方式，只训练参数量很小的LoRA模型，就能在一些AIGC细分领域任务中取得不错的效果。
 
-LoRA模型的训练逻辑是首先冻结SD/FLUX模型的权重，然后在SD模型的U-Net架构或FLUX系列的Transformer架构中注入LoRA权重，主要作用于CrossAttention部分，并只对这部分的参数进行微调训练。
+LoRA模型的训练逻辑是首先冻结SD/FLUX模型的权重，然后在SD模型的U-Net架构或FLUX系列的Transformer架构中注入LoRA权重，主要作用于Cross-Attention部分，并只对这部分的参数进行微调训练。下图是LoRA主要与SD模型的Cross-Attention部分结合示意图：
 
 ![LoRA主要与SD模型的CrossAttention部分结合训练](./imgs/LoRA主要与SD模型的CrossAttention部分结合训练.jpg)
 
-LoRA（Low-Rank Adaptation，低秩适配）的核心价值是：**下游任务需要的不是重新学习整个生成世界，而是在预训练模型已经形成的表示空间中，找到一条成本更低的任务增量。**
+LoRA（Low-Rank Adaptation，低秩适配）的核心价值是：**下游任务需要的不是重新学习整个生成分布，而是在预训练大模型已经形成的表示空间中，找到一条成本更低的任务增量。**
 
-也就是说，对于SD/FLUX模型预训练层的权重为 $W_0\in\mathbb{R}^{d_{out}\times d_{in}}$。全参数微调直接优化 $W_0$；LoRA冻结 $W_0$，只学习增量 $\Delta W$：
+也就是说，对于SD/FLUX模型预训练层的权重为 $W_0\in\mathbb{R}^{d_{out}\times d_{in}}$ 。全参数微调直接优化 $W_0$ ，而LoRA冻结 $W_0$ ，只学习增量 $\Delta W$ ：
 
 $$
 W'=W_0+s\Delta W=W_0+\frac{\alpha}{r}BA
 $$
 
-其中 $\Delta W = AB$ 通过低秩分解由两个低秩矩阵的乘积组成。 $A\in\mathbb{R}^{r\times d_{in}}$ 、 $B\in\mathbb{R}^{d_{out}\times r}$ ， $r\ll\min(d_{in},d_{out})$ ，$r$ 就是 $\Delta W$ 这个参数矩阵的秩（Rank，lora_dim）。 $\alpha$ 是缩放系数， $s=\alpha/r$ 。原矩阵若包含 $d_{out}d_{in}$ 个可训练参数，LoRA只需要训练 $r(d_{in}+d_{out})$ 个参数。
+其中 $\Delta W = BA$ 通过低秩分解由两个低秩矩阵的乘积组成。 $A\in\mathbb{R}^{r\times d_{in}}$ 、 $B\in\mathbb{R}^{d_{out}\times r}$ ， $r\ll\min(d_{in},d_{out})$ ，$r$ 就是 $\Delta W$ 这个参数矩阵的秩（Rank，lora_dim）。 $\alpha$ 是缩放系数， $s=\alpha/r$ 。原矩阵若包含 $d_{out}d_{in}$ 个可训练参数，LoRA只需要训练 $r(d_{in}+d_{out})$ 个参数。
 
 一般来说，尽管SD/FLUX模型的参数数量很大，但每个细分任务对应的本征维度（Intrinsic Dimension）并不大，所以我们设置较小的 $r$ 值就能获得一个参数数量远小于SD/FLUX模型的LoRA模型，并在一些细分任务中获得较好的效果。同时如果我们将 $r$ 设置得越小，LoRA模型的参数数量就越小，但是 $|W' - AB|$ 的近似度就越差。
 
@@ -1269,7 +1269,7 @@ $$
 
 **总的来说，MoE-LoRA不是把更多LoRA简单叠加到模型上，而是让不同LoRA形成专业分工，再由Router为每次AIGC创作动态选择合适的能力组合。它的长期价值不在“专家数量多”，而在“复杂创作任务能够被正确拆分、选择和协同”。**
 
-<h1 id="q-027">6.介绍一下PEFT技术在AIGC图像生成领域的应用（进阶）</h1>
+<h1 id="q-027">6.介绍一下PEFT技术在AIGC图像创作领域的应用（进阶）</h1>
 
 <h2 id="q-028">面试问题：PEFT的核心技术路线有哪些？LoRA属于哪个细分类别？</h2>
 
