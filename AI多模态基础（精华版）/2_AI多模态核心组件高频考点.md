@@ -2,8 +2,6 @@
 
 > 本章拆开多模态大模型的三类主要组件：编码器、投影器和生成器。先讲编码器怎样把图像、语音变成向量序列，再讲投影器怎样把这些向量接进 LLM，最后讲扩散、自回归、流匹配和声码器几类生成器怎样把模型输出还原成图像、视频和语音。后面讲基石模型和主流模型时，会直接用这三类组件拆解架构。
 
-> **时效说明**：本章事实核对截至 2026 年 10 月。文中模型版本、参数规模和评测分数以所引文献的发布版本为准。闭源产品的服务状态变化较快，本章只引用其官方公开的技术信息，不描述产品当前是否在线。Veo 3.1、Seedance 2.5 等闭源视频模型没有公开结构细节，本章只引用其官方发布说明。
-
 ---
 
 ### [5.2.1 多模态模型中使用编码器的主要作用，以及它在不同模态中的职责](#q5-2-1)
@@ -105,7 +103,7 @@ LLM 的输入端只接收嵌入向量。文本先由分词器切成 token，再�
 
 三者都是先把连续信号切成片段、映射成向量，再用 Transformer 建模片段之间的长距离依赖，差别主要在前处理，如图 2-1 所示。
 
-![三类编码器处理流程示意图](images/2-1-三类编码器处理流程示意图.png)
+![三类编码器处理流程示意图](images_comic/2-1-三类编码器处理流程示意图-彩色.png)
 <p align="center">图 2-1 三类编码器处理流程示意图</p>
 
 > **面试速答**：三类编码器的主干基本都是 Transformer，差别在前处理。视觉编码器以 ViT 为主，把图像切成 patch 再线性投影成 token；文本由分词器切成 token，多模态模型里一般直接交给 LLM 处理；音频先转成梅尔频谱图，再按图像切 patch，或沿时间轴卷积下采样。
@@ -188,7 +186,7 @@ ViT 和 MAE 不在同一个层面。ViT 是模型架构，MAE 是预训练方法
 
 ViT 决定视觉编码器的结构，CLIP、MAE 这类方法决定怎样训练它，多模态模型里两者配合使用。
 
-![ViT 结构与 MAE 预训练示意图](images/2-2-ViT结构与MAE预训练示意图.svg)
+![ViT 结构与 MAE 预训练示意图](images_comic/2-2-ViT结构与MAE预训练示意图-彩色.png)
 <p align="center">图 2-2 ViT 结构与 MAE 预训练示意图</p>
 
 > **面试速答**：ViT 是模型架构，MAE 是预训练方法，两者可以组合。多模态模型里 ViT 通常做视觉编码器的骨干，LLaVA 用 CLIP 预训练的 ViT，InternVL 用自研的 InternViT，BLIP-2 用的 EVA-CLIP 先做掩码图像建模、再做图文对比训练。
@@ -235,7 +233,7 @@ SpeechTokenizer 和 Mimi 把两类合在一起。SpeechTokenizer 让 RVQ 第一�
 
 3. **适合的任务。** Whisper 编码器适合语音理解，把语音变成语义向量交给 LLM 做 ASR、语音问答；语音 Tokenizer 是端到端语音生成的基础，LLM 只能直接生成离散 token，生成后再由对应的解码器还原成波形。Moshi 的输入和输出都用 Mimi[6]，SpeechGPT 用 mHuBERT 离散单元[26]，走的都是这条路线。
 
-![Whisper 编码器与语音分词器对比示意图](images/2-3-Whisper编码器与语音分词器对比示意图.png)
+![Whisper 编码器与语音分词器对比示意图](images_comic/2-3-Whisper编码器与语音分词器对比示意图-彩色.png)
 <p align="center">图 2-3 Whisper 编码器与语音分词器对比示意图</p>
 
 > **面试速答**：语音 Tokenizer 把语音波形转成离散 token，分语义 token 和声学 codec token 两类。和 Whisper 编码器比，它输出离散整数，能直接扩进 LLM 词表，训练以重建波形为主，声学信息更全。它适合端到端语音生成，Whisper 适合语音理解。
@@ -356,7 +354,7 @@ InternVL-1.5 采用了动态分块。它按原图长宽比把图像切成若干 
 
 实际项目通常组合使用。InternVL 系列先动态分块，再对每块做 Pixel Shuffle 压缩，LLM 端用 FlashAttention 加速长序列推理，如图 2-4 所示。
 
-![高分辨率图像处理流程示意图](images/2-4-高分辨率图像处理流程示意图.png)
+![高分辨率图像处理流程示意图](images_comic/2-4-高分辨率图像处理流程示意图-彩色.png)
 <p align="center">图 2-4 高分辨率图像处理流程示意图</p>
 
 > **面试速答**：token 压缩在编码后减少 token 数，常用 Pixel Shuffle 合并相邻 token，或用 Q-Former 压成固定数量。窗口注意力把复杂度降到线性，FlashAttention 不改变注意力的数学定义，靠分块计算减少显存读写。实际项目中几种手段组合使用。
@@ -532,7 +530,7 @@ MLP 比线性投影多了非线性，表达能力更强，好处体现在三方�
 
 视频理解、超高分辨率图像、端侧部署等需要严格控制 LLM 输入长度的长序列场景，适合用交叉注意力投影器。
 
-![Q-Former 结构示意图](images/2-5-Q-Former结构示意图.png)
+![Q-Former 结构示意图](images_comic/2-5-Q-Former结构示意图-彩色.png)
 <p align="center">图 2-5 Q-Former 结构示意图</p>
 
 > **面试速答**：用一组可学习的 query，通过交叉注意力从视觉特征里挑信息，输出 token 数由 query 数决定，BLIP-2 用 32 个 query。它能大幅压缩 token、有选择地提取，还能先独立预训练再接不同 LLM。代价是约 188M 参数、难训练，压缩会丢细节，对 OCR 不友好。
@@ -585,7 +583,7 @@ ViT 和 LLM 各有自己的位置编码，但在投影器里或投影器之后�
 
 缺少空间位置信息时，“图中左上角的物体是什么”“红框在蓝框的哪一侧”等需要空间推理的问题更容易答错。
 
-![一维 RoPE 与 M-RoPE 对比示意图](images/2-6-一维RoPE与M-RoPE对比示意图.png)
+![一维 RoPE 与 M-RoPE 对比示意图](images_comic/2-6-一维RoPE与M-RoPE对比示意图-彩色.png)
 <p align="center">图 2-6 一维 RoPE 与 M-RoPE 对比示意图</p>
 
 > **面试速答**：视觉 token 拼进 LLM 的一维序列后，一维位置编码只能表示先后，分不清左右上下。补位置编码就是把二维空间信息带进 LLM，做法有两种，一是像 Qwen-VL 那样在交叉注意力压缩时加入二维绝对位置编码，二是像 Qwen2-VL 的 M-RoPE 那样把位置拆成时间、高、宽三个分量。
@@ -728,7 +726,7 @@ $$\mathcal{L} = \mathbb{E}_{t, x_0, x_1}[\|v_\theta(x_t, t) - (x_1 - x_0)\|^2]$$
 | 主战场 | 图像、视频 | 统一多模态、语音 token 生成 | 新一代图像/视频基座 | 语音末端 |
 | 代表 | Stable Diffusion | Emu3 | FLUX.2 | HiFi-GAN |
 
-![四类生成器计算流程示意图](images/2-7-四类生成器计算流程示意图.png)
+![四类生成器计算流程示意图](images_comic/2-7-四类生成器计算流程示意图-彩色.png)
 <p align="center">图 2-7 四类生成器计算流程示意图</p>
 
 > **面试速答**：扩散模型用 U-Net 或 DiT 预测噪声，常用 20 到 50 步。自回归生成器把模态离散成 token 逐个预测，步数等于 token 数。流匹配学习从噪声到数据的速度场，蒸馏后可到 1 到 4 步。声码器一次前向出波形，最快。
@@ -949,7 +947,7 @@ Rectified Flow 是工业界最常用的形式。它让噪声和数据之间走�
 
 电商、数字人等场景常把几种控制叠加起来，ControlNet 管结构，IP-Adapter 管风格，InstantID 管人脸。
 
-![CFG 与 ControlNet 示意图](images/2-8-CFG与ControlNet示意图.png)
+![CFG 与 ControlNet 示意图](images_comic/2-8-CFG与ControlNet示意图-彩色.png)
 <p align="center">图 2-8 CFG 与 ControlNet 示意图</p>
 
 > **面试速答**：条件分布越尖锐，多样性越差，两者此消彼长。常用 CFG 调节引导强度，SD 系 scale 常用 7 到 8，太高会过饱和；ControlNet 注入边缘、深度、姿态等结构条件，IP-Adapter 注入参考图风格，InstantID 等保持人脸一致。实际按场景叠加几种控制。

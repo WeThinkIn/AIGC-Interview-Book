@@ -2,8 +2,6 @@
 
 > 本章拆解主流开源系列的关键技术。依次讲视觉编码器与 token 压缩，多模态位置编码与长上下文，框、掩码等结构化输出，视频时序建模，预训练与后训练范式，训练数据清洗，最后讲模型怎样调用工具、把设计稿写成代码。
 
-> **时效说明**：本章事实核对截至 2026 年 10 月。文中模型版本、参数规模和评测分数以所引文献的发布版本为准。闭源产品的服务状态变化较快，本章只引用其官方公开的技术信息，不描述产品当前是否在线。文中关于 InternVL 代码中函数命名的描述，以核对时官方仓库主分支为准（把 `pixel_shuffle` 改名为 `pixel_unshuffle` 的 [PR #1210](https://github.com/OpenGVLab/InternVL/pull/1210) 在核对时尚未合并）。
-
 ---
 
 ### [5.4.1 Qwen-VL 系列视觉编码器经历了哪些关键演进，各解决什么问题](#q5-4-1)
@@ -128,7 +126,7 @@ Qwen-VL 各代视觉编码器的变化如表 4-1 所示。
 
 表 4-1 的信息取自 Qwen-VL 系列各代技术报告和官方配置[1-3,6,7]。
 
-![Qwen3-VL DeepStack 多层特征注入示意图](images/4-1-Qwen3-VLDeepStack多层特征注入示意图.png)
+![Qwen3-VL DeepStack 多层特征注入示意图](images_comic/4-1-Qwen3-VLDeepStack多层特征注入示意图-彩色.png)
 <p align="center">图 4-1 Qwen3-VL DeepStack 多层特征注入示意图</p>
 
 > **面试速答**：DeepStack 从 ViT 的三个不同深度抽取特征，各自经独立的 MLP merger 投影后，直接加到 LLM 前三层的隐藏状态上。特征是叠加进去的，序列长度不变，视觉 token 不增加。浅层细节和深层语义一起进入 LLM，文档、小目标等细粒度任务因此受益，图文对齐也更早建立。
@@ -153,7 +151,7 @@ InternVL 的代码和不少资料把这一步叫 pixel shuffle[9]，本书第 2�
 
 这类方案的局限是压缩比固定。Qwen2-VL 的 MLP 合并 2×2 和 InternVL 的 pixel unshuffle 都把 token 压到 $`1/4`$[2,8]，信息密集区和背景区用同样的力度压，下一问的内容自适应压缩针对的就是这一点。
 
-![InternVL-1.5 动态分块与 token 压缩流程图](images/4-2-InternVL-1.5动态分块与token压缩流程图.jpg)
+![InternVL-1.5 动态分块与 token 压缩流程图](images_comic/4-2-InternVL-1.5动态分块与token压缩流程图-彩色.png)
 <p align="center">图 4-2 InternVL-1.5 动态分块与 token 压缩流程图</p>
 
 > **面试速答**：根源在高分辨率分块，InternVL-1.5 把图切成最多 40 个 448×448 的块，每块 1024 个 patch token，不压缩约 4 万个。早期办法是固定比例下采样，每块做 2×2 的 space-to-depth，token 数降到 1/4。缺点是信息密集区与背景区的压缩力度相同。
@@ -172,7 +170,7 @@ InternVL 的代码和不少资料把这一步叫 pixel shuffle[9]，本书第 2�
 
 3. **两者叠加，一个减量，一个并行。** ViR 减少 token 数，语言端的序列变短，视觉端到语言端要传的特征也变少；DvD 让视觉和语言计算并行。论文报告，两者结合后，推理速度最高是 InternVL3 的 4.05 倍[13]。
 
-![InternVL3.5 ViR 与 DvD 示意图](images/4-3-InternVL3.5ViR与DvD示意图.png)
+![InternVL3.5 ViR 与 DvD 示意图](images_comic/4-3-InternVL3.5ViR与DvD示意图-彩色.png)
 <p align="center">图 4-3 InternVL3.5 ViR 与 DvD 示意图</p>
 
 > **面试速答**：ViR 是 InternVL3.5-Flash 的视觉分辨率路由器，按每块内容选择压缩率，密集区多留 token、背景区多压，视觉 token 减半时性能保持近 100%。DvD 把视觉编码和 LLM 拆到不同服务器，组成三段异步流水线，单用最高提速 2.01 倍，合计最高为 InternVL3 的 4.05 倍。
@@ -199,7 +197,7 @@ InternVL 的代码和不少资料把这一步叫 pixel shuffle[9]，本书第 2�
 
 这套规则还有利于长序列外推。图像和视频的位置 ID 按行列和帧号计，数值比展平成一维后逐个累加小得多，推理时更容易外推到更长的序列。Qwen2.5-VL 又把视频的时间 ID 和绝对时间对齐[3]，见 [5.4.7.1](#q5-4-7-1)。
 
-![M-RoPE 三分量位置编号示意图](images/4-4-M-RoPE三分量位置编号示意图.png)
+![M-RoPE 三分量位置编号示意图](images_comic/4-4-M-RoPE三分量位置编号示意图-彩色.png)
 <p align="center">图 4-4 M-RoPE 三分量位置编号示意图</p>
 
 > **面试速答**：M-RoPE 把旋转频率按 mrope_section 分成时间、高、宽三段，各用一个位置 ID。文本三个 ID 相同，等价于一维 RoPE；图像时间 ID 固定，高宽按行列赋值；视频时间 ID 逐帧递增；下一模态从前一模态最大 ID 加 1 开始。位置 ID 数值较小，也利于外推。
@@ -242,7 +240,7 @@ Qwen3-VL 的交错式 M-RoPE（Interleaved-MRoPE）解决的是旋转频率在�
 
 表 4-2 的配置取自各模型的技术报告和官方配置文件[2,6,14,18,19]。
 
-![分块式与交错式 M-RoPE 频率分配对比示意图](images/4-5-分块式与交错式MRoPE频率分配对比示意图.png)
+![分块式与交错式 M-RoPE 频率分配对比示意图](images_comic/4-5-分块式与交错式MRoPE频率分配对比示意图-彩色.png)
 <p align="center">图 4-5 分块式与交错式 M-RoPE 频率分配对比示意图</p>
 
 > **面试速答**：分块式 M-RoPE 把频率最高的一段全给时间轴，高、宽分到低频段，频谱不均衡，妨碍长视频理解。Qwen3-VL 改为按频率组轮流分配时间、高、宽，每个轴都覆盖全频段，长视频时序建模更稳。纯文本仍等价于标准 RoPE，位置 ID 增长慢，从 256K 扩到 1M 只需较小的 YaRN 缩放因子。
@@ -385,7 +383,7 @@ GLM-4.5V 还能在思考模式下先逐步推理、再输出边界框，适合�
 
 两者配合，3D patch 降低时间维的冗余，动态 FPS 加绝对时间对齐保证时间语义，模型可以在可控的 token 预算内处理更长的视频，也能做时刻定位。
 
-![3D patch 与动态 FPS 采样示意图](images/4-6-3Dpatch与动态FPS采样示意图.png)
+![3D patch 与动态 FPS 采样示意图](images_comic/4-6-3Dpatch与动态FPS采样示意图-彩色.png)
 <p align="center">图 4-6 3D patch 与动态 FPS 采样示意图</p>
 
 > **面试速答**：3D patch 把相邻两帧绑成一个 2×14×14 的时空 patch，时间维 token 减半，短时时序留在 patch 内。动态 FPS 在训练时用变化的帧率采样，并把 M-RoPE 的时间 ID 和绝对时间对齐，模型靠 ID 间隔感知快慢，能定位事件发生在第几秒。
@@ -426,7 +424,7 @@ GLM-4.5V 还能在思考模式下先逐步推理、再输出边界框，适合�
 
 从隐式的位置分量到显式的文本标记，时间从模型内部的编码细节，变成了序列里可读、可比较、可计算的信息。
 
-![帧索引时间对齐与文本时间戳对齐对比示意图](images/4-7-帧索引时间对齐与文本时间戳对齐对比示意图.png)
+![帧索引时间对齐与文本时间戳对齐对比示意图](images_comic/4-7-帧索引时间对齐与文本时间戳对齐对比示意图-彩色.png)
 <p align="center">图 4-7 帧索引时间对齐与文本时间戳对齐对比示意图</p>
 
 > **面试速答**：Qwen2-VL 的时间 ID 只是帧序号；Qwen2.5-VL 把 M-RoPE 的时间 ID 和绝对时间对齐，但时间仍藏在位置编码里，只能从 ID 间隔推断；Qwen3-VL 在每个时序 patch 前插入 <3.0 seconds> 这样的文本时间戳，用普通文本嵌入编码，训练时混用秒和时分秒两种格式。
@@ -482,7 +480,7 @@ GLM-4.5V 还能在思考模式下先逐步推理、再输出边界框，适合�
 
 联合继续预训练路线的代价是成本高，要在预训练阶段投入大量算力，还要能掌控语言基座，通常只有头部团队承担得起。BLIP-2 式冻结两端加轻量桥接，在低成本给现成的强 LLM 加视觉能力这件事上仍有性价比。
 
-![BLIP-2 与 InternVL3 预训练范式对比示意图](images/4-8-BLIP-2与InternVL3预训练范式对比示意图.png)
+![BLIP-2 与 InternVL3 预训练范式对比示意图](images_comic/4-8-BLIP-2与InternVL3预训练范式对比示意图-彩色.png)
 <p align="center">图 4-8 BLIP-2 与 InternVL3 预训练范式对比示意图</p>
 
 > **面试速答**：BLIP-2 冻结视觉编码器和 LLM，只训 188M 的 Q-Former，视觉能力是语言模型训完后接上去的。InternVL3 仍用两层 MLP 连接 ViT 和 LLM，区别是把语言预训练和多模态对齐合进同一阶段联合训练，LLM 也参与，纯文本能力没有下降。代价是成本高，要掌控基座。
@@ -521,7 +519,7 @@ InternVL3 采用的联合继续预训练（论文称 Native Multimodal Pre-Train
 
 论文报告，InternVL2.5-78B 全程只用了约 1200 亿 token，不到 Qwen2-VL 1.4 万亿 token 的 1/10[11]。成本降在三处，一是避开大 LLM 和视觉端的昂贵联合训练，二是视觉编码器训一次、跨规模复用，三是配套的数据打包策略（选取、搜索、打包、维护四步）提高 GPU 利用率[11]。迁移后仍要经过 MLP 预热和全模型指令微调，渐进式缩放省掉的是重训视觉端的那部分成本。
 
-![InternVL2.5 渐进式缩放流程图](images/4-9-InternVL2.5渐进式缩放流程图.png)
+![InternVL2.5 渐进式缩放流程图](images_comic/4-9-InternVL2.5渐进式缩放流程图-彩色.png)
 <p align="center">图 4-9 InternVL2.5 渐进式缩放流程图</p>
 
 > **面试速答**：InternVL2.5 先用 20B 的小 LLM 与 InternViT 联合训练，再把训好的 InternViT 直接接到 72B 等大 LLM 上，跳过这一阶段。依据是这样训出的视觉特征具有通用性。InternVL2.5-78B 只用约 1200 亿 token，不到 Qwen2-VL 的 1/10。
@@ -608,7 +606,7 @@ RLCS（Reinforcement Learning with Curriculum Sampling，带课程采样的强�
 
 论文报告，InternVL3.5 的整体推理性能比 InternVL3 提升 16.0%，MMMU、MathVista 等推理任务都有改进[13]。把三家放在一起看，后训练从 Qwen2.5-VL 的 SFT 加 DPO（对齐偏好），到 GLM-4.1V-Thinking 的 RLCS（按难度提升推理），再到 InternVL3.5 的级联 RL（离线求稳、在线提上限），目标从让回答合人意，走向推理更强且训练可控。
 
-![InternVL3.5 级联强化学习流程图](images/4-10-InternVL3.5级联强化学习流程图.png)
+![InternVL3.5 级联强化学习流程图](images_comic/4-10-InternVL3.5级联强化学习流程图-彩色.png)
 <p align="center">图 4-10 InternVL3.5 级联强化学习流程图</p>
 
 > **面试速答**：级联 RL 先用 MPO 在离线偏好数据上做粗对齐，稳定、便宜地把策略带到好起点，再用 GSPO 在线采样精修。纯在线 RL 不稳、冷启动差，纯离线 RL 被静态数据限住上限，两段串起来正好互补。InternVL3.5 的整体推理性能比 InternVL3 提升 16.0%。
