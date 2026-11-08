@@ -441,15 +441,10 @@ Composite在每个采样步都使用全部LoRA，但分别计算它们的预测�
 
 以论文使用的噪声预测与CFG形式为例，第 $i$ 个适配器对应的引导预测为：
 
-$$
+```math
 g_i(z_t,t,c)=\epsilon_{\theta_i'}(z_t,t,\varnothing)
-+
-s\left[
-\epsilon_{\theta_i'}(z_t,t,c)
--
-\epsilon_{\theta_i'}(z_t,t,\varnothing)
-\right]
-$$
++s\left[\epsilon_{\theta_i'}(z_t,t,c)-\epsilon_{\theta_i'}(z_t,t,\varnothing)\right]
+```
 
 其中：
 - $\theta_i'$ 表示底模启用第 $i$ 个 LoRA 后的有效参数；
@@ -892,21 +887,19 @@ $$
 
 这条分支先使用 $K\times K$ 卷积，将输入通道映射到 $r$ 个中间通道；再通过 $1×1$ 卷积，将中间表示映射到原来的输出通道数。我们令：
 
-$$
-Z=\operatorname{Conv}_{K\times K}(X;A)
-$$
+```math
+Z=\mathrm{Conv}_{K\times K}(X;A)
+```
 
-$$
-\Delta Y=\operatorname{Conv}_{1\times1}(Z;B)
-$$
+```math
+\Delta Y=\mathrm{Conv}_{1\times1}(Z;B)
+```
 
 最终输出为：
 
-$$
-Y=\operatorname{Conv}(X;W_0)
-+
-\frac{\alpha}{r}\Delta Y
-$$
+```math
+Y=\mathrm{Conv}(X;W_0)+\frac{\alpha}{r}\Delta Y
+```
 
 其中， $r$ 是卷积适配分支的Rank， $\alpha/r$ 是这里采用的标准LoRA缩放系数。
 
@@ -1045,27 +1038,21 @@ $$
 
 标准LoRA的增量为 $BA$ 。当两个因子的内部维度为 $r$ 时：
 
-$$
-\operatorname{rank}(\Delta W_{\mathrm{LoRA}})
-\leq
-\min(m,n,r)
-$$
+```math
+\mathrm{rank}(\Delta W_{\mathrm{LoRA}})\leq\min(m,n,r)
+```
 
 LoHa先构造两个秩不超过 $r$ 的矩阵，再进行Hadamard积。根据Hadamard积的秩性质：
 
-$$
-\operatorname{rank}(P\odot Q)
-\leq
-\operatorname{rank}(P)\operatorname{rank}(Q)
-$$
+```math
+\mathrm{rank}(P\odot Q)\leq\mathrm{rank}(P)\mathrm{rank}(Q)
+```
 
 因此：
 
-$$
-\operatorname{rank}(\Delta W_{\mathrm{LoHa}})
-\leq
-\min(m,n,r^2)
-$$
+```math
+\mathrm{rank}(\Delta W_{\mathrm{LoHa}})\leq\min(m,n,r^2)
+```
 
 可以这样理解：每个低秩乘积都能展开为 $r$ 个秩一成分之和。两组结果逐元素相乘后，会出现最多 $r\times r$ 组配对项，每个配对项仍可以写成一个秩一矩阵，因此得到 $r^2$ 的上限。
 
@@ -1474,11 +1461,11 @@ $$
 $s_i$ 是分配给第 $i$ 个专家的分数。分数越高，表示路由网络越倾向于让这个专家处理当前输入，但它还不是归一化后的门控权重。
 
 根据分数向量 $s$ ，取出分数最高的 $k$ 个专家：
+
 ```math
-\mathcal{I}
-=
-\operatorname{TopK}(s,k)
+\mathcal{I}=\mathrm{TopK}(s,k)
 ```
+
 例如， $\mathcal I=\{1,3\}$ 表示本次输入选择专家1和专家3。其余专家不执行该输入对应的LoRA增量计算。
 
 接着，我们对选中的专家重新归一化门控权重：
@@ -1569,7 +1556,7 @@ Router的粒度决定了系统的控制精细度和工程复杂度。
 \lambda_{\mathrm{route}}\mathcal{L}_{\mathrm{route}}
 ```
 
-其中 $\mathcal{L}_{\mathrm{gen}}$ 是底模对应的生成损失，可以是噪声预测、v-prediction或Flow Matching目标； $\mathcal{L}_{\mathrm{balance}}$ 用于避免所有输入都集中到少数专家； $\mathcal{L}_{\mathrm{route}}$ 是可选的路由监督项，只有在有任务标签或专家目标时才使用。
+其中 $`\mathcal{L}_{\mathrm{gen}}`$ 是底模对应的生成损失，可以是噪声预测、v-prediction或Flow Matching目标； $`\mathcal{L}_{\mathrm{balance}}`$ 用于避免所有输入都集中到少数专家； $`\mathcal{L}_{\mathrm{route}}`$ 是可选的路由监督项，只有在有任务标签或专家目标时才使用。
 
 设一个批次有 $T$ 个被路由单位， $E$ 个专家，令：
 
