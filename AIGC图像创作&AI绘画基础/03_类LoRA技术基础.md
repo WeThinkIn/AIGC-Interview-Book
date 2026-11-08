@@ -332,10 +332,7 @@ $$
 对于同时作用于某个目标层的多个标准 LoRA，基本组合方式为：
 
 $$
-W'
-=
-W_0+
-\sum_{i=1}^{N}\lambda_i\Delta W_i,
+W'=W_0+ \sum_{i=1}^{N}\lambda_i\Delta W_i,
 \qquad
 \Delta W_i=\frac{\alpha_i}{r_i}B_iA_i
 $$
@@ -345,12 +342,7 @@ $$
 我们以人物LoRA和风格LoRA为例：
 
 $$
-W'
-=
-W_0+
-0.8\,\Delta W_{\mathrm{person}}
-+
-0.3\,\Delta W_{\mathrm{style}}
+W'=W_0+0.8\Delta W_{\mathrm{person}} + 0.3\Delta W_{\mathrm{style}}
 $$
 
 这个式子表示按指定系数叠加两个参数增量，它既不要求 0.8 + 0.3 = 1，也不保证人物效果一定比风格效果更强。
