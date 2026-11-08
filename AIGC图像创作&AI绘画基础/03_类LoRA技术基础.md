@@ -1308,7 +1308,7 @@ LCM-LoRA不负责记住某个新人物，也不负责把照片变成水彩。它
 \mathcal{L}_{\mathrm{LCM}}=\mathbb{E}\left[d\left(f_{\theta}\left(z_{t_{n+k}},c,t_{n+k}\right),\mathrm{sg}\left(f_{\theta^-}\left(\hat{z}_{t_n},c,t_n\right)\right)\right)\right]
 ```
 
-其中， $f_{\theta}$是正在训练的学生网络， $f_{\theta^-}$是使用指数移动平均（EMA）更新的目标网络， $\hat{z}_{t_n}$由教师扩散模型或ODE求解器从较高噪声时间点 $t_{n+k}$ 推进到较低噪声时间点 $t_n`$，$`d(\cdot,\cdot)$衡量两个预测结果的一致性， $\mathrm{sg}(\cdot)$表示停止梯度。训练的重点不是让学生记住训练图片，而是让它在多个时间点给出彼此一致的终点预测。
+其中， $f_{\theta}$ 是正在训练的学生网络， $f_{\theta^-}$ 是使用指数移动平均（EMA）更新的目标网络， $\hat{z}_{t_n}$ 由教师扩散模型或ODE求解器从较高噪声时间点 $t_{n+k}$ 推进到较低噪声时间点 $t_n$， $d(\cdot,\cdot)$ 衡量两个预测结果的一致性， $\mathrm{sg}(\cdot)$ 表示停止梯度。训练的重点不是让学生记住训练图片，而是让它在多个时间点给出彼此一致的终点预测。
 
 LCM-LoRA进一步把学生网络的可训练部分限制在低秩矩阵上。对某个被注入的权重矩阵 $W_0$，其更新形式为：
 
