@@ -409,9 +409,7 @@ $$
 设采样步编号为 $n$ ，LoRA数量为 $K$ ，每次连续启用的步数为 $\tau$ ，则当前适配器编号可以写成：
 
 $$
-i_n
-=
-\left\lfloor
+i_n=\left\lfloor
 \frac{(n-1)\bmod(K\tau)}{\tau}
 \right\rfloor+1
 $$
@@ -419,9 +417,7 @@ $$
 该步目标层的有效权重为：
 
 $$
-W'_n
-=
-W_0+\lambda_{i_n}\Delta W_{i_n}
+W'_n=W_0+\lambda_{i_n}\Delta W_{i_n}
 $$
 
 这里的 $n$ 表示执行到第几个采样步，实际噪声时间步由采样器给出，二者需要区分。
@@ -446,9 +442,7 @@ Composite在每个采样步都使用全部LoRA，但分别计算它们的预测�
 以论文使用的噪声预测与CFG形式为例，第 $i$ 个适配器对应的引导预测为：
 
 $$
-g_i(z_t,t,c)
-=
-\epsilon_{\theta_i'}(z_t,t,\varnothing)
+g_i(z_t,t,c)=\epsilon_{\theta_i'}(z_t,t,\varnothing)
 +
 s\left[
 \epsilon_{\theta_i'}(z_t,t,c)
@@ -465,9 +459,7 @@ $$
 采用等权组合时：
 
 $$
-\bar g(z_t,t,c)
-=
-\frac{1}{K}\sum_{i=1}^{K}g_i(z_t,t,c)
+\bar g(z_t,t,c)=\frac{1}{K}\sum_{i=1}^{K}g_i(z_t,t,c)
 $$
 
 采样器使用 $\bar g$ 更新当前潜变量，然后进入下一个时间步。
@@ -911,9 +903,7 @@ $$
 最终输出为：
 
 $$
-Y
-=
-\operatorname{Conv}(X;W_0)
+Y=\operatorname{Conv}(X;W_0)
 +
 \frac{\alpha}{r}\Delta Y
 $$
@@ -943,9 +933,7 @@ $$
 LoCon分支的可训练参数量为：
 
 $$
-P_{\mathrm{adapter}}
-=
-rC_{\mathrm{in}}K^2+rC_{\mathrm{out}}
+P_{\mathrm{adapter}}=rC_{\mathrm{in}}K^2+rC_{\mathrm{out}}
 $$
 
 例如，取 $C_{\mathrm{in}}=C_{\mathrm{out}}=320$ 、 $K=3$ 、 $r=16$ ，则：
@@ -961,18 +949,14 @@ $$
 前向计算也要采用同样的区分。设输出特征图尺寸为 $H_{\mathrm{out}}\times W_{\mathrm{out}}$ ，以乘加次数MACs计，原卷积计算量约为：
 
 $$
-M_0
-=
-C_{\mathrm{out}}C_{\mathrm{in}}K^2
+M_0=C_{\mathrm{out}}C_{\mathrm{in}}K^2
 H_{\mathrm{out}}W_{\mathrm{out}}
 $$
 
 直接执行两层适配分支时，额外计算量约为：
 
 $$
-M_{\mathrm{adapter}}
-=
-\left(rC_{\mathrm{in}}K^2+rC_{\mathrm{out}}\right)
+M_{\mathrm{adapter}}=\left(rC_{\mathrm{in}}K^2+rC_{\mathrm{out}}\right)
 H_{\mathrm{out}}W_{\mathrm{out}}
 $$
 
