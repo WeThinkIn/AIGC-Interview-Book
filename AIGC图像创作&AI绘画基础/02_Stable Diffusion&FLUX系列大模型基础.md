@@ -1150,151 +1150,224 @@ T5-XXL 的参数量最大，因此在 2080Ti 等显存有限的 GPU 上部署 SD
 
 **难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-Stable Diffusion 3 的官方训练技巧并不是某一个孤立技巧，而是围绕**训练目标、噪声调度、数据工程、蒸馏加速与资源优化**形成的一套完整方法。下面按训练目标、噪声调度、标签与数据配方、蒸馏、缓存和稳定性优化等方面展开。
+Stable Diffusion 3的训练优化围绕几个相互关联的问题展开：如何定义生成目标，如何分配不同噪声阶段的训练样本，以及如何让数据、模型容量和训练资源相互匹配。先理解Rectified Flow、Logit-Normal采样和分辨率相关的时间步偏移，再看后面的Caption、特征缓存与稳定性优化，就能把这些方法放进同一条训练链路。
 
-SD 3 不再使用 DDPM 作为扩散模型，而是改用优化后的 Rectified Flow。图像生成任务本质上是让模型学习一个图像数据集所表达的数据分布，之后再从这个数据分布中进行随机采样。由于复杂的数据分布很难直接表达，扩散模型通常先选择标准正态分布作为容易采样的简单分布，再学习从噪声分布到真实数据分布的映射。
+### Rectified Flow训练目标与损失函数
 
-基于 DDPM 的扩散模型通过人工定义图像数据到噪声的变换路线，再让模型学习对应的逆路线。知道数据在路线中每一位置的对应速度后，就可以以每一位置的反向速度为基准学习速度场，这种学习过程被称为流匹配（Flow Matching）。SD 3 使用的 Rectified Flow 的关键不在于更换一个模型名称，而在于重新定义图像到噪声的路线：用一条直线连接数据分布和噪声分布，从而简化训练和推理过程并提升生成效率。
+**SD 3采用Rectified Flow，将图像生成建模为潜空间中的速度场学习。** Rectified Flow来自更早的[生成建模研究](https://arxiv.org/abs/2209.03003)，SD 3的贡献是结合文本到图像任务，系统比较训练目标、时间步分布和高分辨率适配方法；FLUX.1也采用了这一生成范式。
 
-Rectified Flow（RF）是 SD 3、FLUX.1 共同采用的训练目标，是相对 DDPM 的 ε-prediction 在「数学路径 + 采样效率」上的双重升级。
+设 $`x_0`$ 是目标图像经过VAE编码、缩放后的干净潜变量， $c$ 是文本条件， $`\varepsilon\sim\mathcal{N}(0,I)`$ 是与潜变量同形状的标准高斯噪声。这里讨论的是Latent空间中的计算，后面再由VAE将生成结果解码成像素图像。
 
-**（1）两者的训练目标对比**
-
-**ε-prediction（DDPM）**：
-
-- 数据 → 噪声的过程是带噪声的随机扩散：$`x_t = \sqrt{\bar\alpha_t}x_0 + \sqrt{1-\bar\alpha_t}\epsilon`$
-- 网络预测加入的噪声 $\epsilon$；
-- 反向过程是马尔可夫链，沿弯曲路径回到数据。
-
-**Rectified Flow**：
-
-- 数据 → 噪声的路径直接定义为**线性插值**：
+采用 $t=0$ 对应数据、 $t=1$ 对应噪声的约定，训练路径为：
 
 ```math
-x_t = (1 - t)\, x_0 + t\, \epsilon,\quad t \in [0, 1]
+z_t=(1-t)x_0+t\varepsilon,
+\qquad
+\frac{d z_t}{dt}=\varepsilon-x_0
 ```
 
-- 网络预测**速度场** $`v_t = \epsilon - x_0`$（与 v-prediction 形式一致，但是连续时间）；
-- 训练目标：
+模型读取带噪潜变量、时间步和文本条件，预测这条路径上的变化速度。将噪声采样也显式写入期望后，基本训练损失为：
 
 ```math
-\mathcal{L}_{\text{RF}} = \mathbb{E}_{t, x_0, \epsilon}\bigl\|v_\theta(x_t, t) - (\epsilon - x_0)\bigr\|^2
+\mathcal{L}_{\mathrm{RF}}(\theta)=
+\mathbb{E}_{(x_0,c)\sim p_{\mathrm{data}},\;t\sim\pi(t),\;\varepsilon\sim\mathcal{N}(0,I)}
+\left[
+\left\|v_\theta(z_t,t,c)-(\varepsilon-x_0)\right\|_2^2
+\right]
 ```
 
-- 反向过程是常微分方程（ODE）：
+其中， $`v_\theta`$ 是模型预测的速度场， $\pi(t)$ 是训练时间步的概率密度。每次训练只需抽取目标图、文本、噪声和一个时间步，构造 $`z_t`$ 并计算损失，不必先运行完整的多步生成过程。
+
+为了看清这个期望包含哪些随机量，也可以将它写成积分形式。记 $`p_{\mathrm{G}}`$ 为标准高斯噪声密度，则：
 
 ```math
-\frac{dx}{dt} = v_\theta(x_t, t)
+\mathcal{L}_{\mathrm{RF}}(\theta)=
+\int_0^1\int_{x_0,c}\int_{\varepsilon}
+\pi(t)\,p_{\mathrm{data}}(x_0,c)\,p_{\mathrm{G}}(\varepsilon)
+\left\|v_\theta((1-t)x_0+t\varepsilon,t,c)-(\varepsilon-x_0)\right\|_2^2
+\,d\varepsilon\,d(x_0,c)\,dt
 ```
 
-**非均匀时间步采样**：Rectified Flow 默认可以令 $t\sim\mathcal{U}(0,1)$，也就是等概率采样所有时间步。但 SD 3 的实验发现，不同时间步的学习难度并不相同：靠近数据端和噪声端的路径相对容易学习，中间区域更难。因此，SD 3 使用非均匀采样提高中间时间步的权重，重点比较了带重尾的 Mode Sampling 和 Logit-Normal Sampling。两种方法都会增加中间区域的采样概率；Logit-Normal 的代价是 $t=0$ 和 $t=1$ 附近几乎采样不到，需要在训练分布设计时权衡。
+这里的 $`d(x_0,c)`$ 统一表示对图文数据分布求和或积分；实际训练使用小批量样本估计。这个写法暂按固定分辨率下的时间步分布展开。混合分辨率训练时，如果采样策略依赖样本分辨率， $\pi(t)$ 还应带上对应条件。
 
-**（2）本质差别**
+推理时从高斯噪声出发，沿学到的速度场从 $t=1$ 积分到 $t=0$。例如，Euler更新为：
+
+```math
+z_{t_{k+1}}=z_{t_k}+(t_{k+1}-t_k)v_\theta(z_{t_k},t_k,c),
+\qquad t_{k+1}\lt t_k
+```
+
+时间递减，因此步长为负，更新方向与训练目标 $`\varepsilon-x_0`$ 相互配合。最终潜变量再经VAE解码得到图像。
+
+**训练样本对之间采用直线插值，并不保证模型的生成轨迹也是严格直线。** 不同数据与噪声的配对可能在同一区域产生不同速度，平方误差下的最优预测对应给定当前位置、时间和条件后的平均速度。实际生成质量还受到模型拟合、时间步覆盖和数值求解误差影响，不能由直线插值直接推出“一步即可生成”。这里的速度预测也应与DDPM使用的 $v$-prediction目标区分：后者通常写成 $`v=\alpha_t\varepsilon-\sigma_t x_0`$，系数由另一套噪声调度决定。
+
+### Logit-Normal时间步采样：调整不同噪声阶段的训练频率
+
+确定路径和速度目标之后，还要决定每次训练抽取哪个时间步。均匀采样让相同长度的时间区间获得相同概率；非均匀采样则改变模型接触各个噪声阶段的频率。若不额外做重要性权重补偿，这也会改变期望损失在时间维度上的权重。
+
+[SD 3论文第3.1节及Table 1](https://arxiv.org/html/2403.03206v1#S3.SS1)比较了Logit-Normal、带重尾的Mode Sampling等策略，其中位置参数为0、尺度参数为1的Logit-Normal在多个评测设置中表现稳定。**这里的优化重点是训练预算如何分配，线性插值路径和速度监督目标本身仍然保留。**
+
+Logit-Normal的构造分成两步：先从正态分布采样，再通过Sigmoid把实数映射到 $(0,1)$：
+
+```math
+U\sim\mathcal{N}(\mu,\sigma^2),
+\qquad
+t=\mathrm{sigmoid}(U)=\frac{1}{1+e^{-U}}
+```
+
+它的逆变换是：
+
+```math
+\mathrm{logit}(t)=\log\frac{t}{1-t}
+```
 
 <div align="center">
 
-| 维度 | ε-prediction | Rectified Flow |
-| --- | --- | --- |
-| 路径类型 | 弯曲（DDPM 噪声调度决定） | **直线**（数据 ↔ 噪声线性插值） |
-| 训练目标 | 噪声 $`\epsilon`$ | **速度场** $`v = \epsilon - x_0`$ |
-| 反向过程 | 随机马尔可夫链 / DDIM ODE | 纯 ODE |
-| Loss 量级随 $t$ 分布 | 高 $t$ 易学、低 $t$ 数值不稳 | **全 $t$ 均衡** |
-| 少步采样难度 | 高（弯曲路径需要多步） | **低**（直线路径少步即可逼近） |
-| 是否便于二次蒸馏 | 一般 | **极好**（直线路径天然适合 reflow / 一致性蒸馏） |
+![SD 3时间步采样中的Logit与Sigmoid变换](./imgs/SD3-Logit与Sigmoid变换.jpg)
 
 </div>
 
-**（3）给少步采样带来的工程优势**
+图：Logit与Sigmoid的数学关系示意，用于说明SD 3中Logit-Normal采样如何将正态变量映射为时间步。
 
-1. **直线路径 → 少步精度高**：数据到噪声的最优 transport 路径在理想情况下是直线；RF 直接用线性插值定义路径，让网络学会「沿直线方向走」，因此少步 Euler 采样误差小；
-2. **天然适配 v-prediction 范式**：v 在所有 $t$ 上 loss 量级均衡，模型在低噪、高噪段都能学习；
-3. **Reflow 二次蒸馏**：RF 论文最有价值的训练技巧——把已经训练好的 RF 模型生成的 noise-data 配对再训练一遍，可以**进一步把弯曲路径拉直**，从而 1~4 步采样质量大幅提升（FLUX.1-schnell 的 4 步推理就是这条路线）；
-4. **采样器简化**：RF 的反向过程是纯 ODE，可以直接用 Euler、Midpoint、RK4 等通用 ODE 求解器，无需 DDIM / DPM-Solver / UniPC 等扩散专用采样器；
-5. **timestep schedule 更直观**：RF 的 $t \in [0, 1]$ 直接表示「数据到噪声的进度」，比 DDPM 的离散 $t \in \{1,\dots,T\}$ 更易于做 lognorm shift 等噪声调度优化；
-6. **训练效率更高**：SD 3 论文报告，相同算力下 RF 的 FID 收敛速度优于 ε-prediction。
-
-**（4）工程实践中的注意点**
-
-- **timestep schedule shift**：高分辨率训练时仍需对 $t$ 做 lognorm 偏移，具体见下文“高分辨率训练中的 timestep schedule shift”；
-- **Sampler 默认走 Euler**：FLUX、SD 3 在 diffusers 里默认是 `FlowMatchEulerDiscreteScheduler`；
-- **CFG 仍然有效**：RF 与 CFG 完全兼容，CFG 公式形式不变；
-- **不能直接复用 DDPM 的预训练权重**：训练目标不同，权重不通用，需要从头训或用 RF 重训。
-
-**面试金句**：RF 把数据-噪声路径**显式定义为直线**，把网络从「预测噪声」升级为「预测速度场」，让**少步采样精度**与**二次蒸馏（reflow）** 两项工程能力都成为天然属性；这是 SD 3 / FLUX 在 4 步出图质量上跨越式提升的根本原因。
-
-SD 3 论文中明确提出，在做大分辨率训练（如 1024×1024 及以上）时，必须对 Rectified Flow 的 timestep schedule 做 **shift（偏移）**，否则模型在高分辨率下会出现「破坏不够」「低频结构残留」的现象。这是 SD 3、SD 3.5、FLUX.1 共享的关键训练技巧。
-
-**（1）为什么高分辨率训练需要 shift schedule**
-
-- **加噪过程的「破坏强度」与分辨率耦合**：在固定 noise schedule 下，高分辨率图像在同一 $t$ 上的「相对破坏程度」更弱——因为高分辨率图像有更多低频信号，相同方差的高斯噪声只能盖住高频，低频结构仍清晰可辨；
-- 这使得在高 $t$ 区间（接近纯噪声端）模型仍能看到原图的低频骨架，**学不到「从纯噪声开始生成」的能力**；
-- 表现为：高分辨率推理时初始几步生成出的图像「结构空泛 / 色调单一」，后期采样很难纠正。
-
-**（2）SD 3 的 timestep shift 公式**
-
-SD 3 论文给出的 logit-normal + shift 公式（针对 RF 的 $t \in [0, 1]$）：
+沿用上面的参数记号，时间步的概率密度为：
 
 ```math
-t' = \frac{m \cdot t}{1 + (m - 1) \cdot t}
+\pi_{\mathrm{LN}}(t;\mu,\sigma)=
+\frac{1}{\sigma\sqrt{2\pi}\,t(1-t)}
+\exp\left[-\frac{(\mathrm{logit}(t)-\mu)^2}{2\sigma^2}\right],
+\qquad 0\lt t\lt1,\quad\sigma>0
 ```
 
-其中 $m$ 是 shift 系数， $m > 1$ 把 $t$ 整体推向更接近 1（更接近纯噪声）的区间；分辨率越高，建议的 $m$ 越大。
+SD 3原论文将这两个参数记作 $m,s$。这里使用 $\mu,\sigma$，分别表示Logit空间中正态分布的均值与标准差。**它们描述的是变换前的正态变量**： $\mu$ 并非时间步 $t$ 的均值或众数，而时间步的中位数为 $\mathrm{sigmoid}(\mu)$。通过中位数可以判断采样偏向哪一端。
 
-SD 3 论文实验得到的经验值（base 训练分辨率 1024×1024）：
+- $\mu=0$、 $\sigma=1$：分布关于 $t=0.5$ 对称，相比均匀采样更集中在中间时间段。
+- $\mu>0$：中位数向1移动，采样偏向高噪声阶段。
+- $`\mu\lt0`$：中位数向0移动，采样偏向低噪声阶段。
+- 调整 $\sigma$：较小时，时间步集中在 $\mathrm{sigmoid}(\mu)$ 附近；较大时，分布在Logit空间中更分散，映射后可能增加两端附近的采样，不能始终理解为一个更宽的单峰。
+
+下面的图固定 $\sigma=1$，只改变 $\mu$，展示采样重心如何向高噪声端移动：
 
 <div align="center">
 
-| 训练分辨率 | 推荐 shift $m$ |
-| --- | --- |
-| 256×256 | 1.0（无 shift） |
-| 512×512 | ≈ 1.5 |
-| 1024×1024 | ≈ 3.0 |
-| 2048×2048 | ≈ 6.0 |
+![SD 3中Logit-Normal位置参数对时间步密度的影响](./imgs/SD3-Logit-Normal位置参数与采样密度.jpg)
 
 </div>
 
-**（3）对训练 / 推理两端的影响**
+图：依据Logit-Normal密度函数绘制的参数示意。图中 $\alpha=e^\mu$ 表示相对于 $\mu=0$ 基准的偏移因子，其等价关系见下文。
 
-- **训练端**：采样 $t$ 时按 shift 后的分布采样，更多样本落在高 $t$ 区，使模型在「接近纯噪声 → 数据」的最关键阶段获得足够的训练信号；
-- **推理端**：采样器使用同样 shift 后的离散 timestep 序列；diffusers 中 `FlowMatchEulerDiscreteScheduler` 提供 `shift` 参数；
-- **少步采样兼容性**：少步推理（FLUX.1-schnell 的 4 步、SD 3-Turbo）尤其依赖正确的 shift——shift 错了少步出图直接塌缩；
-- **训练 / 推理 shift 必须一致**：训练 m=3、推理 m=1 会出现严重的画质降级。
+工程上直接采样正态变量即可，不需要对密度函数做数值反演：
 
-**分辨率耦合的推导**：假设当前图像分辨率为 $n=H\times W$，且是一张每个像素值都相等的常量图像，像素值记为 $c$。在 SD 3 的 RF 采样过程中，加入噪声后的观测可以写成：
+```python
+import torch
 
-```math
-z_t=(1-t)c\mathbf{1}+t\epsilon
+
+def sample_t(shape, mu=0.0, sigma=1.0, device=None):
+    u = mu + sigma * torch.randn(shape, device=device)
+    return torch.sigmoid(u)
 ```
 
-其中 $\mathbf{1}\in\mathbb{R}^{n}$ 是全 1 向量， $\epsilon\in\mathbb{R}^{n}$ 的各分量是独立标准正态随机变量。将每个像素写成 $Y=(1-t)c+t\eta$，其中 $\eta$ 服从标准正态分布，则 $Y$ 的均值为 $\mathbb{E}(Y)=(1-t)c$，标准差为 $\sigma(Y)=t$。根据观测值可以用所有像素的均值估计原始常量：
+这个函数解释采样原理，不代表SD 3完整训练代码。分辨率适配还需要在此基础上考虑时间步偏移。
+
+### Timestep Schedule Shifting：适配不同分辨率的信噪比
+
+在更高分辨率上，相同噪声系数不一定产生相同程度的信号破坏。相邻位置包含相关信息，而独立噪声可以通过局部或全局平均被部分抵消。因此，高分辨率图像的低频结构在相同 $t$ 下可能更容易辨认，需要重新安排噪声尺度与采样位置。
+
+[SD 3论文第5.3.2节、式23](https://arxiv.org/html/2403.03206v1#S5.SS3.SSS2.Px3)用一个常量图像例子解释这一现象。设图像有 $N$ 个像素，所有像素的真实值均为 $q$，则：
 
 ```math
-\hat{c}=\frac{1}{1-t}\mathbb{E}(Y)=\frac{1}{1-t}\frac{1}{n}\sum_{i=1}^{n}z_{t,i}
+z_{t,i}=(1-t)q+t\varepsilon_i,
+\qquad \varepsilon_i\sim\mathcal{N}(0,1)
 ```
 
-因此估计误差的标准差为：
+其中各像素的噪声相互独立。如果已知原图是常量，可以通过观测均值估计它：
 
 ```math
-\sigma(t,n)=\frac{t}{1-t}\sqrt{\frac{1}{n}}
+\widehat q=\frac{1}{N(1-t)}\sum_{i=1}^{N}z_{t,i},
+\qquad
+\mathrm{Std}(\widehat q-q)=\frac{t}{(1-t)\sqrt N}
 ```
 
-这个结果说明，随着像素数量 $`n`$ 增加，噪声对图像常量的影响会减小；当宽度和高度同时增大时，固定 noise schedule 对低频结构的破坏会变得不充分。为了保证不同分辨率下的破坏效果一致，需要让分辨率为 $`n`$ 的 $`t_n`$ 与分辨率为 $`m`$ 的 $`t_m`$ 满足相同的误差标准差：
+像素数越多，平均操作越能抵消独立噪声，估计的不确定性越小。若从 $`N_0`$ 个像素增加到 $`N_1`$ 个像素，并希望维持这个例子中的不确定性，就得到：
 
 ```math
-t_m=\frac{\sqrt{\frac{m}{n}}t_n}{1+\left(\sqrt{\frac{m}{n}}-1\right)t_n}
+t'=S_\alpha(t)=\frac{\alpha t}{1+(\alpha-1)t},
+\qquad
+\alpha=\sqrt{\frac{N_1}{N_0}}
 ```
 
-相应的信噪比满足：
+当 $\alpha>1$ 时，区间内部的 $t'>t$，时间步被移向更高噪声端； $\alpha=1$ 时保持不变； $`0\lt\alpha\lt1`$ 时移向较低噪声端。映射保留0和1两个端点，改变的是中间时间位置。
+
+<div align="center">
+
+![SD 3的时间步偏移映射](./imgs/SD3-Timestep-Shift映射.jpg)
+
+</div>
+
+图：SD 3式23对应的分式映射，展示不同偏移因子如何改变时间坐标。
+
+这个常量图像推导提供了选择偏移方向的依据，真实图像及其Latent并不满足全部假设，所以最终系数仍需实验确定。从 $256^2$ 到 $1024^2$，上述理想化换算得到 $\alpha=4$；SD 3实际评测了多个偏移量，并在后续 $1024\times1024$ 的训练与采样实验中采用 $\alpha=3$。这一实验选择不能直接外推为其他模型或分辨率的固定推荐值。
+
+**训练端与推理端使用偏移，作用位置不同。** 训练端对随机采样的 $t$ 做变换，改变各噪声阶段出现的频率；推理端对有限个积分节点做变换，改变数值求解网格。SD 3在上述实验中两端都采用3，但这不构成“训练与推理的偏移必须相同”的普遍定理，推理调度仍应结合模型、采样步数和质量验证选择。
+
+### Log-SNR与Logit-Normal偏移之间是什么关系？
+
+对Rectified Flow的线性插值，记 $`a_t=1-t`$、 $`b_t=t`$。由这两个系数定义的名义对数信噪比为：
 
 ```math
-\lambda_m=2\log\left(\frac{1-t_m}{t_m}\right)=\lambda_n-\log\frac{m}{n}
+\lambda(t)=\log\frac{a_t^2}{b_t^2}
+=2\log\frac{1-t}{t}
+=-2\,\mathrm{logit}(t)
 ```
 
-所以，分辨率从 $n$ 变化到 $m$ 时，SNR 需要偏移 $\log(m/n)$。在实际训练中，选择 $\alpha=\sqrt{m/n}$ 作为比例系数可以得到较好的噪声调度；SD 3 论文的实验表明，当分辨率调整到 1024×1024 时，最优 shift 值约为 3.0。
+这里的Log-SNR由噪声调度系数定义，真实特征在不同通道和空间频率上的有效信噪比还与其统计特性有关。随着 $t$ 从0增大到1，信号系数减小、噪声系数增大， $\lambda(t)$ 单调下降。
 
-**（4）跨周期价值**
+<div align="center">
 
-timestep schedule shift 不只对 SD 3 / FLUX 有效；它揭示了一个**普适规律**：随着扩散模型分辨率提升，需要重新设计 noise schedule，让加噪过程在视觉上「真正破坏图像」。这一思路在 EDM2、Karras 系列、Cosmos、视频生成模型中都有相似的体现。
+![SD 3 Rectified Flow的Logit与Log-SNR关系](./imgs/SD3-Rectified-Flow标准LogSNR.jpg)
+
+</div>
+
+图：标准线性插值路径中的Logit与名义Log-SNR曲线，展示二者相差负二倍的关系。
+
+将分式偏移 $`t'=S_\alpha(t)`$ 代入，可以得到：
+
+```math
+\mathrm{logit}(t')=\mathrm{logit}(t)+\log\alpha,
+\qquad
+\lambda(t')=\lambda(t)-2\log\alpha
+```
+
+于是，如果原始时间步满足 $`\mathrm{logit}(t)\sim\mathcal{N}(\mu_0,\sigma^2)`$，偏移后就有：
+
+```math
+\mathrm{logit}(t')\sim
+\mathcal{N}(\mu_0+\log\alpha,\sigma^2)
+```
+
+**分式时间偏移会改变Logit-Normal的位置参数，保留它的尺度参数。** 新的位置参数比原来增加 $\log\alpha$；只有原始位置参数 $`\mu_0=0`$ 时，才能直接写成 $\mu=\log\alpha$。例如基准为 $\mu=0,\sigma=1$ 时， $\alpha=3$ 对应新位置参数 $\log3\approx1.0986$，这解释了下面两组采样分布的差别。
+
+<div align="center">
+
+![SD 3中Logit-Normal采样偏移前后的分布示意](./imgs/SD3-Logit-Normal偏移采样示意.jpg)
+
+</div>
+
+图：基准分布与 $\alpha=3$ 偏移分布的采样直方图示意，用于解释时间步概率的变化。
+
+还可以将Logit空间的平移推广到同时缩放。为避免与前面分布参数混淆，将变换系数记作 $s>0$ 和 $b$：
+
+```math
+t'=\mathrm{sigmoid}\left(s\,\mathrm{logit}(t)+b\right)
+=\frac{e^b}{e^b+(1/t-1)^s},
+\qquad
+\lambda(t')=s\lambda(t)-2b
+```
+
+这是由Logit变换直接得到的数学关系。当 $s=1$、 $b=\log\alpha$ 时，退化为SD 3使用的分式偏移；如果基准 $\mathrm{logit}(t)$ 服从标准正态分布，则变换后服从均值为 $b$、标准差为 $s$ 的正态分布。
+
+因此，Logit-Normal回答“随机时间步从什么分布采样”，Timestep Shift回答“已有时间坐标如何变换”。它们可以按上述关系组合，但不能无条件视为同一件事：对均匀时间步做分式偏移，通常不会得到Logit-Normal分布。实际实现中，也不应在已经使用 $\mu=\log\alpha$ 采样后，又无意间重复施加同一个偏移。
+
+训练目标和噪声阶段的分配确定后，还需要让图文数据提供足够准确的监督；下面的数据标签工程解决的正是这一问题。
 
 ### Stable Diffusion 3 中数据标签工程的具体流程是什么样的？
 
@@ -1534,7 +1607,7 @@ FLUX.1在SD 3的基础上对Text Encoder部分进行了精简优化，只使用C
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-FLUX.1系列模型和SD 3模型一样，都是基于Rectified Flow采样的扩散模型。在此基础上，FLUX.1主要通过蒸馏、动态Time Shift和多尺度训练三类策略优化训练与推理效率。
+FLUX.1与SD 3同样采用Rectified Flow，其优化涉及模型训练和实际采样两个环节。蒸馏改变模型学习的预测行为，动态Time Shift调整推理时的积分节点，多分辨率训练则让模型接触不同尺度与长宽比的数据。其中，动态Time Shift在公开推理代码中有明确实现，需要与训练时间步的随机采样区分开来。
 
 ### 指引蒸馏与时间步蒸馏
 
@@ -1542,19 +1615,45 @@ FLUX.1-dev是在FLUX.1-pro基础上进行指引蒸馏（Guidance Distillation）
 
 指引蒸馏的目标是让AIGC图像创作大模型直接学习Classifier-Free Guidance（CFG）的生成结果，使模型一次前向就能输出此前通常需要两次前向计算才能得到的指引生成结果，从而节约接近一半的推理耗时。时间步蒸馏则通过加速蒸馏，让模型能够在极少的采样步数内完成图像生成。
 
-### 使用Time Shift平移Timestep
+### 使用动态Time Shift适配推理时间表
 
-FLUX.1设置了一个Time Shift值来平移Timestep。在Rectified Flow采样中，图像沿着某条高维路线从纯高斯噪声运动到训练集分布，同时标准差用于控制不同时刻图像的不确定性。
+FLUX.1的公开推理代码延续了前文[SD 3时间步偏移](#q-069)中的分式映射，并根据图像Token数量计算偏移参数。这里沿用 $t=1$ 对应噪声、 $t=0$ 对应数据的约定，采样器从1向0积分。
 
-时刻为0时，图像为纯噪声，此时标准差为1；时刻为1时，图像趋近训练集中的图像分布，此时标准差要尽可能趋于0。原本对于中间时刻，标准差默认按照时刻线性变化。FLUX.1设置的Time Shift是一个约 $0.5\sim1.16$ 之间的数，用来控制中间时刻的噪声均值。
+[官方 `time_shift` 与 `get_schedule` 实现](https://github.com/black-forest-labs/flux/blob/802fb4713906133fcbd0d8dc5351620ca4773036/src/flux/sampling.py#L277)可以写成：
+
+```math
+t'=\frac{e^\mu}{e^\mu+(1/t-1)^\sigma}
+```
+
+默认调度调用取 $\sigma=1$，因此：
+
+```math
+t'=\frac{e^\mu t}{1+(e^\mu-1)t}
+=S_\alpha(t),
+\qquad \alpha=e^\mu
+```
+
+这里要区分两个参数： $\mu$ 是Logit空间的偏移量， $\alpha$ 是分式映射中的乘性系数。**两者通过指数关系换算**，不能直接用同一个数值代替；时间步偏移也不会改变初始高斯噪声的均值。
+
+FLUX.1先按采样步数建立从1到0的均匀时间网格，再用当前图像的Token数 $L$ 计算 $\mu$。公开实现以两个校准点做线性插值：
+
+```math
+\mu(L)=0.5+\frac{1.15-0.5}{4096-256}(L-256)
+```
+
+其中，256与4096是图像Token数。按FLUX.1的8倍VAE下采样和 $2\times2$ 打包方式，通常有 $`L=HW/256`$，所以 $256\times256$ 图像对应256个Token， $1024\times1024$ 图像对应4096个Token。两个校准点的 $\mu$ 分别为0.5和1.15，对应 $\alpha$ 约为1.65和3.16。代码没有将线性函数限制在这两个端点之间，因此不能把0.5到1.15写成所有输入的固定取值范围。
 
 <div align="center">
 
-![FLUX.1不同Time Shift取值对应的曲线](./imgs/FLUX.1-time-shift曲线.jpg)
+![FLUX.1按Token数量调整Time Shift的推理调度](./imgs/FLUX1-动态TimeShift与Token数量.png)
 
 </div>
 
-当Time Shift值越大时，运动线路逐渐上凸。当输入图像分辨率越大、对应的Token越多时，Time Shift越大，这时要加入的噪声就越多。这与SD 3中的Shift策略一致：对于分辨率越高的图像，需要加入更多噪声来摧毁原图像的分布特征。FLUX.1不仅在训练时使用这种设计，采样时也会根据序列长度调整噪声时间表。
+图：依据上述固定版本代码计算的调度曲线。左图展示不同 $\mu$ 下的时间坐标映射，右图展示Token数量与 $\mu$ 的线性关系。
+
+较大的图像Token数对应较大的 $\mu$，使中间时间节点向高噪声端移动。时间表的起点和终点仍为1与0，总步数也没有改变，改变的是有限计算预算在生成过程中的分布。
+
+这段代码能直接证明的是**推理时间表的动态调整**，不足以反推出FLUX.1完整的训练时间步分布。模型版本也需要区分：[官方基础采样CLI](https://github.com/black-forest-labs/flux/blob/802fb4713906133fcbd0d8dc5351620ca4773036/src/flux/cli.py#L255)对 `flux-schnell` 关闭这项Shift，不能把[dev]的默认调度直接套到少步蒸馏模型。训练时间步分布、推理时间网格和蒸馏后的适用步数，应分别检查。
 
 ### 多分辨率与多长宽比训练
 
@@ -1604,15 +1703,13 @@ Freepik团队最终选择去掉第4至15层MM-DiT Blocks，一个重要原因是
 
 FLUX.1 Kontext一共有三个版本：FLUX.1 Kontext [max]、FLUX.1 Kontext [pro]和FLUX.1 Kontext [dev]。其中FLUX.1 Kontext [max]是性能最强的版本；FLUX.1 Kontext [pro]使用潜在对抗性扩散蒸馏（Latent Adversarial Diffusion Distillation，LADD）训练，能够在提升图像生成质量的同时显著减少采样步数，从而提高生成速度，更适合实时应用。上述两个模型同时支持文生图和图像编辑，但没有开源，可以通过官方API使用。
 
-FLUX.1 Kontext [dev]是开源版本，只支持纯图像编辑，不支持文生图。它可以与FLUX.1 [dev]配合使用，实现文生图和图像编辑的完整流程。
+**FLUX.1 Kontext [dev]是开源版本，只支持纯图像编辑，不支持文生图，下图展示了FLUX.1 Kontext图像编辑效果**。它可以与FLUX.1 [dev]配合使用，从而实现文生图和图像编辑的完整流程。
 
 <div align="center">
 
-![FLUX.1 Kontext图像编辑效果](./imgs/FLUX.1-Kontext图像编辑效果.jpg)
+![FLUX.1 Kontext图像编辑效果](./imgs/FLUX.1-Kontext图像编辑效果.png)
 
 </div>
-
-### 双路径多模态特征处理机制
 
 FLUX.1 Kontext的整体架构基于FLUX.1的DiT（Diffusion Transformer）扩展，通过引入参考图像作为条件输入实现多模态生成能力，**其核心创新在于构建双路径多模态特征处理机制**。
 
@@ -1622,20 +1719,55 @@ FLUX.1 Kontext的整体架构基于FLUX.1的DiT（Diffusion Transformer）扩展
 
 </div>
 
-**双模态编码解决的是如何将参考图像输入模型的问题。** 参考图像首先经过冻结的VAE Encoder编码为Latent Tokens特征 $z_{\mathrm{ref}}\in\mathbb{R}^{h\times w\times c}$，输入的初始噪声矩阵为 $z_{\mathrm{noise}}\in\mathbb{R}^{h\times w\times c}$。噪声矩阵与参考图Latent沿Token序列维度拼接，形成更长的序列：
+**双模态编码解决的是如何将参考图像输入模型的问题**。FLUX.1 Kontext首先使用冻结的VAE Encoder将参考图像编码为Latent特征，同时为目标图像构造带噪Latent。暂时省略Batch维度，并采用“空间尺寸 × 通道数”的记法，两者可以表示为：
 
-```math
-z_{concat}=\mathrm{Concat}(z_{noise},z_{ref})
-\in\mathbb{R}^{2\times h\times w,c}
-```
+$$
+z_t\in\mathbb{R}^{h_t\times w_t\times C},
+\qquad
+z_{\mathrm{ref}}\in\mathbb{R}^{h_r\times w_r\times C}
+$$
 
-接着将 $z_{\mathrm{concat}}$ 输入FLUX.1 Kontext。这样做简单直接，让模型自己学习区分哪部分是生成目标、哪部分是参考条件，同时支持不同的输入与输出分辨率和宽高比，也可以从结构上扩展到多个参考图像 $y_1,y_2,\ldots,y_N$ 。
+其中， $h_t,w_t$ 表示目标Latent的空间尺寸， $h_r,w_r$ 表示参考图Latent的空间尺寸， $C$ 是Latent通道数，在FLUX.1中为16。推理开始时， $z_t$ 是随机高斯噪声，随着采样推进，它逐步变成包含目标图像内容的Latent，因此使用 $z_t$ 可以描述整个生成过程。
 
-实验发现，序列拼接（Sequence Concatenation）的效果优于通道级拼接（Channel-wise Concatenation）。可能的原因是序列拼接保持了每张图像的完整性，可以通过位置编码区分不同图像，同时Transformer架构本身也更适合处理序列信息。
+VAE输出的二维Latent特征还需要经过pack处理，才能成为Transformer处理的Token序列。FLUX.1将相邻的 $2\times2$ 个空间位置合并成一个Token，并将这些位置的通道特征展开到同一个向量中。这样，Token数量变为空间位置数的四分之一，每个Token的特征维度则由16变为64。设打包操作为 $P$，则：
 
-### 三维RoPE区分目标图与参考图
+$$
+X_t=P(z_t)\in\mathbb{R}^{L_t\times d},
+\qquad
+X_{\mathrm{ref}}=P(z_{\mathrm{ref}})
+\in\mathbb{R}^{L_{\mathrm{ref}}\times d}
+$$
 
-FLUX.1 Kontext还需要知道哪些Tokens属于目标图、哪些属于参考图，因此在DiT位置编码中采用3D RoPE，为目标图像和参考图像赋予不同位置：
+在Latent的空间尺寸可以被2整除时：
+
+$$
+L_t=\frac{h_tw_t}{4},
+\qquad
+L_{\mathrm{ref}}=\frac{h_rw_r}{4},
+\qquad
+d=4C=64
+$$
+
+这里， $L_t$ 和 $L_{\mathrm{ref}}$ 分别是目标图像与参考图像的Token数量， $d$ 是每个打包Token的特征维度。随后，两组Token沿序列维度拼接：
+
+$$
+X_{\mathrm{concat}}
+=
+\mathrm{Concat}_{\mathrm{seq}}
+\left(X_t,X_{\mathrm{ref}}\right)
+\in
+\mathbb{R}^{(L_t+L_{\mathrm{ref}})\times d}
+$$
+
+序列拼接增加的是Token数量，每个Token的特征维度保持不变。 例如，当目标图像与参考图像均为 $1024\times1024$ 时，两路对应的Latent尺寸均为 $128\times128\times16$；经过 $2\times2$ 打包，各自形成 $4096\times64$ 的Token序列，拼接后得到 $8192\times64$ 的序列。这里的64维是输入投影之前的特征维度，后续还会通过模型的输入投影映射到Transformer的隐藏维度。
+
+拼接后的目标Token与参考Token共同进入模型的视觉流，通过注意力交互利用参考图中的人物、物体、构图和风格等信息。这样做简单直接，让模型自己学习区分哪部分是生成目标、哪部分是参考条件，同时支持不同的输入与输出分辨率和宽高比，也可以从结构上扩展到多个参考图像 $y_1,y_2,\ldots,y_N$ 。
+
+**FLUX.1 Kontext实验发现，序列拼接（Sequence Concatenation）的效果优于通道级拼接（Channel-wise Concatenation）**。两者在结构上的主要区别是：序列拼接允许目标与参考的序列长度不同，而直接进行通道拼接通常要求两组特征具有相同的空间尺寸或序列长度，并明确位置之间的对应关系。论文没有进一步证明这一结构差异就是性能差异的唯一原因。
+
+完成序列拼接后，模型还需要知道每个Token属于目标图还是参考图，以及它在各自图像中的空间位置。FLUX.1 Kontext通过三维RoPE中的图像身份偏移与空间坐标提供这些位置信息，使参考内容与生成目标能够在同一条视觉序列中被区分和利用。
+
+FLUX.1 Kontext在DiT位置编码中采用3D RoPE，为目标图像和参考图像赋予不同位置：
 
 1. 训练时为目标图像Tokens赋予位置 $(0,h,w)$，推理时目标图像被替换为初始噪声矩阵。
 2. 为第 $i$ 张参考图像的Tokens赋予位置 $(i,h,w)$，其中 $i=1,\ldots,N$。
@@ -1659,215 +1791,19 @@ FLUX.1 Kontext还需要知道哪些Tokens属于目标图、哪些属于参考图
 
 </div>
 
-<div align="center">
-
-![FLUX.1 Kontext中的DiT Block](./imgs/FLUX.1-Kontext-DiT-Block.jpg)
-
-</div>
-
-### 统一建模图像生成与图像编辑
-
-FLUX.1 Kontext是原生AIGC图像生成编辑大模型，因此需要建模同时满足图像生成与图像编辑要求的条件分布：
+FLUX.1 Kontext是原生AIGC图像生成编辑大模型，因此需要对图像生成与图像编辑进行统一建模：
 
 ```math
 p_\theta(x\mid y,c)
 ```
 
-它表示“在给定参考图像 $y$ 和文字提示词 $c$ 的条件下，生成目标图像 $x$ 的概率”。其中：
+**它表示“在给定参考图像 $y$ 和文字提示词 $c$ 的条件下，生成目标图像 $x$ 的概率”**。其中 $x$ 是模型要生成的目标图像（Target Image）。 $y$ 是参考图像（Context Image），可以为空；当 $y\neq\varnothing$ 时执行图像内容编辑，当 $y=\varnothing$ 时执行纯文本到图像生成。 $c$ 是自然语言提示词，例如“把背景变成雪山”。
 
-1. $x$ 是模型要生成的目标图像（Target Image）。
-2. $y$ 是参考图像（Context Image），可以为空；当 $y\neq\varnothing$ 时执行图像内容编辑，当 $y=\varnothing$ 时执行纯文本到图像生成。
-3. $c$ 是自然语言提示词，例如“把背景变成雪山”。
+通过条件分布 $p_\theta(x\mid y,c)$ 建模，同一模型可以处理图像生成和图像编辑两类任务。这种混合训练策略正在成为AIGC图像生成编辑大模型的重要训练基石：高质量、高分辨率的T2I数据可以提升高分辨率编辑中的细节还原和复杂场景处理能力，同时保留模型原生的文本生成图像能力，增强模型面对多样化编辑需求时的泛化性。
 
-通过条件分布 $`p_\theta(x\mid y,c)`$ 建模，同一模型可以处理图像生成和图像编辑两类任务。这种混合训练策略正在成为AIGC图像生成编辑大模型的重要训练基石：高质量、高分辨率的T2I数据可以提升高分辨率编辑中的细节还原和复杂场景处理能力，同时保留模型原生的文本生成图像能力，增强模型面对多样化编辑需求时的泛化性。
+文本提示词 $c$ 是描述参考图像与目标图像变化关系的桥梁。官方筛选整理了数百万个 $(x,y,c)$ 三元关系对，并将FLUX.1作为预训练模型开始微调优化。
 
-文本提示词 $c$ 是描述参考图像与目标图像变化关系的桥梁。官方筛选整理了数百万个 $(x,y,c)$ 三元关系对，并从FLUX.1纯图像生成模型开始训练优化。
-
-### Rectified Flow训练目标与损失函数
-
-直接获得高维图像条件分布 $`p_\theta(x\mid y,c)`$ 的解析解非常困难。由于FLUX.1 Kontext和FLUX.1一样采用Rectified Flow，因此可以把分布建模转化为向量场 $`v_\theta`$ 的学习：
-
-1. **前向扩散过程**：从目标图像 $x$ 出发，随时间 $t$ 向纯噪声 $\varepsilon$ 过渡，形成流 $`z_t`$。
-2. **反向去噪过程**：从纯噪声 $\varepsilon$ 出发，沿向量场 $`v_\theta`$ 积分，最终得到目标图像 $x$。
-
-损失函数的作用是让模型预测的向量场尽可能接近真实流变化率：
-
-```math
-\mathcal{L}_\theta=
-\mathbb{E}_{t\sim p(t),x,y,c}
-\left[
-\left\|v_\theta(z_t,t,y,c)-(\varepsilon-x)\right\|_2^2
-\right]
-```
-
-其中，干净目标图像为 $x$，随机高斯噪声满足 $\varepsilon\sim\mathcal{N}(0,1)$；$`z_t`$ 是二者之间的线性插值：
-
-```math
-z_t=(1-t)x+t\varepsilon
-```
-
-$`v_\theta`$ 是模型预测的速度场，训练目标是逼近 $\varepsilon-x$ 的方向。时间步使用Logit-Normal Shift Schedule从 $p(t;\mu,\sigma=1.0)$ 中采样，模式参数 $\mu$ 可以根据训练数据分辨率调整；当 $y=\varnothing$ 时，省略参考图像Tokens，只保留文本生成图像能力。
-
-这一期望本质上同时对三元组 $(x,y,c)$ 的数据分布和时间步分布 $p(t)$ 取期望，可以展开为：
-
-```math
-\mathcal{L}_\theta=
-\int_t\int_{x,y,c}p(t)p(x,y,c)
-\left\|v_\theta(z_t,t,y,c)-(\varepsilon-x)\right\|_2^2
-\,dt\,dx\,dy\,dc
-```
-
-这里 $p(x,y,c)$ 是训练数据的联合分布，模型学习的 $`p_\theta(x\mid y,c)`$ 是对真实条件分布 $`p_{\mathrm{data}}(x\mid y,c)`$ 的近似。当损失最小时，模型预测的向量场会诱导出一个流分布，使其尽可能逼近真实数据分布。
-
-### Logit-Normal时间步采样
-
-Rectified Flow选择连续直线作为噪声添加路径：
-
-```math
-z_t=a_tx_0+b_t\varepsilon=(1-t)x_0+t\varepsilon
-```
-
-其中 $`x_0\sim p_{\mathrm{data}}`$、 $\varepsilon\sim\mathcal{N}(0,1)$ ，并设置 $`a_t=1-t`$、$`b_t=t`$。对应的对数信噪比为：
-
-```math
-\lambda_t=\log\frac{a_t^2}{b_t^2}
-=\log\frac{(1-t)^2}{t^2}
-```
-
-在训练时不会均匀采样混合比例 $t$，而是让模型更多关注特定关键阶段。Logit-Normal分布可以让模型在训练时聚焦特定时间步，从而提升生成图像的质量和细节，是FLUX.1 Kontext实现分辨率自适应训练的重要技术。
-
-时间步 $t$ 的取值范围是 $(0,1)$，而正态分布定义域是整个实数轴。为了用正态分布建模 $t$，需要引入Logit变换及其逆变换：
-
-```math
-Y=\mathrm{logit}(t)=\log\frac{t}{1-t},
-\qquad
-t=\sigma(Y)=\frac{\exp(Y)}{1+\exp(Y)}
-```
-
-当 $Y\in\mathbb{R}$ 时， $t=\sigma(Y)$ 必然落在 $(0,1)$。如果随机变量 $Y=\mathrm{logit}(t)$ 服从正态分布 $\mathcal{N}(\mu,\sigma^2)$，那么 $t$ 服从Logit-Normal分布：
-
-```math
-t\sim\mathrm{Logit\text{-}Normal}(\mu,\sigma^2)
-```
-
-其概率密度函数为：
-
-```math
-p(t)=
-\frac{
-\exp\left(-0.5\cdot(\mathrm{logit}(t)-\mu)^2/\sigma^2\right)
-}{
-\sigma\sqrt{2\pi}\cdot t(1-t)
-}
-```
-
-概率密度 $p(t)$ 可以理解为模型训练时的“注意力分配器”，决定模型把更多训练资源放在哪个噪声阶段。工程实现不直接从复杂密度函数采样，而是先采样正态变量，再进行Logit逆变换：
-
-```python
-import torch
-from torch.distributions import Normal
-
-
-def sample_t(mu, sigma, shape):
-    y = Normal(mu, sigma).sample(shape)
-    return torch.sigmoid(y)
-```
-
-<div align="center">
-
-![FLUX.1 Kontext的Logit-Normal分布](./imgs/FLUX.1-Kontext-Logit-Normal分布.jpg)
-
-*图：Logit-Normal分布与时间步采样*
-
-</div>
-
-Logit-Normal分布的形状由均值 $\mu$ 和标准差 $\sigma$ 控制：
-
-1. $\mu=0$ 时，采样重心在中间时间步 $t=0.5$，对应中等噪声阶段。
-2. $\mu>0$ 时，$t$ 偏向1，对应高噪声阶段。
-3. $`\mu<0`$ 时，$t$ 偏向0，对应低噪声阶段。
-4. $\sigma$ 越小，采样越集中在 $\sigma(\mu)$ 附近； $\sigma$ 越大，采样覆盖的时间步越广。
-
-在FLUX.1 Kontext中， $\mu$ 与分辨率自适应因子 $\alpha$ 直接绑定： $\mu=\log\alpha$ 。处理高分辨率图像时，可以增大 $\alpha$，让采样重心右移，使模型更多训练高噪声阶段，反复学习如何从复杂噪声中恢复细节；处理低分辨率图像时，可以使用 $\alpha=1$、 $\mu=0$ ，在保证质量的同时提高训练效率。通常固定 $\sigma=1.0$，主要通过调整 $\mu$ 实现分辨率自适应。
-
-<div align="center">
-
-![FLUX.1 Kontext中mu与sigma控制时间步采样分布](./imgs/FLUX.1-Kontext-mu-sigma采样分布.jpg)
-
-*图：均值与标准差对时间步采样分布的影响*
-
-</div>
-
-<div align="center">
-
-![FLUX.1 Kontext分辨率自适应时间步采样](./imgs/FLUX.1-Kontext分辨率自适应采样.jpg)
-
-*图：不同分辨率对应的时间步采样重心*
-
-</div>
-
-### Timestep Schedule Shifting
-
-Timestep Schedule Shifting（时间步调度偏移）是FLUX.1 Kontext实现分辨率自适应训练的另一种表达。它通过调整时间步 $t$ 的分布，改变模型对不同噪声阶段的关注程度：高分辨率图像需要更多高噪声阶段训练，以学习从复杂噪声中恢复细节；低分辨率图像则可以聚焦较低噪声阶段，提升训练效率。
-
-对于标准Rectified Flow前向过程，可以定义Log-SNR为：
-
-```math
-\lambda_t^{0,1}=2\log\frac{1-t}{t}
-=-2\mathrm{logit}(t)
-```
-
-<div align="center">
-
-![FLUX.1 Kontext标准Rectified Flow的Log-SNR](./imgs/FLUX.1-Kontext标准LogSNR.jpg)
-
-*图：标准Rectified Flow前向过程的Log-SNR*
-
-</div>
-
-对于任意偏移 $\mu$ 和缩放 $\sigma$，Log-SNR可以一般化为：
-
-```math
-\lambda_t^{\mu,\sigma}
-=-2\left(\sigma\cdot\mathrm{logit}(t)+\mu\right)
-=\sigma\lambda_t^{0,1}-2\mu
-```
-
-$\sigma$ 控制Log-SNR分布范围， $\mu$ 控制均值偏移。引入分辨率自适应的 $\alpha$-Shifted Log-SNR：
-
-```math
-\lambda_t^\alpha=\lambda_t^{0,1}-2\log\alpha
-```
-
-当 $\sigma=1.0$ 时，可以得到关键关系 $\mu=\log\alpha$。进一步求解偏移后的时间步 $t'$：
-
-```math
-t'=\frac{e^\mu}{e^\mu+\left(\frac{1}{t}-1\right)^\sigma}
-```
-
-这个公式把原始时间步 $t$ 映射到新时间步 $t'$，从而改变训练时的Log-SNR分布。当 $\alpha>1$ 时， $t'>t$ ，模型更多训练高噪声阶段；当 $`\alpha<1`$ 时，$`t'<t`$，模型更多训练低噪声阶段。高分辨率图像通过 $\alpha>1$ 强化高噪声阶段学习，低分辨率图像通过 $`\alpha<1`$ 提升训练效率。相关实验中， $\alpha=3.0$ 在分辨率从 $256^2$ 提升到 $1024^2$ 时取得了较好效果。
-
-<div align="center">
-
-![FLUX.1 Kontext的Timestep Schedule Shifting](./imgs/FLUX.1-Kontext-Timestep-Shift.jpg)
-
-*图：Timestep Schedule Shifting对不同分辨率训练的作用*
-
-</div>
-
-总的来说，Logit-Normal采样与Shifted Timestep是同一策略的两种表达：前者通过调整 $\mu=\log\alpha$ 直接改变时间步采样分布，后者把原始时间步映射为服从偏移分布的新时间步。两者本质上都是改变训练资源在不同噪声阶段之间的分配。
-
-### 经典应用场景
-
-FLUX.1 Kontext可以执行文生图、图像局部编辑、人物一致性保持和风格参考等任务。风格参考并不是复制原图内容，而是提取参考图像的风格，再结合文本提示词生成全新内容，同时保留参考图像中的独特风格。
-
-<div align="center">
-
-![FLUX.1 Kontext风格参考功能](./imgs/FLUX.1-Kontext风格参考.jpg)
-
-*图：FLUX.1 Kontext风格参考功能*
-
-</div>
+上述联合训练继续采用Rectified Flow：对目标图像的Latent加噪，让模型结合参考图与编辑指令预测目标的速度；参考图提供条件信息，训练监督作用于目标图像部分。它的核心扩展是把参考视觉上下文接入生成过程，并用成对数据教会模型哪些内容需要修改、哪些需要保留。
 
 
 <h2 id="q-flux-008">面试问题：介绍一下FLUX.1 Krea的原理，有哪些创新点？</h2>
@@ -1901,7 +1837,7 @@ FLUX.1 Krea由Black Forest Labs和Krea AI联合研发并开源。Black Forest La
 
 <div align="center">
 
-![FLUX.1 Krea dev图像生成效果](./imgs/FLUX.1-Krea-dev生成效果.jpg)
+![FLUX.1 Krea dev图像生成效果](./imgs/FLUX.1-Krea-dev生成效果.webp)
 
 </div>
 
