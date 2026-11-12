@@ -7,7 +7,7 @@
   - [面试问题：介绍一下Stable Diffusion核心网络结构与训练/推理过程](#q-039)
   - [面试问题：Stable Diffusion中的图生图原理是什么？denoising strength起到什么作用？](#q-040a)
   - [面试问题：介绍一下Stable Diffusion中Inpaint和Outpaint的原理](#q-040)
-  - [面试问题：介绍一下针对Stable Diffusion的模型融合技术](#q-033)
+  - [面试问题：介绍一下针对Stable Diffusion的模型融合技术(进阶)](#q-033)
 
 [2.介绍一下Stable Diffusion中VAE的架构、原理和作用](#q-041)
   - [面试问题：Stable Diffusion中的VAE和原生VAE生成模型的区别是什么？](#q-044)
@@ -49,7 +49,7 @@
   - [面试问题：FLUX.1的VAE部分有哪些创新？详细分析改进意图](#q-flux-014)
   - [面试问题：FLUX.1的Backbone部分有哪些创新？详细分析改进意图](#q-flux-015)
   - [面试问题：FLUX.1的Text Encoder部分有哪些创新？详细分析改进意图](#q-flux-016)
-  - [面试问题：FLUX.1在训练过程中使用了哪些优化技巧？](#q-flux-002)
+  - [面试问题：FLUX.1在训练和推理过程中使用了哪些优化技巧？](#q-flux-002)
 
 [2.FLUX.1有哪些主流的变体模型？介绍一下它们的核心原理](#q-flux-017)
   - [面试问题：介绍一下FLUX.1 Lite与FLUX.1的异同](#q-flux-005)
@@ -197,7 +197,7 @@ Inpaint 整体上仍然是 img2img，但增加了 Mask 作为空间约束。输�
 Outpaint 可以看作 Mask 位于原图边界之外的 Inpaint：先扩展画布，把新增区域标为需要生成的 Mask，再通过相同的条件去噪补全内容。它的关键不是单独的生成公式，而是让扩展区域在透视、光照、纹理和语义上延续原图。
 
 
-<h2 id="q-033">面试问题：介绍一下针对Stable Diffusion的模型融合技术</h2>
+<h2 id="q-033">面试问题：介绍一下针对Stable Diffusion的模型融合技术(进阶)</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
@@ -1486,59 +1486,87 @@ Stable Diffusion 3.5 是 Stable Diffusion 3 的升级版本，包含 Stable Diff
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-FLUX.1 VAE架构继承了SD 3 VAE的8倍下采样和输入通道数（16）。在FLUX.1 VAE输出Latent特征，并在Latent特征输入扩散模型前，还进行了Pack_Latents操作，一下子将Latent特征通道数提高到64（16 -> 64）。
+**FLUX.1 VAE继承了SD 3 VAE模型架构，并使用同样的高、宽各缩小8倍的下采样空间压缩方式，使用16通道Latent承载图像信息，并通过独立训练改善压缩后的重建效果**。在Latent特征进入后续的FLUX.1 Backbone前，FLUX.1 VAE还对Latent特征进行Pack操作，将Latent特征通道数提高到64（16 -> 64）。
 
-可以说，FLUX.1系列的扩散模型部分输入通道数为64，是SD 3的四倍。这也代表FLUX.1要学习拟合的内容比起SD 3增加了4倍，所以FLUX.1模型的大幅增加参数量级来提升模型容量（model capacity）。
+**可以说，FLUX.1系列的扩散模型部分输入通道数为64，是SD 3的四倍**。这也代表FLUX.1要学习拟合的内容比起SD 3增加了4倍，所以FLUX.1 Backbone大幅增加参数量级来提升模型容量（model capacity）。
 
-上述的Pack_Latents操作的代码具体如下：
-
-```python
-@staticmethod
-def _pack_latents(latents, batch_size, num_channels_latents, height, width):
-    latents = latents.view(batch_size, num_channels_latents, height // 2, 2, width // 2, 2)
-    latents = latents.permute(0, 2, 4, 1, 3, 5)
-    latents = latents.reshape(batch_size, (height // 2) * (width // 2), num_channels_latents * 4)
-
-    return latents
-```
-
-可以看到，FLUX.1模型的Latent特征Patch化方法是将 $2\times2$ 像素块直接在通道维度上堆叠。这种做法保留了每个像素块的原始分辨率，只是将它们从空间维度移动到了通道维度。与之相对应的，SD 3使用下采样卷积来实现Latent特征Patch化，但这种方式会通过卷积减少空间分辨率，从而损失一定的特征信息。
+FLUX.1 VAE的Latent特征Patch化方法是通过Pack操作将 $2\times2$ 像素块直接在通道维度上堆叠。这种做法保留了每个像素块的原始分辨率，只是将它们从空间维度移动到了通道维度。**与之相对应的，SD 3使用下采样卷积来实现Latent特征Patch化，但这种方式会通过卷积减少空间分辨率，从而损失一定的特征信息**。
 
 Rocky再举一个形象的例子来解释SD 3和FLUX.1的Patch化方法的不同：
 
-1. SD 3（下采样卷积）：想象我们有一个大蛋糕，SD 3的方法就像用一个方形模具，从蛋糕上切出一个 $2\times2$ 的小方块。在这个过程中，我们提取了蛋糕的部分信息，但是由于进行了压缩，Patch块的大小变小了，信息会有所丢失。
-2. FLUX.1（通道堆叠）：FLUX.1 的方法更像是直接把蛋糕的 $2\times2$ 块堆叠起来，不进行任何压缩或者切割。我们仍然保留了蛋糕的所有部分，但是它们不再分布在平面上，而是被一层层堆叠起来，像是三明治的层次。这样一来，蛋糕块的大小没有改变，只是它们的空间位置被重新组织了。
+1. **SD 3（下采样卷积）**：想象我们有一个大蛋糕，SD 3的方法就像用一个方形模具，从蛋糕上切出一个 $2\times2$ 的小方块。在这个过程中，我们提取了蛋糕的部分信息，但是由于进行了压缩，Patch块的大小变小了，信息会有所丢失。
+2. **FLUX.1（通道堆叠）**：FLUX.1 的方法更像是直接把蛋糕的 $2\times2$ 块堆叠起来，不进行任何压缩或者切割。我们仍然保留了蛋糕的所有部分，但是它们不再分布在平面上，而是被一层层堆叠起来，像是三明治的层次。这样一来，蛋糕块的大小没有改变，只是它们的空间位置被重新组织了。
 
-总的来说，**相比SD 3，FLUX.1将 $2\times2$ 特征Patch化操作应用于扩散模型之前**。这也表明FLUX.1系列模型认可了SD 3做出的贡献，并在其基础上进行了继承与优化。
+我们设Latent空间尺寸为 $h\times w$ ，并省略Batch维度，则这一操作可以写成：
 
-**与SD 3相比，FLUX.1 VAE并不是直接沿用SD 3的VAE，而是基于相同结构进行了重新训练，两者的参数权重并不相同**。并且SD 3和FLUX.1的VAE会对编码后的Latent特征做平移和缩放，而之前的SD系列中VAE仅做缩放：
+$$
+P:\mathbb{R}^{16\times h\times w}
+\longrightarrow
+\mathbb{R}^{\left(\frac{hw}{4}\right)\times64}
+$$
 
-```python
-def encode(self, x: Tensor) -> Tensor:
-    z = self.reg(self.encoder(x))
-    z = self.scale_factor * (z - self.shift_factor)
-    return z
-```
+每个Token包含4个空间位置的特征，每个位置有16个通道，因此Pack操作后的特征维度为：
+
+$$
+d_{\mathrm{token}}=2\times2\times16=64
+$$
+
+与此同时，Token数量变为空间位置数的四分之一：
+
+$$
+L=\frac{hw}{4}
+$$
+
+Pack操作前后的元素总数完全相同：
+
+$$
+16hw=64\times\frac{hw}{4}
+$$
+
+Pack操作只改变元素的排列方式，不增加新的图像信息，也不引入可学习参数。我们举具体例子来说，一张 $1024\times1024$ 图像经过VAE编码后，得到 $16\times128\times128$ 的Latent；Pack操作之后得到4096个Token，每个Token为64维：
+
+$$
+16\times128\times128
+\;\xrightarrow{\;2\times2\ \mathrm{Pack}\;}
+4096\times64
+$$
+
+相对于把每个Latent空间位置单独作为一个Token，Pack操作减少了序列长度，从而降低后续注意力计算的序列开销。
+
+总的来说，**相比SD 3，FLUX.1将 $2\times2$ 特征Patch化操作应用于Backbone部分之前**。这也表明FLUX.1系列模型认可了SD 3做出的贡献，并在其基础上进行了继承与优化。
+
+**与SD 3相比，FLUX.1 VAE并不是直接沿用SD 3的VAE，而是基于相同结构进行了重新训练，所以两者的模型参数权重并不相同，对编码后的Latent特征做平移和缩放的参数也不相同**。因为VAE输出的原始Latent具有自身的均值和尺度，而Backbone模型需要在它与标准高斯噪声之间建立训练路径。为此，FLUX.1对原始Latent进行固定的仿射变换：
+
+$$
+z=s\left(z_{\mathrm{raw}}-b\right)
+$$
+
+其中 $s=0.3611$ , $b=0.1159$。 $b$ 用于调整整体数值中心， $s$ 用于调整整体尺度。解码前需要执行逆变换：
+
+$$
+z_{\mathrm{raw}}=\frac{z}{s}+b
+$$
+
+与之对应的，SD 3的平移系数为0.0609，缩放系数为1.5305，因此编码后的处理为：
+
+$$
+z_{\mathrm{SD3}}
+=
+1.5305\left(z_{\mathrm{raw}}-0.0609\right)
+$$
 
 平移和缩放操作能将Latent特征分布的均值和方差归一化到0和1，和扩散过程加的高斯噪声在同一范围内，更加严谨和合理。
 
-FLUX.1模型的VAE完整结构如下：
-
-<div align="center">
-
-![FLUX.1-dev/schnell VAE完整结构图](./imgs/FLUX.1-VAE完整结构图.png)
-
-</div>
-
-**Rocky认为Stable Diffusion系列和FLUX.1系列中VAE模型的改进历程，为工业界、学术界、竞赛界以及应用界都带来了很多灵感，有很好的借鉴价值。AIGC图像创作领域中针对VAE的优化，也会是学术研究中一个非常重要的方向。**
 
 <h2 id="q-flux-015">面试问题：FLUX.1的Backbone部分有哪些创新？详细分析改进意图</h2>
 
 **难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-FLUX.1的Transformer模型部分在SD 3的基础上进一步优化，除了和SD 3一样有MM-DiT模块（双流DiT）外，同时还设计了Single-DiT模块（单流DiT）。在Single-DiT Block模块中，文本信息和图像信息拼接融合在一起，再送入Attention机制中处理；同时在额外条件部分会输入完整的Text Embeddings和池化过的Pooled Text Embeddings。
+**FLUX.1的Backbone采用双流（MM-DiT）与单流（Single-DiT）结合的Transformer架构，在模态专属处理、图文联合建模和计算效率之间进行协调**。在前段双流模块中，保留文本与图像各自的变换参数，同时让两种模态通过联合注意力交换信息；后段单流模块将图文特征合并为一条序列，在每层内使用统一的参数继续建模。
 
-直观地理解，FLUX.1先使用MM-DiT Block实现两个模态的信息融合，然后再接Single-DiT Block加深模型深度，在增强模型整体学习能力的同时，还可以节省一部分参数。FLUX.1系列中MM-Single-DiT架构包含19层MM-DiT Block和38层Single-DiT Block，扩散模型部分的参数量进一步扩展到约12B。
+直观地理解，FLUX.1先使用双流模块实现两个模态的信息融合，然后再接单流模块加深模型深度，在增强模型整体学习能力的同时，还可以节省一部分参数。**FLUX.1 Backbone中包含19个双流模块和38层单流模块，整体参数量约12B**。
+
+下图是FLUX.1 Backbone完整结构图：
 
 <div align="center">
 
@@ -1547,117 +1575,202 @@ FLUX.1的Transformer模型部分在SD 3的基础上进一步优化，除了和SD
 </div>
 
 MM-Single-DiT架构的核心组件包括：
-
 1. **MM-DiT Block**：由两个AdaLayerNormZero层、一个MM-DiT Attention Structure模块、两个LayerNorm层和两个FeedForward层组成。
 2. **Single-DiT Block**：由一个AdaLayerNormZero层、一个Single-DiT Attention Structure（DiT Attention）模块、两个Linear层和一个GELU激活函数组成。
 3. **MM-DiT Attention Structure**：FLUX.1的MM-DiT Block中的核心组件，和SD 3一样，将文本信息和图像信息以同等重要的级别进行Attention计算。
 4. **Single-DiT Attention Structure**：FLUX.1的Single-DiT Block中的核心组件，将文本信息和图像信息的特征融合后，进行经典的DiT Attention计算。
 5. **FeedForward**：由GELU激活函数、Dropout层和Linear层组成。
 
-和SD 3一样，FLUX.1系列模型将得到的Patch Embedding与Positional Embedding相加后，一起输入Transformer主架构。同时，通过AdaLN-Zero层将文本特征CLIP Pooled Embedding（全局语义信息）和Timestep Embedding相加得到的融合特征作为额外条件，注入Transformer Block中。
+### 1、 FLUX.1 Backbone输入侧特点
 
-### 并行注意力机制
+在输入侧，FLUX.1 Backbone接收当前时间步的带噪图像Latent，以及文本编码器提供的两类语言特征。
 
-FLUX.1的Transformer架构还引入了并行注意力机制（Parallel Attention-MLP Blocks），主要应用于Single-DiT部分。
+图像Latent经过 $2\times2$ pack处理后，每个Token具有64维特征，再通过线性投影映射到3072维。T5-XXL输出的文本序列特征原本为4096维，同样通过独立投影映射到3072维。这样，文本与图像Token就具有相同的隐藏维度，可以参与后续的联合注意力计算。
+
+CLIP输出的768维池化特征则走另一条路径：它被映射为全局条件向量，与时间步条件共同控制各个Transformer块的特征变换。
+
+下图展示了图像Token、文本Token与全局条件在FLUX.1 Backbone输入侧的处理流程：
 
 <div align="center">
 
-![FLUX.1并行注意力机制示意图](./imgs/FLUX.1并行注意力机制示意图.jpg)
+![FLUX.1 Backbone的输入流程：图像与T5文本序列投影，以及CLIP、时间步和引导强度的全局条件汇合](./imgs/flux1_backbone_inputs_4k.png)
 
 </div>
 
-并行注意力机制把注意力和线性层之间的串联结构转变成并联结构。常规注意力机制需要在计算注意力的前后各经过一次线性层的特征提取，转换成并联结构后，注意力在计算完成后与MLP进行Add操作并完成特征融合。这样一来，整体计算并行度更高，AIGC图像创作大模型的运行效率也随之提升。
+如上图所示，同一提示词分别经过T5-XXL和CLIP-L文本编码器，形成文本序列特征与池化特征。图像序列和T5文本序列分别进入图文联合建模；CLIP池化特征经MLP映射后，与时间步条件逐元素相加，构成各块使用的全局调制条件。FLUX.1-dev还会加入引导强度嵌入，FLUX.1-schnell不启用这一分支。上图中的 $h$、$w$ 表示Latent的空间尺寸，$L$ 表示文本Token数量；Batch维度、分词过程和RoPE位置编码支路在图中省略。
 
-### 三维RoPE位置编码
+### 2、 双流模块和单流模块讲解
 
-除了整体模型结构的优化，FLUX.1在位置编码上也有自己的改进。SD 3采用2D Frequency Embeddings，这是一种经典的绝对位置编码方式；FLUX.1则采用了大模型领域中常用的旋转式位置编码（Rotary Positional Embedding，RoPE），RoPE是直接作用在Attention机制上的相对位置编码方式。
+文本Token与图像Token具有不同的来源和统计特性。双流块为它们分别设置归一化、条件调制、QKV投影、注意力输出投影和MLP，使每种模态都能够使用适合自身特征的变换。
 
-Transformer架构中只包含注意力和全连接两种经典计算方式，这两种计算本身都和位置信息无关。为了让Transformer知道图像像素间的空间对应关系，就需要给Transformer中的Token注入额外的位置信息。
+不过，两路特征并没有各自独立计算完整的注意力。得到文本和图像的Q、K、V后，模型会沿序列维度分别拼接：
 
-经典的正弦编码方式虽然能表示一定的相对位置信息，但经过注意力机制后，其中的相对位置信息几乎会丢失。旋转位置编码使用二维向量来表示每个Token的二维位置编码，经过注意力机制计算后，结果里恰好会出现相对位置关系，从而让注意力计算过程也能感知Token间的相对位置。
+$$
+Q=\begin{bmatrix}
+Q_{\mathrm{text}}\\
+Q_{\mathrm{image}}
+\end{bmatrix},
+\qquad
+K=
+\begin{bmatrix}
+K_{\mathrm{text}}\\
+K_{\mathrm{image}}
+\end{bmatrix},
+\qquad
+V=
+\begin{bmatrix}
+V_{\mathrm{text}}\\
+V_{\mathrm{image}}
+\end{bmatrix}
+$$
 
-总的来说，RoPE使用旋转变换，使每个位置的Token保留了相邻位置的相对关系。相比传统的绝对位置编码，RoPE更注重局部关系建模。这种增强的局部敏感性有助于AI绘画大模型捕获图像局部区域之间的细节关联，从而提升模型的生成质量和泛化性能。
+Q、K还会经过归一化与RoPE处理，随后进行联合注意力计算。计算结果再按原来的序列长度拆回文本部分和图像部分，分别进入各自的输出投影、残差更新和MLP。
+
+因此，双流中的“双”，主要指两套模态专属的特征变换参数；图文之间的信息交换在这一阶段就已经发生。 图像Token可以读取文本中的主体、属性和关系，文本Token也可以结合当前图像状态更新自身表示。
+
+这种设计延续了多模态DiT的基本思路：保留不同模态的表达差异，同时让它们在注意力中建立联系。
+
+<div align="center">
+
+![FLUX.1双流块：模态独立变换、图文联合注意力与两次残差更新](./imgs/flux1_double_stream_4k.png)
+
+</div>
+
+上图展示了FLUX.1双流块内部流程。文本与图像分别进行特征变换，Q、K、V沿序列维拼接后参与同一次联合注意力，再按原序列长度拆分。两路中的 $g_1$、 $g_2$ 分别代表各自的门控参数，由全局条件通过模态专属调制器生成；第二条残差连接使用第一次更新后的状态。实线表示特征与残差路径，虚线表示条件输入，图中省略了条件到第二组调制和门控的连线。
+
+经过19个双流块后，FLUX.1 Backbone将文本与图像的隐藏特征沿序列维度拼接：
+
+$$
+H=\mathrm{Concat}_{\mathrm{seq}}
+\left(H_{\mathrm{text}},H_{\mathrm{image}}\right)
+$$
+
+随后，整条序列进入38个单流块。在每个单流块内部，文本与图像Token使用同一套投影、调制和MLP参数；不同单流块之间仍然各自拥有独立参数。
+
+这样，网络后段可以继续对图文关系进行联合建模，同时减少持续维护两套模态专属变换所需的参数开销。
+
+**单流模块的另一个特点是Attention与MLP共享同一份归一化、调制后的输入，并行展开计算，构建并行注意力机制**。它的流程是：
+1. 对输入进行LayerNorm和条件调制。
+2. 使用一次较大的线性投影，同时生成Q、K、V与MLP分支的中间特征。
+3. 注意力分支计算Token之间的交互，MLP分支对各Token的中间特征进行GELU激活。
+4. 拼接两路结果，通过统一的输出投影映射回隐藏维度。
+5. 使用条件生成的门控系数控制残差更新。
+
+FLUX.1单流块中的并行注意力与MLP流程如下图所示：
+
+<div align="center">
+
+![FLUX.1单流块：Attention与MLP并行、特征拼接和门控残差更新](./imgs/flux1_single_stream_4k.png)
+
+</div>
+
+上图中展示了FLUX.1单流块内部流程。Linear 1一次生成Q、K、V与MLP中间特征；Attention输出3072维，MLP分支输出12288维，沿特征维拼接后由Linear 2映射回3072维，再经过门控与原输入相加。图中维度均指单个Token的特征宽度，QK-Norm与RoPE只作用于Q、K。层内图文使用同一套参数，不同单流块之间参数独立；单块输出仍保留全部图文Token。实线表示特征与残差路径，虚线表示条件输入。
+
+设调制后的输入为 $\widetilde H$，这一过程可以概括为：
+
+$$
+[Q,K,V,U]=\mathrm{Linear}_1(\widetilde H)
+$$
+
+其中， $U$ 是MLP分支的中间特征。记完成QK归一化、RoPE和注意力计算后的结果为 $A$，则输出为：
+
+$$
+H'=H+
+g\odot
+\mathrm{Linear}_2
+\left(
+\mathrm{Concat}_{\mathrm{feat}}
+\left(A,\mathrm{GELU}(U)\right)
+\right)
+$$
+
+这里， $\mathrm{Concat}_{\mathrm{feat}}$ 表示沿特征维度拼接， $g$ 是残差门控系数， $\odot$ 表示逐元素相乘。
+
+并行结构保留了Attention的跨Token交互和MLP的逐Token非线性变换，让两个分支共同读取归一化、调制后的输入。两个分支的结果先沿特征维拼接，再通过统一的输出投影完成融合；Add发生在门控后的更新量与原输入之间。这样的组织减少了Attention与MLP顺序执行的依赖，并便于合并线性投影，实际加速幅度还取决于算子实现和硬件配置。
+
+### 3、 QK-Norm和三维RoPE位置编码
+
+我们先来讲QK-Norm的作用。在注意力计算中，Q、K的幅度会直接影响点积大小。FLUX.1对每个注意力头的Q、K应用RMSNorm，再进行位置旋转和注意力计算。这有助于控制注意力分数的数值范围，降低大模型计算中的不稳定因素。
+
+**QK-Norm与RoPE承担不同职责：前者调整Q、K的幅度，后者根据位置旋转Q、K的特征。**
+
+与SD 3使用加性二维位置嵌入的方式不同，了大模型领域中常用的旋转式位置编码（Rotary Positional Embedding，RoPE），RoPE是直接作用在Attention机制上的相对位置编码方式，将位置信息引入注意力内部。其基本形式为：
+
+$$
+\widetilde q_a=R(\mathbf p_a)q_a,
+\qquad
+\widetilde k_b=R(\mathbf p_b)k_b
+$$
+
+其中， $\mathbf p_a$ ， $\mathbf p_b$ 是两个Token的位置坐标。对于按坐标轴构造的旋转矩阵，有：
+
+$$
+\widetilde q_a^{\mathsf T}\widetilde k_b
+=
+q_a^{\mathsf T}
+R(\mathbf p_b-\mathbf p_a)
+k_b
+$$
+
+因此，注意力点积可以直接包含两个Token的相对位置关系。它既可以作用于相邻Token，也可以作用于相距较远的Token。
+
+FLUX.1采用三个坐标分量。在基础文生图流程中，图像Token的位置可以写成：
+
+$$
+\mathbf p_{\mathrm{image}}=(0,r,c)
+$$
+
+这里的 $r$ 和 $c$ 是pack处理后Token网格中的行、列坐标。第一维在单图生成中固定为0，与控制噪声程度的采样时间步不同。
+
+官方配置为三个坐标轴分别分配16、56、56个特征维度：
+
+$$
+16+56+56=128
+$$
+
+128是每个注意力头的Q、K维度。 前16维使用第一轴坐标构造旋转，中间56维使用行坐标，最后56维使用列坐标。这些旋转作用于Q、K，并不构成一个额外加到3072维Token特征上的位置向量。
 
 在FLUX.1中，具体操作是将文本的位置编号设为 $(0,0,0)$ ，图像的位置编号设为 $(0,i,j)$ ，之后用标准旋转式位置编码对三个维度的编号编码，再把三组编码拼接起来。
 
 假设位于 $(i,j)$ 的图像像素位置编号是 $(0,i,j)$ ，经过特征编码，位置编号会转换成 $[16,56,56]$ 维度的矩阵，表示第一个维度使用长度16的位置编码，后两维使用长度56的位置编码。再经RoPE函数计算得到旋转式位置编码后，三组结果拼接到一起，最终形成128维的位置编码。编码前16个通道是第一维位置编号的位置编码，中间56个通道知道垂直位置信息，最后56个通道知道水平位置信息。
+
+从原理上来讲，Transformer架构中只包含注意力和全连接两种经典计算方式，这两种计算本身都和位置信息无关。为了让Transformer知道图像像素间的空间对应关系，就需要给Transformer中的Token注入额外的位置信息。
+
+经典的正弦编码方式虽然能表示一定的相对位置信息，但经过注意力机制后，其中的相对位置信息几乎会丢失。旋转位置编码使用二维向量来表示每个Token的二维位置编码，经过注意力机制计算后，结果里恰好会出现相对位置关系，从而让注意力计算过程也能感知Token间的相对位置。
+
+RoPE使用旋转变换，使每个位置的Token保留了相邻位置的相对关系。相比传统的绝对位置编码，RoPE更注重局部关系建模。这种增强的局部敏感性有助于AIGC图像创作大模型捕获图像局部区域之间的细节关联，从而提升模型的生成质量和泛化性能。
 
 
 <h2 id="q-flux-016">面试问题：FLUX.1的Text Encoder部分有哪些创新？详细分析改进意图</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-FLUX.1在SD 3的基础上对Text Encoder部分进行了精简优化，只使用CLIP ViT-L和T5-XXL Encoder两个Text Encoder模型，并没有使用OpenCLIP ViT-bigG模型。FLUX.1将CLIP ViT-L的Pooled Text Embeddings特征与Time Embedding相加，同时将T5-XXL提取的Text Embedding特征直接送入MM-DiT架构中。
+**FLUX.1在SD 3的基础上对Text Encoder部分进行了精简优化，只使用CLIP ViT-L和T5-XXL Encoder两个Text Encoder模型，并没有使用OpenCLIP ViT-bigG模型**。两者读取提示词后，分别向FLUX.1 Backbone提供不同形式的语言条件：CLIP ViT-L的Pooled Text Embeddings特征与Time Embedding相加，同时T5-XXL则将提取的Text Embedding特征送入Bcakbone的双流模块中，**即CLIP把整段提示词表示为一个全局向量，T5保留逐Token的上下文特征**。
 
-总的来说，**FLUX.1比SD 3更依赖T5-XXL提取的文本特征信息**。SD 3中CLIP Encoder的特征仍有较大的作用，比如SD 3可以去掉T5-XXL，只使用CLIP Encoder提取文本特征信息来生成图像。FLUX.1-dev和FLUX.1-schnell两个版本的Text Encoder部分结构完全一致。
+我们想要理解这套设计逻辑，可以从FLXU.1需要解决的两个问题入手：一方面，模型需要知道整张图大致要表现什么；另一方面，它还需要在生成过程中反复读取具体的对象、属性和关系。FLUX.1通过全局条件与文本序列两条路径，将这些信息交给FLUX.1 Backbone使用。
 
-<div align="center">
+**在CLIP部分，CLIP提供全局文本条件**。提示词经过CLIP得到一个768维全局文本特征向量。在进入FLUX.1 Backbone后，这个768维向量会先经过MLP映射到3072维，再与时间步条件相加；dev版本还会加入引导强度对应的条件嵌入。合成后的向量用于产生Transformer块中的调制参数，使Backbone的特征变换同时受到文本语义与当前噪声阶段的影响。
 
-![FLUX.1-dev/schnell CLIP ViT-L Text Encoder完整结构图](./imgs/FLUX.1-CLIP-ViT-L-Text-Encoder完整结构图.jpg)
+**在T5-XXL部分，T5保留逐Token的语义信息，为图文交互提供更细致的条件**。提示词经过T5为每个Token（最大序列长度为512）输出一个4096维特征。T5输出的序列特征进入Backbone前，还要经过线性投影，将每个Token的4096维特征转换为3072维。这样，它们就能与同样处于3072维隐藏空间的图像Token参与后续图文交互。
 
-</div>
+那么，两路文本条件如何共同影响一张图像呢？
 
-<div align="center">
+以提示词“木桌上有一只红色杯子，杯子位于蓝色书本左侧，柔和的窗边光照”为例，同一段文本会分别进入CLIP和T5-XXL。CLIP产生一个全局向量，经过映射后参与Backbone的条件调制；T5产生一组上下文特征，通过联合注意力参与图像Token的更新。前者以汇总表示影响Backbone的整体特征变换，后者让Backbone保留对具体文本描述的访问。
 
-![FLUX.1-dev/schnell T5-XXL Text Encoder完整结构图](./imgs/FLUX.1-T5-XXL-Text-Encoder完整结构图.jpg)
+在采样开始前，文本编码器通常已经完成特征提取。随后每个采样步骤都会将这些文本特征与当前带噪图像一起送入生成Backbone。Backbone内部会不断更新图文隐藏状态，但不需要在每个采样步骤重新运行一次CLIP和T5。
 
-</div>
+总的来说，**FLUX.1比SD 3更依赖T5-XXL提取的文本特征信息**。SD 3中CLIP Encoder的特征仍有较大的作用，比如SD 3可以去掉T5-XXL，只使用CLIP Encoder提取文本特征信息来生成图像。
 
-<h2 id="q-flux-002">面试问题：FLUX.1在训练过程中使用了哪些优化技巧？</h2>
+
+<h2 id="q-flux-002">面试问题：FLUX.1在训练和推理过程中使用了哪些优化技巧？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-FLUX.1与SD 3同样采用Rectified Flow，其优化涉及模型训练和实际采样两个环节。蒸馏改变模型学习的预测行为，动态Time Shift调整推理时的积分节点，多分辨率训练则让模型接触不同尺度与长宽比的数据。其中，动态Time Shift在公开推理代码中有明确实现，需要与训练时间步的随机采样区分开来。
+FLUX.1与SD 3一样采用了Rectified Flow的生成建模方式，其优化涉及模型训练和实际推理两个环节。
 
-### 指引蒸馏与时间步蒸馏
+### 1、 多分辨率与多长宽比适配训练
 
-FLUX.1-dev是在FLUX.1-pro基础上进行指引蒸馏（Guidance Distillation）得到的模型，图像生成质量与文本一致性和FLUX.1-pro非常接近，同时推理效率更高。FLUX.1-schnell则是在指引蒸馏基础上进一步进行时间步蒸馏（Timestep Distillation）得到的模型，仅需1至4步就能完成图像生成过程，代价是无法像常规模型一样自由设置图像生成过程的Classifier-Free Guidance强度。
-
-指引蒸馏的目标是让AIGC图像创作大模型直接学习Classifier-Free Guidance（CFG）的生成结果，使模型一次前向就能输出此前通常需要两次前向计算才能得到的指引生成结果，从而节约接近一半的推理耗时。时间步蒸馏则通过加速蒸馏，让模型能够在极少的采样步数内完成图像生成。
-
-### 使用动态Time Shift适配推理时间表
-
-FLUX.1的公开推理代码延续了前文[SD 3时间步偏移](#q-069)中的分式映射，并根据图像Token数量计算偏移参数。这里沿用 $t=1$ 对应噪声、 $t=0$ 对应数据的约定，采样器从1向0积分。
-
-[官方 `time_shift` 与 `get_schedule` 实现](https://github.com/black-forest-labs/flux/blob/802fb4713906133fcbd0d8dc5351620ca4773036/src/flux/sampling.py#L277)可以写成：
-
-```math
-t'=\frac{e^\mu}{e^\mu+(1/t-1)^\sigma}
-```
-
-默认调度调用取 $\sigma=1$，因此：
-
-```math
-t'=\frac{e^\mu t}{1+(e^\mu-1)t}
-=S_\alpha(t),
-\qquad \alpha=e^\mu
-```
-
-这里要区分两个参数： $\mu$ 是Logit空间的偏移量， $\alpha$ 是分式映射中的乘性系数。**两者通过指数关系换算**，不能直接用同一个数值代替；时间步偏移也不会改变初始高斯噪声的均值。
-
-FLUX.1先按采样步数建立从1到0的均匀时间网格，再用当前图像的Token数 $L$ 计算 $\mu$。公开实现以两个校准点做线性插值：
-
-```math
-\mu(L)=0.5+\frac{1.15-0.5}{4096-256}(L-256)
-```
-
-其中，256与4096是图像Token数。按FLUX.1的8倍VAE下采样和 $2\times2$ 打包方式，通常有 $`L=HW/256`$，所以 $256\times256$ 图像对应256个Token， $1024\times1024$ 图像对应4096个Token。两个校准点的 $\mu$ 分别为0.5和1.15，对应 $\alpha$ 约为1.65和3.16。代码没有将线性函数限制在这两个端点之间，因此不能把0.5到1.15写成所有输入的固定取值范围。
-
-<div align="center">
-
-![FLUX.1按Token数量调整Time Shift的推理调度](./imgs/FLUX1-动态TimeShift与Token数量.png)
-
-</div>
-
-图：依据上述固定版本代码计算的调度曲线。左图展示不同 $\mu$ 下的时间坐标映射，右图展示Token数量与 $\mu$ 的线性关系。
-
-较大的图像Token数对应较大的 $\mu$，使中间时间节点向高噪声端移动。时间表的起点和终点仍为1与0，总步数也没有改变，改变的是有限计算预算在生成过程中的分布。
-
-这段代码能直接证明的是**推理时间表的动态调整**，不足以反推出FLUX.1完整的训练时间步分布。模型版本也需要区分：[官方基础采样CLI](https://github.com/black-forest-labs/flux/blob/802fb4713906133fcbd0d8dc5351620ca4773036/src/flux/cli.py#L255)对 `flux-schnell` 关闭这项Shift，不能把[dev]的默认调度直接套到少步蒸馏模型。训练时间步分布、推理时间网格和蒸馏后的适用步数，应分别检查。
-
-### 多分辨率与多长宽比训练
-
-FLUX.1系列模型能够灵活生成多种图像分辨率和长宽比，适应 $0.1\sim2.0\text{MP}$ （Megapixels，百万像素）的图像生成任务。总的来说，图像像素数量越多、分辨率越高，细节表现越丰富。
+FLUX.1系列模型能够灵活生成多种图像分辨率和长宽比，适应 $0.1\sim2.0\text{MP}$ （Megapixels，百万像素）的图像生成任务。总的来说，图像像素数量越多、分辨率越高，细节表现越丰富，具体如下图所示：
 
 <div align="center">
 
@@ -1665,7 +1778,66 @@ FLUX.1系列模型能够灵活生成多种图像分辨率和长宽比，适应 $
 
 </div>
 
-FLUX.1能够适配各种分辨率的图像生成，主要得益于**多尺度训练 + RoPE位置编码 + 动态Time Shift**的组合策略。三者分别解决训练数据尺度覆盖、Token空间关系建模和不同序列长度下噪声调度的问题，共同提升了模型对不同分辨率与长宽比的泛化能力。
+FLUX.1能够适配各种分辨率的图像生成，主要得益于**多尺度训练 + RoPE位置编码 + 动态Time Shift**的组合策略。三者分别解决训练数据尺度覆盖、Token空间关系建模和不同序列长度下噪声调度的问题，共同提升了模型对不同分辨率与长宽比的泛化能力。目前FLUX.1并没有公开给出完整的分桶规则、分辨率阶段或采样比例。
+
+### 2、 动态Time Shift：根据图像Token数量调整推理时间表
+
+FLUX.1模型完成训练后，还需要选择在哪些时间点调用Backbone进行采样。FLUX.1采用动态Time Shift，处理的就是这一推理问题。
+
+沿用 $t=1$ 对应噪声、 $t=0$ 对应真实图像的约定，采样器从1向0推进。代码先建立均匀时间网格，再根据当前图像的Token数量计算偏移量，将时间节点重新分配到生成过程的不同阶段。
+
+在公开默认路径中，映射取 $\sigma=1$ ，可以写成：
+
+$$
+t'=
+\frac{e^{\mu}t}
+{1+(e^{\mu}-1)t}
+$$
+其中，$\mu$是Logit空间的偏移量。若用$\alpha$表示分式映射中的乘性系数，则：
+
+$$
+\alpha=e^\mu
+$$
+
+这里调整的是时间坐标，不会改变初始高斯噪声的均值。根据图像Token数量 $L$ ，通过两个校准点构造线性函数：
+
+$$
+\mu(L)
+=
+0.5+
+\frac{1.15-0.5}{4096-256}(L-256)
+$$
+
+FLUX.1的VAE进行8倍空间下采样，随后将潜变量中的$2\times2$区域pack处理为一个Token。在图像高宽已经按16的倍数对齐时，有：
+
+$$
+L=
+\frac{H}{16}\frac{W}{16}
+=
+\frac{HW}{256}
+$$
+
+这里的 $L$ 只统计图像Token，不包含文本Token。例如：
+
+|图像尺寸|	图像Token数量 $L$ |偏移量 $\mu$ |	$\alpha=e^\mu$ |
+| --- | --- | --- | --- |
+| $256\times256$	|256	|0.50	|约1.65|
+| $512\times512$	|1024	|0.63	|约1.88|
+| $1024\times1024$	|4096	|1.15	|约3.16|
+
+
+以 $1024\times1024$ 为例， $\mu=1.15$ 时，原时间网格中的 $t=0.5$ 会映射到约 $t'=0.76$ 。中间节点整体向高噪声端移动，而起点、终点和总采样步数保持不变。这相当于重新安排有限次数的模型计算，让它们覆盖不同的噪声阶段。
+
+下图中展示了这一映射，以及Token数量与偏移量的关系。左图展示不同 $\mu$ 下的时间坐标映射，右图展示Token数量与 $\mu$ 的线性关系。图中的0.5和1.15是两个校准点对应的数值，代码没有把线性函数截断在两者之间，因此它们不是所有输入下固定的参数上下限。
+
+<div align="center">
+
+![FLUX.1按Token数量调整Time Shift的推理调度](./imgs/FLUX1-动态TimeShift与Token数量.png)
+
+</div>
+
+此外， $1024\times1024$ 与 $512\times2048$ 具有相同的图像Token数量，在这段代码中会得到相同的偏移量。这说明动态Time Shift关注的是序列规模，长宽比变化带来的空间布局仍需要依靠模型的空间建模和训练覆盖。
+
 
 <h1 id="q-flux-017">2.FLUX.1有哪些主流的变体模型？介绍一下它们的核心原理</h1>
 
@@ -1711,11 +1883,11 @@ FLUX.1 Kontext一共有三个版本：FLUX.1 Kontext [max]、FLUX.1 Kontext [pro
 
 </div>
 
-FLUX.1 Kontext的整体架构基于FLUX.1的DiT（Diffusion Transformer）扩展，通过引入参考图像作为条件输入实现多模态生成能力，**其核心创新在于构建双路径多模态特征处理机制**。
+FLUX.1 Kontext的整体架构基于FLUX.1的DiT（Diffusion Transformer）扩展，通过引入参考图像作为条件输入实现多模态生成能力，**其核心创新在于构建双路径多模态特征处理机制**。下图是FLUX.1 Kontext整体架构和推理流程示意图：
 
 <div align="center">
 
-![FLUX.1 Kontext工作流程](./imgs/FLUX.1-Kontext工作流程.jpg)
+![FLUX.1 Kontext整体架构](./imgs/FLUX.1-Kontext整体架构.jpg)
 
 </div>
 
@@ -1765,33 +1937,50 @@ $$
 
 **FLUX.1 Kontext实验发现，序列拼接（Sequence Concatenation）的效果优于通道级拼接（Channel-wise Concatenation）**。两者在结构上的主要区别是：序列拼接允许目标与参考的序列长度不同，而直接进行通道拼接通常要求两组特征具有相同的空间尺寸或序列长度，并明确位置之间的对应关系。论文没有进一步证明这一结构差异就是性能差异的唯一原因。
 
-完成序列拼接后，模型还需要知道每个Token属于目标图还是参考图，以及它在各自图像中的空间位置。FLUX.1 Kontext通过三维RoPE中的图像身份偏移与空间坐标提供这些位置信息，使参考内容与生成目标能够在同一条视觉序列中被区分和利用。
+**完成序列拼接后，模型还需要知道每个Token属于目标图还是参考图，以及它在各自图像中的空间位置信息**。FLUX.1 Kontext沿用FLUX.1的三维旋转位置编码（3D RoPE），为视觉Token设置“图像编号、行坐标、列坐标”三个位置分量。这样，目标图像与参考图像虽然被放入同一条序列，仍然保留各自的二维空间结构，并通过不同的图像编号加以区分。
 
-FLUX.1 Kontext在DiT位置编码中采用3D RoPE，为目标图像和参考图像赋予不同位置：
+为了避免与采样时间步 $t$ 混淆，这里用 $m$ 表示图像编号，用 $r,c$ 表示Token在各自图像网格中的行、列坐标：
 
-1. 训练时为目标图像Tokens赋予位置 $(0,h,w)$，推理时目标图像被替换为初始噪声矩阵。
-2. 为第 $i$ 张参考图像的Tokens赋予位置 $(i,h,w)$，其中 $i=1,\ldots,N$。
+$$
+\mathbf{p}=(m,r,c)
+$$
 
-第一个维度 $t=0,1,2,\ldots$ 可以理解为一个虚拟时间标签（Virtual Time Step）： $t=0$ 表示“这是要生成的目标图像”， $t=1,2,\ldots$ 表示“这是第1张、第2张参考图像”。这样模型就能清晰地区分不同输入图像的信息和作用。
+目标图像与参考图像的坐标分别设置为：
 
-```math
-\mathrm{RoPE}(x,t)=
+$$
+\mathbf{p}_{\mathrm{target}}=(0,r,c),
+\qquad
+\mathbf{p}_{\mathrm{ref},i}=(i,r,c),
+\qquad i=1,\ldots,N
+$$
+
+其中， $m=0$ 表示目标图像， $m=i$ 表示第 $i$ 张参考图像； $r,c$ 是经过Latent打包之后的Token网格坐标。例如，目标图中第12行、第20列的Token可以标记为 $(0,12,20)$ ，第一张参考图相同局部坐标处的Token则标记为 $(1,12,20)$ 。两者的行、列坐标相同，但图像编号不同，因此不会获得完全相同的位置旋转。
+
+Kontext论文中将第一维称为“虚拟时间步”（Virtual Time Step）。**这里的“时间”承担图像来源标记的作用，与控制噪声程度的采样时间步不是同一个概念**。 在整个采样过程中，目标图的编号始终为0，参考图的编号也保持固定；变化的是目标Latent的内容和当前噪声时间步。训练时，目标分支使用由真实目标图像构造的带噪Latent；推理时，目标分支从高斯噪声出发逐步更新，两种情况下都使用同样的位置坐标规则。
+
+RoPE通过旋转注意力中的Query和Key，将位置关系引入Token之间的相关性计算。 对某个坐标轴上的位置 $p$，以及Query或Key中的一对特征，其基本旋转操作可以写成：
+
+$$
 \begin{bmatrix}
-\cos(t\theta)&-\sin(t\theta)\\
-\sin(t\theta)&\cos(t\theta)
+\widetilde{x}_{2j}\\
+\widetilde{x}_{2j+1}
 \end{bmatrix}
-\begin{bmatrix}x_0\\x_1\end{bmatrix}
-```
+=
+\begin{bmatrix}
+\cos(p\omega_j)&-\sin(p\omega_j)\\
+\sin(p\omega_j)&\cos(p\omega_j)
+\end{bmatrix}
+\begin{bmatrix}
+x_{2j}\\
+x_{2j+1}
+\end{bmatrix}
+$$
 
-理论上，FLUX.1 Kontext的结构可以支持任意数量的参考图像，但官方实际训练只支持输入一张参考图像，因此标准推理流程也只输入一张图。开源社区常通过先把多张图拼成一张图，再送入Kontext，实现多图像融合效果。
+这里， $p$ 可以取图像编号、行坐标或列坐标； $\omega_j$ 是第 $j$ 对特征使用的旋转频率； $x_{2j},x_{2j+1}$ 是Query或Key中的两个特征分量。位置决定旋转角度，不同特征对使用不同频率，从而共同表达位置关系。
 
-<div align="center">
+理论上，FLUX.1 Kontext的结构可以支持任意数量的参考图像，但官方实际训练聚焦输入一张参考图像，因此标准推理流程也只输入一张参考图。如果先将多张图片拼成一张参考图再输入模型，模型接收到的仍然是一张复合图像：其中所有参考Token共用同一个图像编号，来源差异只能通过复合图内部的布局和内容体现，也能实现多图像参考效果。
 
-![FLUX.1 Kontext整体架构](./imgs/FLUX.1-Kontext整体架构.jpg)
-
-</div>
-
-FLUX.1 Kontext是原生AIGC图像生成编辑大模型，因此需要对图像生成与图像编辑进行统一建模：
+接下来我们再看看FLUX.1 Kontext如何对学习目标进行建模。FLUX.1 Kontext是原生AIGC图像生成编辑大模型，因此需要对图像生成与图像编辑进行统一建模：
 
 ```math
 p_\theta(x\mid y,c)
