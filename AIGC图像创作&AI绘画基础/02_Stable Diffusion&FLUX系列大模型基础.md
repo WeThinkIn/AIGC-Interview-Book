@@ -3,8 +3,8 @@
 ## 第一章 Stable Diffusion 系列核心高频考点
 
 [1.介绍一下Stable Diffusion的原理](#q-028)
-  - [面试问题：Stable Diffusion相比经典Diffusion model的核心优化是什么？](#q-029)
-  - [面试问题：介绍一下Stable Diffusion核心网络结构与训练/推理过程](#q-039)
+  - [面试问题：Stable Diffusion相比经典Latent Diffusion model的核心优化是什么？](#q-029)
+  - [面试问题：介绍一下Stable Diffusion核心架构与训练/推理过程](#q-039)
   - [面试问题：Stable Diffusion中的图生图原理是什么？denoising strength起到什么作用？](#q-040a)
   - [面试问题：介绍一下Stable Diffusion中Inpaint和Outpaint的原理](#q-040)
   - [面试问题：介绍一下针对Stable Diffusion的模型融合技术(进阶)](#q-033)
@@ -67,13 +67,13 @@
 
 <h1 id="q-028">1.介绍一下Stable Diffusion的原理</h1>
 
-<h2 id="q-029">面试问题：Stable Diffusion相比经典Diffusion model的核心优化是什么？</h2>
+<h2 id="q-029">面试问题：Stable Diffusion相比经典Latent Diffusion model的核心优化是什么？</h2>
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Rocky认为我们可以这样理解，Latent Diffusion Models（LDM）是“在潜空间做扩散”的**通用扩散算法模型框架**，而Stable Diffusion是在此框架基础上，通过一系列工程技术优化后在开源社区大规模落地应用的**AIGC图像创作大模型系列**。
+Rocky认为我们可以这样理解，Latent Diffusion Models（LDM）是“在潜空间做扩散”的**通用扩散算法模型框架**，而Stable Diffusion是在此框架基础上，通过一系列工程技术优化后在开源社区大规模落地应用的**AIGC图像创作大模型**。
 
-**从技术架构本质来看，Stable Diffusion本身也归属于Latent Diffusion架构体系。** 两者的关系可以概括为：Latent Diffusion是奠定核心思想的架构基座；而Stable Diffusion则是基于这个架构基座进行设计，整体流程如下图所示。
+**从技术架构本质来看，Stable Diffusion本身也归属于Latent Diffusion架构体系**。Stable Diffusion整体流程如下图所示。
 
 <div align="center">
 
@@ -83,32 +83,42 @@ Rocky认为我们可以这样理解，Latent Diffusion Models（LDM）是“在�
 
 具体来讲，若把Stable Diffusion与Latent Diffusion原论文中的文生图基准模型相比，核心差异主要体现以下维度：
 
-1.  **训练数据集的迭代升级**：通用Latent Diffusion中的文生图实验主要基于较小规模的laion-400M图文数据集完成训练；Stable Diffusion则使用了规模更大的laion-2B-en系列图文数据集，并配合数据清洗、低分辨率过滤、美学评分等筛选策略来提升训练样本质量。整体的**数据规模、数据质量和工程策略都更完善**。
+1.  **训练数据集的迭代升级**：通用Latent Diffusion论文中的实验主要基于较小规模的LAION-400M图文数据集完成训练；Stable Diffusion则使用了规模更大的LAION-2B-en及LAION-5B中的不同子集系列图文数据集，并配合数据清洗、低分辨率过滤、美学评分等筛选策略来提升训练样本质量。整体的**数据规模、数据质量和工程策略都更完善**。
 
-2.  **文本编码器的方案优化**：通用Latent Diffusion中的文本条件编码方案相对简单，是一个随机初始化的Transformer模型；Stable Diffusion则采用预训练CLIP文本编码器作为文本特征提取模块。相较于从零开始训练文本编码器，在大规模图文配对数据上完成预训练的文本编码器通常具备更强的文本语义理解和图文对齐能力。
+2.  **文本编码器的方案优化**：通用Latent Diffusion中的文本条件编码方案相对简单，是一个随机初始化的Transformer模型，在Latent Diffusion训练过程中一同训练；Stable Diffusion则采用预训练CLIP文本编码器作为文本特征提取模块。相较于从零开始训练文本编码器，在大规模图文配对数据上完成预训练的文本编码器通常具备更强的文本语义理解和图文对齐能力。
 
-3.  **训练分辨率与策略的优化**：通用Latent Diffusion更偏研究验证性质，只是在 $256\times256$ 分辨率上训练；Stable Diffusion采用分阶段训练和高分辨率微调等工程策略，先在 $256\times256$ 分辨率上预训练，然后再在 $512\times 512$分辨率上进行微调训练，满足高分辨率生成的质量要求。
+3.  **训练分辨率策略的优化**：通用Latent Diffusion更偏研究验证性质，只是在 $256\times256$ 分辨率上训练；Stable Diffusion采用分阶段训练和高分辨率微调等工程策略，先在 $256\times256$ 分辨率上预训练，然后再在 $512\times 512$分辨率上进行微调训练，满足高分辨率生成的质量要求。
 
 4.  **架构持续迭代升级**：通用Latent Diffusion只是一个实验性模型架构；而Stable Diffusion作为商业化模型，其架构的持续迭代（如SDXL、SD3、FLUX.1、FLUX.2等），不断突破AIGC图像创作领域的效果上限。
 
 总的来说，Stable Diffusion可以理解为Latent Diffusion的一次工程优化与扩展：更强的文本编码器、更大规模的数据、更系统的数据筛选和更面向实际场景的训练策略，共同提升了模型生成质量和可用性。
 
 
-<h2 id="q-039">面试问题：介绍一下Stable Diffusion核心网络结构与训练/推理过程</h2>
+<h2 id="q-039">面试问题：介绍一下Stable Diffusion核心架构与训练/推理过程</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Stable Diffusion是端到端的Latent Diffusion架构模型，主要由 **VAE、U-Net、CLIP Text Encoder和Scheduler** 组成。其中VAE负责连接像素空间与Latent隐空间，CLIP Text Encoder负责把自然语言转换成语义条件，U-Net负责预测噪声，Scheduler负责设计采样方法更新Latent隐空间。
+Stable Diffusion采用潜空间扩散架构。以SD 1.x为例，模型由由VAE、CLIP文本编码器、U-Net，以及负责噪声调度和采样更新的算法组件共同构成。VAE负责图像与潜变量之间的转换，CLIP文本编码器提供语义条件，U-Net预测当前Latent中的噪声，采样器依据这一预测更新Latent。经过多步更新后，VAE Decoder再把最终结果还原为RGB图像。在扩散模型训练阶段，VAE和文本编码器保持冻结，主要更新U-Net参数。下图是SD 1.x的整体架构示意图：
 
-<div align="center"><img src="./imgs/stable-diffusion-overall-architecture.jpg" alt="Stable Diffusion 整体架构及条件扩散流程" /></div>
+<div align="center">
 
-1. **CLIP模型是一个基于对比学习的多模态模型**，主要包含Text Encoder和Image Encoder两个部分，在Stable Diffusion中主要使用了Text Encoder部分。CLIP Text Encoder将输入的文本Prompt进行编码，转换成Text Embeddings（文本的语义信息），通过U-Net网络的CrossAttention模块嵌入Stable Diffusion中作为Condition条件，对生成图像的内容进行一定程度上的控制与引导。
+<img src="./imgs/stable-diffusion-overall-architecture.jpg" alt="Stable Diffusion 整体架构及条件扩散流程" />
 
-2. **VAE是基于Encoder-Decoder架构的生成模型**。VAE的Encoder（编码器）能将输入图像转换为低维Latent特征，并作为U-Net的输入。VAE的Decoder（解码器）能将低维Latent特征重建还原成像素级图像。在Latent空间进行扩散过程可以大大减少模型的计算量，对于 $512\times512$ 的图像，SD 1.x 通常把它压缩为 $4\times64\times64$ 的 Latent。
+</div>
 
-3. **U-Net是Stable Diffusion的Backbone**。进行Stable Diffusion模型训练时，VAE部分和CLIP部分通常都是冻结的，主要训练U-Net的模型参数。U-Net结构能够预测噪声，并结合Scheduler对输入的Latent特征进行去噪重构，逐步将其从高斯噪声转化成图像的Latent Feature。
+下面我们以SD 1.x模型为例，说明核心网络结构、训练过程和推理过程。对于一张512×512的图像，SD 1.x通常使用如下表示：
 
-4. Scheduler本身通常没有需要学习的神经网络参数，但它决定每一步如何根据U-Net的输出更新Latent。训练阶段常使用DDPM噪声调度，推理阶段则可以选择DDIM、Euler、DPM++、UniPC等采样方法，以不同的速度、随机性和数值轨迹完成反向去噪过程。
+<div align="center">
+
+| 模块 | 输入与输出 | 在系统中的作用 |
+|---|---|---|
+| VAE Encoder | RGB图像 → 四通道Latent特征，例如3×512×512 → 4×64×64 | 把图像转换为保留空间结构的紧凑表示，供U-Net扩散模型使用。在Latent空间进行扩散过程可以大大减少模型的计算量 |
+| CLIP Text Encoder | 文本Prompt → 编码为文本Token特征，标准配置下为77×768，省略batch维度 | 为U-Net提供主体、属性、关系和风格等语义条件 |
+| U-Net | 带噪Latent、时间步、文本特征 → 与输入Latent同形状的噪声预测 | 是Stable Diffusion的Backbone，学习不同噪声水平下，图像潜变量与文本条件之间的统计关系 |
+| 噪声调度与采样器 | 训练时常使用DDPM噪声调度；推理时依据模型预测可以选择DDIM、Euler、DPM++、UniPC等采样方法更新Latent特征 | 组织噪声水平、采样时间步和数值更新规则 |
+| VAE Decoder | 去噪完成的Latent特征 → RGB图像 | 将生成的潜变量解码为最终图像 |
+
+</div>
 
 <div align="center"><img src="./imgs/DDPM_loss.png" alt="训练损失函数" /></div>
 
