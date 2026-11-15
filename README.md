@@ -10,35 +10,6 @@
 
 </div>
 
-## ❤️ SPONSOR · RunningHub API
-
-从 AI 技术学习走向应用实践，也需要便捷的模型调用与创作工具。点击下图获取RunningHub平台免费测试API额度和优惠折扣：
-
-<div align="center">
-
-<table align="center">
-  <tr>
-    <td align="center">
-      <a href="docs/runninghub-api.md"><img src="docs/imgs/主横幅预览.png" alt="RunningHub API：点击查看服务介绍、折扣与免费测试入口" width="400"></a><br>
-      <strong><a href="https://www.runninghub.ai/">RunningHub API · 一站式大模型调用与AI在线创作平台</a></strong><br>
-    </td>
-  </tr>
-  <tr>
-    <td align="left">
-      <ul>
-        <li><strong>Seedance 满血版 API</strong> 接入全网骨折价，在线工具低至 <strong>0.21 元/秒</strong>，节省 <strong>60%–80% 成本</strong>！</li>
-        <li><strong>超稳定、高并发、高折扣</strong>，随用随充、按需弹性付费，不捆绑、不排队、不抽卡。</li>
-        <li><strong>无限画布、ComfyUI、Agent</strong> 等在线工具，支持从剧本到成片的全链路制作。</li>
-        <li>一站式接入 <strong>LLM API、多模态 API、工作流 API、AI 应用</strong>。</li>
-        <li><strong>400+ 主流模型</strong>（支持国际版权限），<strong>8000+ 版本</strong>任选。</li>
-        <li>数千家企业信赖，<strong>500 万 C 端月活</strong>验证。</li>
-      </ul>
-    </td>
-  </tr>
-</table>
-
-</div>
-
 # 
 
 🏆**AIGC算法岗方向：** 涵盖AIGC、LLM大模型、AI Agent、具身智能、传统深度学习、自动驾驶、计算机视觉、自然语言处理、机器学习、强化学习、大数据挖掘、世界模型、元宇宙、AGI等。
