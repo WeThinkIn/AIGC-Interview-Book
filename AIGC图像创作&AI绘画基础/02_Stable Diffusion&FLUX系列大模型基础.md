@@ -1058,25 +1058,85 @@ Prompt与图像不对齐，首先要说明究竟是哪一项要求没有满足�
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-SDXL仍然是Latent Diffusion Model，VAE负责把输入图像压缩为Latent，以及把去噪后的Latent解码回像素图像；文生图时不需要 Encoder，只使用 Decoder 完成重建。VAE 同时决定了高频细节、小物体特征和整体色彩的上限，因此不能把它当作扩散主干之外的“普通编解码器”。下图是SDXL的整体流程图：
+SDXL对VAE的改进，主要是在原有KL-f8架构上重新训练编码器和解码器，采用更大的训练batch，并使用EMA权重平均，提高图像经过潜空间表示后的重建质量。 网络仍采用8倍空间下采样和4通道Latent，卷积、残差块和自注意力等基本结构延续了SD 1.x的设计。
 
-<div align="center"><img src="./imgs/SDXL整体结构.png" alt="SDXL Base 与 Refiner 的级联结构" /></div>
+### 1、 结构沿用 KL-f8，升级训练策略
 
-### 1. 结构沿用 KL-f8，但训练配方升级
+KL-f8中的“KL”表示训练使用KL散度正则，“f8”表示图像的高、宽分别压缩为原来的八分之一。对于尺寸能被8整除的输入，图像和潜变量的形状为：
 
-SDXL使用与Stable Diffusion 1.5相同的KL-f8 VAE结构：Encoder将图像映射到Gaussian Latent分布，Decoder将Latent重建为像素图；Encoder与Decoder内部由GSC（GroupNorm + SiLU + Conv）、Downsample（Padding + Conv）、Upsample（Interpolate + Conv）、ResNetBlock 和 Self-Attention 等组件组成。
+$$
+x\in\mathbb R^{B\times3\times H\times W},
+\qquad
+z_{\mathrm{raw}}\in
+\mathbb R^{B\times4\times(H/8)\times(W/8)}
+$$
 
-Encoder 包含三个 DownBlock、一个 ResNetBlock 和一个 MidBlock，Decoder 对称地包含三个 UpBlock、一个 ResNetBlock 和一个 MidBlock。
+例如，一张1024×1024图像对应的Latent为4×128×128。编码器并非直接输出一张确定的特征图，而是先预测近似后验的均值与对数方差，再从该分布中采样：
 
-真正的改进重点在训练：SDXL从头训练VAE，使用更大的batch size（256，相比上个系列的9）并引入EMA（Exponential Moving Average）权重平均，以提高重建质量和鲁棒性；损失仍以感知损失（perceptual loss）与 L1 回归损失为主，兼顾视觉相似度与像素级稳定性。下图是SDXL VAE结构图：
+$$
+q_\phi(z_{\mathrm{raw}}\mid x)=
+\mathcal N\!\left(
+\mu_\phi(x),
+\mathrm{diag}\!\left(\sigma_\phi^2(x)\right)
+\right)
+$$
+
+$$
+z_{\mathrm{raw}}=
+\mu_\phi(x)+\sigma_\phi(x)\odot\eta,
+\qquad
+\eta\sim\mathcal N(0,I)
+$$
+
+其中， $\phi$ 是编码器参数， $\odot$ 表示逐元素相乘， $\eta$ 是VAE后验采样使用的随机变量，需要与扩散训练另外加入的噪声区分。均值和对数方差各占4个通道，因此后验参数张量有8个通道，最终采样得到的Latent仍为4通道。需要确定性编码时，也可以按具体流程使用后验均值。
+
+根据官方配置，编码器包含四个分辨率阶段，通道宽度为[128, 256, 512, 512]。前三个阶段之后执行下采样，最后一个阶段保持分辨率，形成：
+
+$$
+H\times W
+\longrightarrow
+\frac H2\times\frac W2
+\longrightarrow
+\frac H4\times\frac W4
+\longrightarrow
+\frac H8\times\frac W8
+$$
+
+残差块负责提取和变换局部特征，瓶颈处的自注意力让不同空间位置交换信息。编码器后接一个1×1卷积，组织高斯后验参数；解码器前也有一个1×1卷积处理潜变量。解码器通过四个阶段、三次上采样恢复像素网格。VAE中的注意力主要处理图像特征之间的关系。下图是SDXL VAE完整结构示意图：
 
 <div align="center"><img src="./imgs/SDXL-VAE完整结构.jpg" alt="Stable Diffusion XL VAE 完整结构" /></div>
 
-### 2. 重新训练改变 Latent 分布，缩放系数同步调整
+**真正的改进重点在训练**。SDXL从头训练VAE，使用更大的batch size（256），较大的batch使一次更新能够汇总更多图像的重建信号，在其他条件相近时，有助于降低梯度估计的随机波动。并引入EMA（Exponential Moving Average）权重平均，以提高重建质量和鲁棒性。EMA在训练时维护一份平滑后的参数：
 
-SD 2.x 主要是在 SD 1.x VAE 基础上微调 Decoder、保持 Encoder 权重不变，因此两者的 Latent 分布兼容；SDXL VAE 则重新训练，Latent 分布发生变化。为了让送入 U-Net 的 Latent 标准差接近 1，缩放系数从 SD 1.x/2.x 的 `0.18215` 调整为 SDXL 的 `0.13025`。这意味着 SDXL VAE 与旧版 VAE 不能直接互换：如果忽略缩放系数或跨版本替换 VAE，常见结果是偏色、噪声或细节崩溃。
+$$
+\theta_{\mathrm{EMA}}
+\leftarrow
+\rho\theta_{\mathrm{EMA}}+(1-\rho)\theta,
+\qquad 0<\rho<1
+$$
 
-切换不同的 SDXL VAE 微调版本，通常只改变细节与颜色表现，不会大幅改变构图，可把它理解为对成像风格的后处理调节。
+其中 $\theta$ 是当前训练参数， $\rho$ 控制历史权重的保留程度。这样可以减小短期参数波动对最终权重的影响。采用EMA权重推理时，只需加载这份权重，不需要同时运行多个VAE。
+
+### 2、 重新训练改变Latent分布，缩放系数同步调整
+
+SDXL VAE重新训练后，Latent分布发生变化。为了让送入U-Net的Latent标准差接近1，缩放系数从SD 1.x的 `0.18215` 调整为SDXL的 `0.13025`。这意味着 SDXL VAE与SD 1.x VAE不能直接互换：如果忽略缩放系数或跨版本替换VAE，常见结果是偏色、噪声或细节崩溃。
+
+记VAE产生的原始潜变量为 $z_{\mathrm{raw}}$ ，送入扩散模型的潜变量为 $z$ ，SDXL的对应关系为：
+
+$$
+z=s\,z_{\mathrm{raw}},
+\qquad s=0.13025
+$$
+
+采样完成后，解码前需要执行逆变换：
+
+$$
+z_{\mathrm{raw}}=\frac z{s}
+$$
+
+编码得到的潜变量在进入扩散过程前乘以该系数，采样完成后则先除回去，再交给VAE解码。纯文生图从潜空间噪声开始，不需要先编码一张图，但最终解码仍要执行对应的逆缩放。
+
+同时，在SDXL生态中，切换不同的SDXL VAE微调版本，通常只改变细节与颜色表现，不会大幅改变构图，可把它理解为对成像风格的后处理调节。
 
 
 <h2 id="q-059">面试问题：Stable Diffusion XL的Backbone部分有哪些创新？详细分析改进意图</h2>
@@ -1231,44 +1291,42 @@ SDXL 的条件化并不只是一组 `time_ids`：`original_size`、`crop_top_lef
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-SDXL Refiner是图像精细化模型，作为SDXL生态系统的第二阶段，专门负责提升图像细节质量。它采用了"专家集成"的设计理念：Base模型生成基础结构，Refiner模型优化细节表现。具体流程如下图所示：
+SDXL Refiner是一套专门处理低噪声阶段的潜空间扩散模型，用于进一步改善SDXL Base生成结果中的局部结构、材质和细节。它有独立的U-Net权重，与Base使用配套的同一套VAE潜空间。SDXL Refiner U-Net每次预测噪声，由采样器据此更新潜变量，精修完成后再由VAE Decoder还原为像素图像。具体流程如下图所示：
 
 <div align="center"><img src="./imgs/SDXL-Base与Refiner流程.jpg" alt="SDXL Base 与 Refiner 级联流程" /></div>
 
-Base 负责文生图、图生图和 inpainting，先生成结构稳定的 latent；Refiner 接收 Base latent，在较低噪声区间继续去噪，重点补足纹理、背景和人脸等高频细节。这个过程本质上是 latent 空间的 img2img，而不是重新从文本开始生成。
+SDXL Base能够独立完成从噪声到图像的生成，加入SDXL Refiner这个阶段是可选的。SDXL Base先生成结构稳定的Latent特征；SDXL Refiner接收SDXL Base生成的Latent特征，在较低噪声区间继续去噪，重点补足纹理、背景和人脸等高频细节。这个过程本质上是在Latent空间的img2img，而不是重新从文本开始生成。
 
-### 核心工作原理
+SDXL Refiner在模型架构上和SDXL Base大同小异，主要区别如下表所示：
 
-<div align="center"><img src="./imgs/SDXL-Refiner完整结构.jpg" alt="SDXL Refiner U-Net 结构" /></div>
+<div align="center">
 
-**两种使用方式**
+| 比较项 | SDXL Base | SDXL Refiner |
+|---|---|---|
+| U-Net 参数量 | 约 2.6B | 约 2.26B |
+| 文本编码器 | CLIP ViT-L＋OpenCLIP ViT-bigG | 仅 OpenCLIP ViT-bigG |
+| Cross-Attention 文本特征维度 | 2048 | 1280 |
+| U-Net 各分辨率阶段通道数 | 320、640、1280 | 384、768、1536、1536 |
 
-1. **标准流程**：Base模型完成80%去噪 → Refiner完成剩余20%精细化
-2. **SDEdit流程**：Base生成完整图像 → Refiner使用img2img技术优化
+</div>
 
-标准工作流通常让 Base 完成前约 80% 的去噪，再把剩余约 20% 的低噪声步骤交给 Refiner；也可以先由 Base 完整出图，再通过 img2img 给 latent 添加少量噪声后交给 Refiner。Refiner 只在前 200 个 timesteps（低噪声水平）上训练，因此不适合从纯噪声独立采样。
+**SDXL Base + Refiner的组合使用方式主要有两种。**
 
-### 技术特点
+**第一种用法是在同一条采样轨迹中交接潜变量**。这种用法按噪声区间分配工作：Base先处理高噪声部分，在尚未完全去噪时停止；Refiner接收中间潜变量，继续完成低噪声部分。整体数据流为：初始噪声 → Base 去噪 → 中间带噪 Latent → Refiner 继续去噪 → 最终 Latent → VAE 解码 → RGB 图像。
 
-- **双文本编码器**：OpenCLIP-ViT/G + CLIP-ViT/L，提供更好的语义理解
-- **专门优化**：针对低噪声水平的去噪过程进行特殊训练
-- **参数规模**：6.06B参数，专注于细节增强
+交接时不需要先解码成图片，也不需要再对这个中间 Latent 额外加一次噪声；它已经处在下一阶段所需的噪声状态。常见设置下，可以近似理解为Base处理前约80%的去噪工作、Refiner 处理后约20%的精细化工作。
 
-在结构上，Refiner 与 Base 共用同一个 VAE，但只使用 OpenCLIP ViT-bigG Text Encoder，并同样提取倒数第二层序列特征和 pooled text embedding；其 U-Net 的通道数与 attention 堆叠深度针对低噪声精修做了调整，参数规模略小于 Base。
+**第二种用法是完成初次生成后，再通过SDEdit精修**。这种用法是让Base完整去噪，得到最终潜变量，再向它加入适量噪声，由Refiner重新去噪，也就是常见的图生图精修任务。整体数据流为：Base 完整生成 → 对最终 Latent 重新加噪 → Refiner 低噪声去噪 → VAE 解码。
 
-### 性能提升
+这一流程可以直接使用 Base 的最终 Latent，无需先解码再编码。如果只有 RGB 图像，则先使用 SDXL 配套的 VAE Encoder 将它转为潜变量，再执行加噪和去噪。
 
-根据官方评测，SDXL Base + Refiner的组合相比之前版本：
+下图展示了SDXL Refiner精修的效果示意图：
 
-- 用户偏好度达到91%（远超SD 1.5/2.1）
+<div align="center">
 
-- 细节清晰度提升约20-30%
+<img src="./imgs/sdxl_refiner_detail_comparison_4k.png" alt="SDXL Refiner局部精修教学示意：同一场景的整体画面，以及面部、织物和器物边缘的对应局部放大" />
 
-- 整体图像质量显著改善
-
-<div align="center"><img src="./imgs/SDXL-Base与Refiner效果对比.jpg" alt="SDXL Base 与 Base+Refiner 生成效果对比" /></div>
-
-由于 Refiner 主要学习低噪声细节迁移，它也可以作为 Stable Diffusion、Midjourney、DALL·E、GAN 或其他 VAE/扩散模型的级联后处理组件；工程上可按延迟预算选择“Base-only”或“Base + Refiner”，并不要求所有场景都启用第二阶段。
+</div>
 
 
 <h1 id="q-066">6.介绍一下Stable Diffusion 3的原理和创新点</h1>
@@ -1277,51 +1335,48 @@ Base 负责文生图、图生图和 inpainting，先生成结构稳定的 latent
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-### Stable Diffusion 3 整体架构初识
+**VAE（变分自编码器，Variational Auto-Encoder）在 Stable Diffusion 3（SD 3）中依旧是不可或缺的组成部分**。SD 3对VAE最重要的改动，是在保持8倍空间下采样的基础上，将Latent特征通道数从4增加到16，提高图像经过压缩与解码后的重建质量。忽略batch维度，以通道在前的张量顺序表示：
 
-Stable Diffusion 3 是 Stability AI 发布的文生图大模型。相比此前的 Stable Diffusion 系列，它在多主题提示词的控制一致性（multi-subject prompts）、文字渲染能力（spelling abilities）以及整体图像质量（image quality）三个维度都有明显提升。
+$$
+x\in\mathbb R^{3\times H\times W}
+\quad\longrightarrow\quad
+z_{\mathrm{raw}}\in\mathbb R^{16\times(H/8)\times(W/8)}.
+$$
 
-SD 3 依旧是一个 End-to-End 模型，最大的架构亮点是扩散 Backbone 使用全新的 MM-DiT（Multimodal Diffusion Transformer）；训练目标则采用优化设计的Flow Matching，使训练过程更加高效稳定，并支持更快的采样生成。
+例如，一张1024×1024图像，在SDXL中对应4×128×128的潜变量，在SD 3中则对应 16×128×128。空间网格没有变大，同一位置能够使用的特征维度增加了。编码器可以据此形成更充分的表示，减轻纹理、边缘和细小结构在压缩过程中的损失。
 
-以开源的 Stable Diffusion 3 Medium 为例，FP16 权重约 15.8GB，其中 MM-DiT 约 4.17GB、参数量约 2B；VAE 约 168MB、参数量约 80M；CLIP ViT-L 约 246MB、参数量约 124M；OpenCLIP ViT-bigG 约 1.39GB、参数量约 695M；T5-XXL 在 FP16 下约 9.79GB、参数量约 4.7B，在 FP8 下约 4.89GB。
-
-从技术演进的角度看，Stable Diffusion 3的价值类似于传统深度学习时代的 YOLOv4：它把多模态表示、生成骨干和训练工程放在同一个系统中协同优化，因而具有较强的学习与借鉴价值。
-
-### Stable Diffusion 3 VAE部分的创新
-
-**VAE（变分自编码器，Variational Auto-Encoder）在 Stable Diffusion 3（SD 3）中依旧是不可或缺的组成部分**。从更长周期看，它仍会在 AIGC 工作流中持续承担压缩与重建职责。
-
-到目前为止，在AI绘画领域中关于VAE模型我们可以明确的得出以下经验：
-
-1. VAE作为Stable Diffusion 3的组成部分在AI绘画领域持续繁荣，是VAE模型在AIGC时代中最合适的位置。
-2. VAE在AI绘画领域的主要作用，不再是生成能力，而是辅助SD 3等AI绘画大模型的**压缩和重建能力**。
-3. **VAE的编码和解码功能，在以SD 3为核心的AI绘画工作流中有很强的兼容性、灵活性与扩展性**，也为Stable Diffusion系列模型增添了几分优雅。
-
-和之前的系列一样，在SD 3中，VAE模型依旧是将像素级图像编码成Latent特征，不过由于SD 3的扩散模型部分全部由Transformer架构组成，所以还需要将Latent特征转换成Patches特征，再送入扩散模型部分进行处理。
-
-之前SD系列中使用的VAE模型是将一个 $H \times W \times 3$ 的图像编码为 $\frac{H}{8} \times \frac{W}{8} \times d$ 的Latent特征，在8倍下采样的同时设置 $d=4$ （通道数），这种情况存在一定的压缩损失，产生的直接影响是对Latent特征重建时容易产生小物体畸变（比如人眼崩溃、文字畸变等）。
-
-所以SD 3模型通过提升 $d$ 来增强VAE的重建能力，提高重建后的图像质量。下图是SD 3技术报告中对不同 $d$ 的对比实验：
+SD 3论文中比较了4、8、16通道自编码器，三者的空间下采样倍数均为 8，如下图所示：
 
 <div align="center"><img src="./imgs/SD3中VAE的通道数（channel）消融实验.png" alt="SD 3中VAE的通道数（channel）消融实验" /></div>
 
-我们可以看到，当设置 $d=16$ 时，VAE模型的整体性能（FID指标降低、Perceptual Similarity指标降低、SSIM指标提升、PSNR指标提升）比 $d=4$ 时有较大的提升，所以SD 3确定使用了 $d=16$ （16通道）的VAE模型。
+我们可以看到，当设置通道数为16时，VAE模型的整体性能（FID指标降低、Perceptual Similarity指标降低、SSIM指标提升、PSNR指标提升）比设置通道数为4时有较大的提升，所以SD 3确定使用了16通道的VAE模型。
 
-与此同时，随着VAE的通道数增加到16，扩散模型部分（U-Net或DiT）的通道数也需要跟着修改（修改扩散模型与VAE Encoder衔接的第一层和与VAE Decoder衔接的最后一层的通道数），虽然不会对整体参数量带来大的影响，但是会增加任务整体的训练难度。**因为当通道数从4增加到16，SD 3要学习拟合的内容也增加了4倍**，我们需要增加整体参数量级来提升**模型容量（model capacity）**。下图是SD 3论文中模型通道数与模型容量的对比实验结果：
+在SD 3中，VAE模型依旧是将像素级图像编码成Latent特征，不过由于SD 3的扩散模型部分全部由Transformer架构组成，所以还需要将Latent特征转换成Patches特征，再送入扩散模型部分进行处理。
 
-<div align="center"><img src="./imgs/SD3模型容量和VAE通道数之间的关系.png" alt="SD 3模型容量和VAE通道数之间的关系" /></div>
+SD 3 VAE将2×2的潜空间区域映射为一个图像Token，通道数从4增至16时，每个patch 包含的标量数从16增至64；同样的空间网格仍产生相同数量的图像Token。
 
-当模型参数量小时，16通道VAE的重建效果并没有比4通道VAE的要更好，当模型参数量逐步增加后，16通道VAE的重建性能优势开始展现出来，**当模型的深度（depth）增加到22时，16通道的VAE的性能明显优于4通道的VAE**。
+$$
+N_{\mathrm{image}}=
+\frac{H}{16}\frac{W}{16},
+\qquad
+D_{\mathrm{patch}}
+=
+2\times2\times c_z.
+$$
 
-不过上图中展示了 8 通道 VAE 在 FID 指标上与 16 通道 VAE 接近。生成模型不能只用单一指标评价整体效果，FID 也只是图像质量的间接指标，无法充分反映细节差异。从重建效果看，16 通道 VAE 仍然具有更强的细节保真能力；当模型参数量级增大后，这一优势也转化为更高的整体性能上限和更大的优化空间。
+其中， $c_z$ 是潜变量通道数， $D_{\mathrm{patch}}$ 是投影前每个patch的特征维度。
 
-下面给出 Stable Diffusion 3 VAE 的完整结构图，用于直观理解编码、扩散前的 latent 表示与解码重建之间的关系：
+例如，1024×1024图像对应128×128的潜空间网格，划分为2×2 patch后得到64×64＝4096个图像Token。
+
+
+
+### 1、 SD 3 VAE架构
+
+下面给出SD 3 VAE的完整结构图，用于直观理解编码、扩散前的Latent特征的编码与解码重建的流程：
 
 <div align="center"><img src="./imgs/Stable-Diffusion-3-VAE完整结构图.png" alt="Stable Diffusion 3 VAE完整结构图" /></div>
 
-### VAE 结构组成与高分辨率重建表现
-
-从完整结构看，SD 3 VAE 模型包含三个基础组件：
+从完整结构看，SD 3 VAE模型包含三个基础组件：
 
 1. **GSC 组件**：GroupNorm + SiLU + Conv。
 2. **Downsample 组件**：Padding + Conv。
@@ -1329,7 +1384,46 @@ SD 3 依旧是一个 End-to-End 模型，最大的架构亮点是扩散 Backbone
 
 同时，SD 3 VAE 还包含两个核心组件：ResNetBlock 模块和 Self-Attention 模块。VAE Encoder 部分包含三个 DownBlock 模块、一个 ResNetBlock 模块以及一个 MidBlock 模块，将输入图像压缩到 Latent 空间并转换为 Gaussian Distribution；VAE Decoder 部分则执行相反的过程，输入 Latent 特征并重建为像素级图像，包含三个 UpBlock 模块、一个 ResNetBlock 模块以及一个 MidBlock 模块。
 
-在高分辨率场景下，SD 3 VAE 的重建优势更加明显。以 1024×1024 和 2048×2048 分辨率图像为例，SDXL VAE 在 2048×2048 图像上会出现较明显的内容和文字信息损失，而 SD 3 VAE 能够更好地完成高分辨率图像的压缩与重建。
+输入卷积先把RGB图像转换为特征图。 随后，特征经过四个分辨率阶段，通道宽度依次为 128、256、512、512。每个阶段包含两个残差块，前三个阶段结束后各执行一次2倍下采样，空间尺寸依次变为原来的1/2、1/4、1/8。最后一个阶段在最低分辨率上继续变换特征。
+
+瓶颈模块进一步组织压缩后的空间信息。 它的顺序是“残差块 → 自注意力 → 残差块”。自注意力的Q、K、V都来自当前图像特征，让不同空间位置交换信息；这里不接收文本特征，因此不应标成文本交叉注意力模块。
+
+输出端预测潜变量的分布参数。 归一化、SiLU激活和输出卷积得到32通道张量，其中 16通道表示均值，另外16通道表示对数方差。从这个对角高斯后验中采样，才得到最终的 16 通道潜变量：
+
+$$
+z_{\mathrm{raw}}=
+\mu_\phi(x)
++
+\exp\!\left(\frac12\ell_\phi(x)\right)\odot\eta,
+\qquad
+\eta\sim\mathcal N(0,I).
+$$
+
+其中 $\phi$ 是编码器参数。 $\mu_\phi(x)$ 是均值。 $\ell_\phi(x)$ 是对数方差，因此 $\exp(\ell_\phi(x)/2)$ 对应标准差。 $\odot$ 表示逐元素相乘。 $\eta$ 是 VAE 后验采样使用的高斯随机变量，与生成主干训练时另外加入的噪声不同。32 通道对应分布参数，16 通道对应采样结果，二者不能混为一谈。
+
+解码器接收16通道潜变量，先通过输入卷积和瓶颈模块，再经过四个阶段、三次上采样恢复图像尺寸，最后输出RGB图像。
+
+### 2、 通过固定的缩放和平移，维持潜变量与噪声的数值关系。
+
+潜变量由VAE学习得到，其均值与幅度未必与标准高斯噪声一致。SD 3论文中说明，模型根据训练数据子集上统计的全局均值和标准差，对潜变量进行归一化。
+
+官方SD 3参考实现使用下面的变换，将原始潜变量 $z_{\mathrm{raw}}$ 转换为Bcakbone主干使用的 $z$ ：
+
+$$
+z=s\left(z_{\mathrm{raw}}-b\right),
+\qquad
+s=1.5305,
+\qquad
+b=0.0609.
+$$
+
+其中平移量 $b$ 调整整体数值中心，缩放量 $s$ 调整整体幅度。接着在SD 3 Backbone采样完成后，必须先执行逆变换，再调用 VAE Decoder：
+
+$$
+z_{\mathrm{raw}}
+=
+\frac{z}{1.5305}+0.0609.
+$$
 
 
 <h2 id="q-067a">面试问题：SD 3的Backbone部分有哪些创新？详细分析改进意图</h2>
@@ -1746,20 +1840,61 @@ SD 3 先在 256×256 分辨率数据上预训练，再围绕 1024×1024 进行�
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-Stable Diffusion 3.5 是 Stable Diffusion 3 的升级版本，包含 Stable Diffusion 3.5 Large、Stable Diffusion 3.5 Large Turbo 和 Stable Diffusion 3.5 Medium 三个主要版本：
+Stable Diffusion 3.5延续了SD 3的潜空间生成与多模态Transformer路线，围绕图像质量、训练稳定性、多分辨率生成和推理速度做了进一步改进。主要包含Stable Diffusion 3.5 Large、Stable Diffusion 3.5 Large Turbo和Stable Diffusion 3.5 Medium三个主要版本，具体如下表所示：
 
-1. **Stable Diffusion 3.5 Large**：参数量约 8B，重点提升图像生成质量和提示词遵循能力，能够生成约百万像素级的高质量图像。
-2. **Stable Diffusion 3.5 Large Turbo**：Large 的蒸馏版本，只需约 4 步即可生成高质量图像，适合需要快速批量生成的场景。
-3. **Stable Diffusion 3.5 Medium**：参数量约 2.5B，使用新的 MM-DiT-X 架构与训练方法，在消费级硬件上的可用性、生成质量和定制成本之间取得平衡，可覆盖约 0.25M 到 2M 像素范围的多种分辨率。
+1. **Stable Diffusion 3.5 Large**：参数量约8B，重点提升图像生成质量和提示词遵循能力，能够生成约百万像素级的高质量图像。
+2. **Stable Diffusion 3.5 Large Turbo**：Large的蒸馏版本，只需约4步即可生成高质量图像，适合需要快速批量生成的场景。
+3. **Stable Diffusion 3.5 Medium**：参数量约2.5B，使用新的MM-DiT-X架构与训练方法，在消费级硬件上的可用性、生成质量和定制成本之间取得平衡，可覆盖约0.25M到2M像素范围的多种分辨率。
 
-### SD 3.5 的架构改进
+<div align="center">
 
-1、**引入 Query-Key 归一化（QK normalization）**：在训练大型 Transformer 模型时，QK 归一化已成为标准实践。SD3.5 也采用了这一技术，以增强模型训练的稳定性并简化后续的微调和开发。
+| 模型版本 | Backbone参数量 | 主要变化与定位 |
+|---|---:|---|
+| SD 3.5 Large | 约 8.1B | 基于MMDiT架构，重点提升图像质量与复杂提示词理解遵循能力，能够生成约 1MP（百万像素级） 高质量图像 |
+| SD 3.5 Large Turbo | 约 8.1B | 从Large蒸馏得到，只需约4步即可生成高质量图像，适合需要快速批量生成的场景 |
+| SD 3.5 Medium | 约 2.5B | 设计MMDiT-X架构，增加图像自注意力分支并改进多分辨率训练，覆盖约 0.25MP—2MP 的多种分辨率生成范围 |
 
-**2、双注意力层设计**：在 MMDiT 结构中，文本和图像两个模态通常共享同一个注意力层。然而，SD3.5 采用了两个独立的注意力层，以更好地处理多模态信息（MMDiT-X）。
+</div>
 
-<div align="center"><img src="./imgs/mmdit-x.png" alt="MMDiT-X 双注意力层设计" /></div>
+这里的 MP 表示总像素数。例如，1024×1024约为1MP，2048×2048约为4.2MP。
 
+SD 3.5 Medium的Backbne设计了MMDiT-X架构，在联合注意力之外，增加图像自注意力。具体示意图如下图所示：
+
+<div align="center">
+
+<img src="./imgs/mmdit-x.png" alt="MMDiT-X 双注意力层设计" />
+
+</div>
+
+原MMDiT为文本和图像保留各自的投影、调制和前馈网络，再把两种模态的Q、K、V沿序列维度拼接，进行联合注意力计算。图像Token因而可以读取文本条件，也可以读取其他图像位置的信息。
+
+SD 3.5 Medium在此基础上，为前部的部分Transformer块增加一条图像自注意力分支。这条分支位于前 13 个块，即从零开始编号的 0—12 层。
+
+一个MMDiT-X块可以按下面的过程理解：
+1. 文本和图像特征分别经过归一化、条件调制与投影，参与原有的图文联合注意力。
+2. 同一份块输入中的图像特征，经过另一套调制与QKV投影，进入新增的图像自注意力；该分支当前层的Q、K、V只来自图像Token。
+3. 联合注意力输出中的图像部分，与新增图像分支的输出，分别经过输出投影和门控后，加回图像残差流。
+4. 更新后的图像特征继续进入前馈网络；文本分支通过联合注意力及自己的前馈网络更新。
+
+省略时间步等全局条件，并把各分支的输出投影包含在函数中，图像侧的注意力更新可以概括为：
+
+$$
+X'=X
++
+g_{\mathrm{joint}}\odot J_X(X,C)
++
+g_{\mathrm{image}}\odot S_X(X).
+$$
+
+这里， $X$ 是图像隐藏特征， $C$ 是文本隐藏特征， $J_X$ 表示联合注意力产生的图像侧输出， $S_X$ 表示图像自注意力输出，两个 $g$ 是各自的残差门控系数， $\odot$ 表示逐元素相乘。
+
+新增分支的作用，是为图像内部的空间关系提供额外的建模能力，同时保留图文之间的信息交流。原有联合注意力本身已经能够建模图像位置之间的联系，MMDiT-X为这种联系增加专门的计算分支，有助于在不同分辨率下维持画面结构与整体协调性。
+
+**同时SD 3.5 Medium还通过渐进式多分辨率训练和位置编码裁剪，适配不同分辨率生成能力。**
+
+分辨率变化会改变图像Token的数量和空间关系。只把输出尺寸设大，并不能保证模型在新尺寸下仍能维持主体比例、完整构图和细节协调。SD 3.5 Medium的公开训练说明给出了逐步提高训练尺度的过程：**256 → 512 → 768 → 1024 → 1440，最后阶段加入混合尺度训练**。
+
+这使模型先在较低计算成本下学习图像结构，再逐渐适应更细的空间网格，并在后期共同学习不同尺寸下的生成任务。上述训练策略支撑了SD 3.5 Medium约0.25MP—2MP的生成范围。
 
 ---
 
