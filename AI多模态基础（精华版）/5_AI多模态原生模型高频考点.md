@@ -172,7 +172,7 @@ $$
 k^*=\arg\min_k\|\mathbf{z}_e-e_k\|_2,\quad \mathbf{z}_q=e_{k^*}
 $$
 
-其中 $`K`$ 为码本大小，$`e_k`$ 为第 $`k`$ 个码字，$`k^*`$ 即视觉 token。Chameleon（2024）的图像分词器把一张 $`512\times 512`$ 的图像编码为 1024 个编号（对应 $`32\times 32`$ 的特征图），码本大小 $`K=8192`$，这些编号并入规模为 65536 的 BPE 统一词表；7B 和 34B 两个规模的单一 Transformer 从零开始训练，理解和生成共用 $`\mathcal{L}_{\mathrm{NTP}}`$[7]。视觉分词器（Visual Tokenizer）通常另设重建项 $`\|\mathbf{z}_e-\mathbf{z}_q\|_2^2`$，码本用指数滑动平均或 straight-through 估计更新[26]，惯例是先训练好分词器，再训练 Transformer。
+其中 $`K`$ 为码本大小，$`e_k`$ 为第 $`k`$ 个码字，$`k^*`$ 即视觉 token。Chameleon（2024）的视觉分词器（Visual Tokenizer）把一张 $`512\times 512`$ 的图像编码为 1024 个编号（对应 $`32\times 32`$ 的特征图），码本大小 $`K=8192`$，这些编号并入规模为 65536 的 BPE 统一词表；7B 和 34B 两个规模的单一 Transformer 从零开始训练，理解和生成共用 $`\mathcal{L}_{\mathrm{NTP}}`$[7]。视觉分词器通常另设重建项 $`\|\mathbf{z}_e-\mathbf{z}_q\|_2^2`$，码本用指数滑动平均或 straight-through 估计更新[26]，惯例是先训练好分词器，再训练 Transformer。
 
 智源 Emu3 只用 next-token prediction 训练，模型共 8.49B 参数，技术报告于 2024 年发布，2026 年 1 月 28 日以论文形式发表于 *Nature*[27,28]。GenEval 是文生图的组合指令评测，总分在 0 到 1 之间。Emu3 在原始提示词下的 GenEval 为 0.54，SDXL 为 0.55，使用 GPT-4V 改写提示词后 Emu3 达到 0.66[27]。这组数字说明纯 next-token prediction 的生成质量与当时的 SDXL 相当，并未全面超过扩散模型。自回归生成器的一般机制见 [5.2.11.2](2_AI多模态核心组件高频考点.md#q5-2-11-2) ：*自回归生成器（Chameleon/Emu3/Janus-Pro）的核心机制与适用场景*
 
@@ -282,7 +282,7 @@ $$
 
 （1）没有量化误差：OCR、视觉定位、文档和图表解析这类细粒度任务受益最明显。Qwen3-VL 和 InternVL3.5 的文档理解都建立在连续特征之上，InternVL3.5 最大的版本是 InternVL3.5-241B-A28B，总参数约 240.7B[6]。
 
-（2）能复用已有语言模型的训练管线：InternVL3.5 的原生预训练阶段约使用 250B token，纯文本数据与多模态数据之比约为 1:2.5，最大序列长度 32K[6]。它的语言主干由 Qwen3 系列和 GPT-OSS 初始化，视觉编码器由 InternViT 初始化[6]，因此这一阶段属于联合继续预训练，论文仍称之为 native pre-training。
+（2）能复用已有语言模型的训练管线：InternVL3.5 论文称为原生预训练的阶段约使用 250B token，纯文本数据与多模态数据之比约为 1:2.5，最大序列长度 32K[6]。它的语言主干由 Qwen3 系列和 GPT-OSS 初始化，视觉编码器由 InternViT 初始化[6]，因此这一阶段属于联合继续预训练，论文仍称之为 native pre-training。
 
 （3）纯文本能力更易保持：视觉位置不参与词表 softmax，不与文本 token 竞争输出分布。
 
