@@ -1143,111 +1143,256 @@ $$
 
 **难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-SDXL Base 的 Backbone 仍是 U-Net，但参数量扩展到约 2.6B，约为 SD 1.x/2.x 的三倍，目标是稳定支持 1024×1024 及以上分辨率。它的关键不是简单“加深加宽”，**而是重新分配 Spatial Transformer 与下采样层的位置，把高成本的全局建模集中到更小的 feature map 上**。下图是SDXL Base的网络架构图：
+SDXL Base沿用了卷积U-Net的多尺度结构，主要调整了Transformer的分布和深度，并扩大了文本条件接口。**它在空间尺寸最大的特征图上保留卷积与残差计算，把更多Transformer计算放到较小的特征图上**。这样既保留了U-Net逐级提取、融合空间特征的能力，也增加了图像各部分之间、图像与文本之间反复交互的容量。
 
-<div align="center"><img src="./imgs/SDXL-Base-UNet完整结构.jpg" alt="Stable Diffusion XL Base U-Net 完整结构" /></div>
+这些调整使SDXL Base的U-Net达到约2.6B参数，约为SD 1.x/2.x中860M～865M的三倍，能够稳定支持1024×1024及以上分辨率生成。下图是SDXL Base的网络架构图：
 
-### 1. 从四 stage 调整为三 stage，减少一次下采样/上采样
+<div align="center">
 
-SD 1.x/2.x 的 U-Net 通常采用四 stage（可概括为 `[1,1,1,1]`），并进行三次下采样与上采样；SDXL 调整为三 stage（`[0,2,10]`），只做两次下采样与上采样。
+<img src="./imgs/SDXL-Base-UNet完整结构.jpg" alt="Stable Diffusion XL Base U-Net 完整结构" />
 
-Encoder 由两个 `CrossAttnDownBlock` 和一个 `SDXL_DownBlock` 组成，Decoder 由两个 `CrossAttnUpBlock` 和一个 `SDXL_UpBlock` 组成，中间通过 Skip Connection 传递和融合多尺度信息。
+</div>
 
-第一个 stage 不再放置 Spatial Transformer，可以显著减少高分辨率 feature map 上的显存和二次复杂度；第二、第三 stage 的空间尺寸更小，却堆叠更多 Spatial Transformer（分别为 2 个和 10 个），从而在可控成本下提升全局语义建模能力。**这种“高分辨率层少做 attention、低分辨率层集中堆 attention”的设计，使 SDXL 在扩大容量后推理耗时只比旧版增加约 20%～30%。**
+### 1、 从四 stage 调整为三 stage，减少一次下采样/上采样
 
-### 2. BasicTransformer Block 成为 U-Net 的容量核心
+SD 1.x的U-Net具有四个空间尺度，包含三次下采样。SDXL Base保留三个尺度，只进行两次下采样，再通过两次上采样返回输入潜变量的空间尺寸。
 
-SDXL 新增的 `SDXL_Spatial Transformer_X` 由 `GroupNorm + Linear + X 个 BasicTransformer Block + Linear` 构成，并保留残差连接。每个 BasicTransformer Block 由 `LayerNorm + Self-Attention + Cross-Attention + FeedForward` 组成，FeedForward 采用 GEGLU + Dropout + Linear。Self-Attention 建模 latent 内部的全局关系，Cross-Attention 将文本条件注入图像特征，循环残差结构保证网络可以加深并保持梯度稳定。
+对于128×128的潜变量输入，空间尺寸的变化为：
 
-Cross-Attention 中，latent feature 作为 Q，两个 Text Encoder 的序列特征作为 K/V。由于 latent 是 `[B,C,H,W]` 四维张量，执行 attention 前先变换为 `[B,H×W,C]`，完成后再变回 `[B,C,H,W]`；Linear 投影负责对齐不同 feature 的通道维度。
+$$
+128\times128
+\rightarrow64\times64
+\rightarrow32\times32
+\rightarrow64\times64
+\rightarrow128\times128
+$$
 
-总的来说，SDXL U-Net 的创新可概括为“减少一次尺度变换、把 attention 从最大 feature map 移到中低分辨率层、用更深的 Spatial Transformer 扩容”。它同时提高了全局语义与高分辨率细节能力，并控制了 attention 的计算成本。
+三个尺度的主要配置如下表所示。表中的通道数指各尺度残差块的输出宽度，不包含跳跃连接拼接后暂时增加的输入通道。
+
+<div align="center">
+
+| 潜空间特征尺度 | 主要通道数 | 下行路径的模块 | 单个Spatial Transformer的内部深度 |
+|---|---|---|---|
+| 128×128 | 320 | 卷积残差块，不放置Spatial Transformer | 不启用 |
+| 64×64 | 640 | 卷积残差块与Spatial Transformer交替 | 2个BasicTransformerBlock |
+| 32×32 | 1280 | 卷积残差块与Spatial Transformer交替 | 10个BasicTransformer Block |
+
+</div>
+
+其中Spatial Transformer_X由GroupNorm + Linear + X 个 BasicTransformer Block + Linear构成，并保留残差连接。
+
+每个BasicTransformer Block由LayerNorm + Self-Attention + Cross-Attention + FeedForward组成，FeedForward采用GEGLU + Dropout + Linear。
+
+**SDXL Base U-Net的设计思路是在较小特征图上加深Transformer，控制全局交互的开销**。论文用[0,2,10]概括SDXL在三个尺度上的Transformer配置。这里的0表示该尺度不放置Spatial Transformer；2和10表示相应模块内部连续堆叠的BasicTransformerBlock数量。
+
+例如，64×64下行阶段包含两组“残差块＋Spatial Transformer”，每个Spatial Transformer内部有2个BasicTransformerBlock；32×32下行阶段同样包含两组，但每个内部有10个。瓶颈和上行路径还会继续使用对应深度的Transformer。
+
+
+### 2、 BasicTransformer Block成为SDXL Base U-Net的核心模块
+
+在SDXL Base U-Net中，Spatial Transformer通过自注意力、交叉注意力和前馈网络逐步更新图像特征。
+
+Spatial Transformer用于把二维特征图接入Transformer计算。SDXL中的一条典型路径是：GroupNorm → 展平空间维度 → 线性投影 → 多个BasicTransformerBlock → 输出线性投影 → 还原二维形状 → 与模块输入相加。
+
+每个BasicTransformerBlock内部依次执行三步，并在每一步前进行LayerNorm、在结果后加上残差：
+
+$$
+X_1=X+\mathrm{SelfAttn}(\mathrm{LN}_1(X)),
+X_2=X_1+\mathrm{CrossAttn}(\mathrm{LN}_2(X_1),C),
+X_3=X_2+\mathrm{FFN}(\mathrm{LN}_3(X_2))
+$$
+
+其中，X是当前图像特征序列，C是文本条件序列，三个LayerNorm具有各自的参数。
+
+自注意力负责图像位置之间的信息交换。 例如，模型在处理人物面部、身体和背景时，需要让这些区域的表示相互联系，而不能完全独立决定各自的内容。
+
+交叉注意力把文本信息引入图像特征。 图像特征产生Q，文本条件产生K和V，使不同图像位置能够读取与自身相关的提示词信息。
+
+前馈网络继续加工每个位置的通道特征。 它采用GEGLU门控：一次输入投影产生两组中间特征，一组经GELU激活后与另一组逐元素相乘，再由输出投影映射回原维度。
+
+这些基本单元在SD 1.x中已经实现。SDXL的主要改进是它们在不同尺度上的分布、内部深度以及条件输入规模。
+
+**同时SDXL Base U-Net还扩大了文本条件接口，让增加的主干容量能够利用更丰富的语义信息。**
+
+SDXL将CLIP-L与OpenCLIP-bigG的序列特征沿特征维拼接，形成2048维的文本上下文。U-Net的Cross-Attention以这一表示为输入，再通过自己的K/V投影映射到当前注意力层使用的维度。
+
+相比SD 1.x的768维、SD 2.x的1024维文本上下文，SDXL扩大了条件接口。这既增加了可供U-Net使用的文本信息，也使相关K/V投影的输入矩阵变大。更深的Transformer与更宽的Cross-Attention上下文，共同构成了Backbone参数增长的重要来源。
+
+除了逐Token文本条件，U-Net还接收OpenCLIP-bigG的全局文本向量，以及原始尺寸、裁剪位置、目标尺寸的编码。它们组成2816维附加条件，经MLP映射后，与扩散时间步嵌入相加，再进入残差块的条件分支。这块内容具体在下个问题中进行讲解。
+
 
 <h2 id="q-060">面试问题：Stable Diffusion XL的Text Encoder部分有哪些创新？详细分析改进意图</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-SDXL 把 SD 1.x 的「单一 CLIP-L」升级为「**CLIP-L + OpenCLIP-bigG 双编码器 + Pooled Embedding 全局注入**」，这套设计在 SD 3、FLUX 中也得到延续，是新一代生成模型文本注入的重要范式。理解 SDXL 的 Text Encoder，关键是区分细粒度 token 条件和全局 pooled 条件两条路径。
+SDXL在文本条件上的主要改进，是同时使用CLIP-L与OpenCLIP-bigG两套预训练文本编码器，并把它们的输出组织成两条注入U-Net的路径：一条保留逐Token的文本特征，通过Cross-Attention注入U-Net中；另一条使用整句文本的汇总表示（全局Pooled Embedding），与时间步、尺寸和裁剪条件一起影响U-Net的特征计算。
 
-<div align="center"><img src="./imgs/SDXL-OpenCLIP-bigG结构.jpg" alt="SDXL OpenCLIP ViT-bigG Text Encoder 结构" /></div>
+这样，模型既能保留提示词中不同位置的细节信息，也能通过全局条件获得整句话的语义概括。这套设计在 SD 3、FLUX 中也得到延续，是新一代生成模型文本注入的重要范式。
 
-OpenCLIP ViT-bigG 由 32 个 CLIP Encoder 组成，特征维度更大、网络更深；OpenAI CLIP ViT-L/14 由 12 个 CLIP Encoder 组成，保留了 SD 1.x 生态熟悉的文本表征空间。两者的基本 Encoder 单元相同，但容量和训练语料不同，组合后可以同时覆盖生态兼容性与更强的语义表达。
+CLIP-L与OpenCLIP-bigG两路都先对提示词进行分词，将Token ID转换为词嵌入，再加上位置嵌入，经过多层Transformer得到文本特征。它们的基本结构相近，但深度、宽度和预训练权重不同，具体如下表所示：
 
-<div align="center"><img src="./imgs/SDXL-CLIP-ViT-L结构.jpg" alt="SDXL OpenAI CLIP ViT-L/14 Text Encoder 结构" /></div>
+<div align="center">
 
-### 1. 双 Text Encoder 的特征提取与注入链路
+| 比较项 | CLIP-L文本编码器 | OpenCLIP-bigG文本编码器 |
+|---|---|---|
+| Transformer层数 | 12层 | 32层 |
+| 隐藏特征维度 | 768 | 1280 |
+| 自注意力头数 | 12 | 20 |
+| 前馈网络中间维度 | 3072 | 5120 |
+| 前馈网络激活函数 | QuickGELU | GELU |
+| 原生最大序列长度 | 77 Token，包含起止标记 | 77 Token，包含起止标记 |
+| SDXL使用的序列特征 | 倒数第二层的逐Token表示 | 倒数第二层的逐Token表示 |
+| SDXL使用的全局文本条件 | 不采用这一路的pooled输出 | 采用经过文本投影的pooled输出 |
 
-```text
-输入 Prompt
-   │
-   ├──► CLIP-L Text Encoder ─► 倒数第二层 hidden state，shape = (77, 768)
-   │
-   └──► OpenCLIP-bigG Text Encoder ─► 倒数第二层 hidden state，shape = (77, 1280)
-                                      └─► Pooled Embedding，shape = (1280,)
+</div>
 
-细粒度路径：
-   concat([CLIP-L 序列, OpenCLIP-bigG 序列], dim=-1) → shape = (77, 2048)
-   → 作为 U-Net Cross-Attention 的 K / V
+更深、更宽的OpenCLIP-bigG提供了额外的表示容量，而保留CLIP-L使U-Net能够同时利用另一套预训练文本特征。两路表示拼接后，U-Net在训练中学习如何组合这些信息。
 
-全局路径：
-   OpenCLIP-bigG Pooled → shape = (1280,)
-   concat([Pooled Embedding, micro-conditioning time IDs], dim=-1)
-   → 经 add embedding MLP → 与 timestep embedding 融合 → 作为全局调制信号
-```
+标准流程中，同一条提示词分别进入两套编码器。忽略batch维度，两路取出的序列特征为：
 
-### 2. 双编码器的设计意图
+$$
+H_L\in\mathbb{R}^{77\times768},
+\qquad
+H_G\in\mathbb{R}^{77\times1280}
+$$
 
-- **CLIP-L 兼容旧生态**：保留 SD 1.x 时代用户熟悉的 Prompt 行为；
-- **OpenCLIP-bigG 提供更强语义**：参数量 695M，远大于 ViT-L 的 124M，对长 Prompt、复杂语义、多概念组合的理解更强；
-- **OpenCLIP-bigG 的 Pooled Embedding 提供全局风格**：Cross-Attention 偏向局部对齐，Pooled Embedding 提供整体风格与主题约束，二者互补；
-- **细粒度 + 全局双通路**：为后续 SD 3、FLUX 的多模态条件注入提供了可复用的设计基础。
+这里的77是序列位置数，768和1280是每个位置的特征维度。SDXL取两套编码器的倒数第二层隐藏状态：对于12层CLIP-L，对应第11个Transformer块的输出；对于32层OpenCLIP-bigG，对应第31个块的输出。
 
-### 3. 工程实现中的常见注意事项
+两者沿最后一个维度拼接：
 
-1. **全局 Pooled Embedding 只取第二个编码器**：SDXL 使用 OpenCLIP-bigG 的 pooled output 作为全局文本条件，并不是把两个编码器的 pooled output 拼接；它对应 [EOT]（End of Text）token 位置的聚合表示，而不是 [CLS]；
-2. **两个编码器的 padding 策略要一致**：都需要 padding 到 77 tokens，并保持 attention mask 一致；
-3. **micro-conditioning 的融合顺序不能错**：`original_size`、`crop_top_left`、`target_size` 六个标量先分别做 sinusoidal embedding，再与 OpenCLIP-bigG 的 pooled embedding 拼接，经 add embedding MLP 后与 timestep embedding 融合；
-4. **CFG 的 unconditional 分支要分别准备**：两个编码器都要对空 Prompt 编码，拼接两路 uncond 序列特征，同时保留 OpenCLIP-bigG 对应的 uncond pooled embedding；
+$$
+C=\mathrm{Concat}_{\mathrm{feat}}(H_L,H_G)
+\in\mathbb{R}^{77\times2048}
+$$
+
+拼接后仍然只有77个位置，但每个位置同时携带两套编码器的表示。增加的是每个位置可用的特征维度，文本序列没有因此变成154个Token。 原生单段输入还需为起止标记保留位置，通常最多容纳75个正文Token。
+
+**接着再从OpenCLIP-bigG提取整句表示，增加全局条件路径。**
+
+序列条件保留了多个文本位置；全局条件则将整句话组织为一个1280维向量。SDXL只采用OpenCLIP-bigG这一分支的pooled文本表示。
+
+这一表示的提取过程需要与前面的倒数第二层序列特征区分开：
+1. 完成OpenCLIP-bigG最后一个Transformer块的计算。
+2. 对最后一层输出进行最终LayerNorm。
+3. 选取文本结束标记EOT所在位置的特征。
+4. 经过文本投影层，得到1280维全局向量。
+
+这一过程可以写为：
+
+$$
+p=\mathrm{Proj}_{\mathrm{text}}
+\left(
+\mathrm{LN}\left(H_G^{\mathrm{last}}\right)_{\mathrm{EOT}}
+\right)
+\in\mathbb{R}^{1280}
+$$
+
+CLIP文本Transformer使用因果自注意力，位于句尾的EOT能够读取前面的文本信息；它又在图文对比预训练中承担整句表示的作用，因此可以用来概括文本语义。这里的pooling是选取特定位置并进行投影，不是对所有Token求平均。
+
+值得注意的是，**SDXL将全局文本向量与图像尺寸、裁剪位置等条件结合，再送入U-Net。这使模型在判断当前噪声程度时，还能同时获得整句语义和图像尺度方面的信息**。
+
+在SDXL Base中，尺寸与裁剪条件包含六个标量：
+
+$$
+m=(H_{\mathrm{orig}},W_{\mathrm{orig}},
+c_y,c_x,H_{\mathrm{target}},W_{\mathrm{target}})
+$$
+
+它们依次表示原始高度和宽度、裁剪起点的纵横坐标，以及目标高度和宽度。六个标量各自经过256维正弦位置编码，合起来得到1536维特征，再与1280维全局文本向量拼接：
+
+$$
+a=\mathrm{Concat}\left(p,\mathrm{Embed}(m)\right)
+\in\mathbb{R}^{1280+6\times256}
+=\mathbb{R}^{2816}
+$$
+
+这个2816维向量经过额外的MLP映射到1280维，再与同为1280维的扩散时间步嵌入相加，形成U-Net使用的综合条件：
+
+$$
+e=e_t+\mathrm{MLP}_{\mathrm{add}}(a)
+$$
+
+其中， $e_t$ 表示当前去噪时间步的嵌入。综合条件随后进入U-Net的残差块，作用于图像特征的计算。
+
+因此，总的来说，SDXL的两条文本条件路径分别是：
+- 序列路径：两路逐Token特征 → 沿特征维度拼接 → Cross-Attention的K/V投影 → 注入U-Net。
+- 全局路径：bigG的整句向量 → 与尺寸、裁剪嵌入拼接 → 额外MLP → 与时间步嵌入相加 → 注入U-Net残差模块。
 
 
 <h2 id="q-061">面试问题：Stable Diffusion XL中使用的训练方法有哪些创新点？</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-SDXL 的训练优化不是单个技巧，而是把数据预处理事实、噪声分布和条件注入共同纳入训练目标。下面先介绍 micro-conditioning，再说明 offset Noise 如何补足高分辨率扩散中的低频噪声覆盖。
+SDXL的训练改进围绕几个实际问题展开：训练图像的原始清晰度不同，统一缩放容易混入模糊特征；裁剪会改变构图，但普通训练没有告诉模型哪些内容经过了裁剪；固定正方形训练又限制了模型对横图、竖图的适应能力。
 
-### 1. SDXL 的 micro-conditioning（original_size / crop_top_left / target_size）是什么？为什么是 SDXL 工程化层面最关键的创新之一？
+SDXL通过尺寸与裁剪条件化、多宽高比训练和分阶段提高分辨率，处理这些数据与生成要求之间的差异；同时采用Offset Noise，调整训练噪声对整体明暗变化的扰动方式。
 
-micro-conditioning 是 SDXL 论文中最有工程价值的「不起眼小创新」，它把图像在数据预处理阶段被「裁剪、缩放、填充」过的事实**显式告诉模型**，从而修复了 SD 1.5 时代普遍存在的「人物头部缺失、构图不全、低分辨率训练数据被错误利用」等问题。
+这些方法主要改变数据组织、条件输入和加噪过程。
 
-**三个条件的具体含义**
+### 1、分阶段提高训练分辨率，并进行多分辨率训练
+
+SDXL先在较小图像上预训练，再继续提高分辨率，最后加入多宽高比训练。Base的具体训练路线如下：
 
 <div align="center">
 
-| 条件 | 含义 | 训练时的取值 | 推理时建议 |
-| --- | --- | --- | --- |
-| `original_size` | 图像在 resize 到训练分辨率前的**原始分辨率** | 数据集真实原始尺寸 | 想让模型按高分辨率风格生成时设大值（如 1024×1024 或更大） |
-| `crop_top_left` | 训练时为对齐分辨率所做的中心裁剪偏移量 $`(c_y, c_x)`$ | 真实裁剪偏移 | 通常设 (0, 0) 表示「无裁剪、构图完整」 |
-| `target_size` | 模型最终要生成的目标分辨率 | 训练分辨率 | 与 `original_size` 一致或按需求设定 |
+| 训练阶段 | 图像尺寸 | 论文明确给出的安排 |
+|---|---|---|
+| 第一阶段 | 256×256 | 预训练600,000次参数更新，batch size为2048，同时使用尺寸和裁剪条件 |
+| 第二阶段 | 512×512 | 在前一阶段基础上继续训练200,000次参数更新 |
+| 第三阶段 | 多种宽高比，像素面积接近1024×1024 | 进行多宽高比训练，并结合强度为0.05的Offset Noise；该节未列出这一阶段的总更新步数 |
 
 </div>
 
-注入方式：将 `original_size`、`crop_top_left`、`target_size` 拆成六个标量，分别经过 sinusoidal embedding 后拼接，再与 OpenCLIP-bigG 的 Pooled Embedding 一起经过 add embedding MLP，最终和 timestep embedding 融合作为 U-Net 的全局调制信号。
+较小分辨率下，每张图像需要处理的潜空间位置更少，有利于在前期扩大训练覆盖。继续提高分辨率后，模型再适应更细的纹理、局部结构与更大的空间网格。
 
-**为什么是 SDXL 工程化层面最关键的创新**
+同时，**在SDXL训练过程只能够，还按宽高比分桶进行多分辨率训练，让训练画幅更接近实际生成需求**。
 
-1. **修复「数据浪费」问题**：SD 1.x 训练时小于训练分辨率的样本会被丢弃，损失约 39% 的训练数据；SDXL 把 `original_size` 作为条件，让模型「知道这是低分辨率原图」，所有数据都能用，扩大了训练集规模与多样性；
-2. **修复「裁剪导致内容缺失」问题**：SD 1.x 中心裁剪会让人物头部 / 物体边缘被切掉，模型学到「人物没有头是合理的」；SDXL 通过 `crop_top_left` 显式标注裁剪偏移，模型在推理时设 (0, 0) 就能生成完整构图；
-3. **解锁「分辨率风格控制」**：推理时把 `original_size` 设为高值（如 4096×4096）能让模型按「高清原图风格」生成；设低值则生成颗粒感更强的「低分辨率风格」；
-4. **零额外训练成本**：仅在 conditioning 部分加几个 MLP，参数量增量可忽略，但收益巨大。
+真实图像既有横向风景，也有纵向人像。若统一裁成正方形，就会改变这些图像原有的空间组织。SDXL在最终阶段将不同宽高比的数据分配到相应分辨率桶，具体的训练尺寸包括1024×1024、768×1344、1344×768等，使每个桶的像素面积尽量接近1024×1024，高度和宽度取64的整数倍。
 
-### 2. 训练 Stable Diffusion XL 时为什么要使用 offset Noise？
+同一个batch使用同一桶的尺寸，便于直接堆叠张量；不同训练步可以切换到不同桶。图像通常仍需按比例缩放并进行有限裁剪，分桶的作用是减少与目标画幅不匹配造成的裁剪。
 
-SDXL 在高分辨率图像上训练时，普通的逐像素独立高斯噪声主要覆盖局部高频变化，无法充分改变整张图像的亮度、色调等低频统计。模型因此容易学习到“中等亮度、低对比度”的生成分布，在纯色背景、极亮或极暗场景中表现受限。
+多宽高比训练与裁剪条件可以共同使用：
+- 多宽高比训练让模型接触不同画幅。
+- 裁剪条件继续记录该画幅内实际发生的裁剪偏移。
+- 像素面积接近有助于控制不同batch之间的计算规模，但不保证显存占用与吞吐完全相同。
 
-offset Noise 的做法是在标准噪声之外，为每个样本和每个 latent 通道额外采样一个空间上共享的偏移噪声，并广播到整个 $`H\times W`$ 特征图：
+### 2、 设计micro-conditioning（original_size / crop_top_left / target_size）信息
 
-<div align="center"><img src="./imgs/SDXL-Offset-Noise对比.jpg" alt="SDXL 使用 Offset Noise 前后的色彩动态范围对比" /></div>
+micro-conditioning是SDXL论文中最有工程价值的创新点之一，它把图像在数据预处理阶段被「裁剪、缩放、填充」过的信息**显式告诉模型**，从而修复了SD 1.x时代普遍存在的「人物头部缺失、构图不全、低分辨率训练数据被错误利用」等问题。
+
+三个条件的具体含义如下表所示：
+
+<div align="center">
+
+| 条件 | 含义 | 训练时的取值 |
+| --- | --- | --- |
+| `original_size` | 图像在 resize 到训练分辨率前的**原始分辨率** | 数据集真实原始尺寸 | 
+| `crop_top_left` | 缩放后图像中，裁剪窗口的上、左偏移，顺序为纵坐标、横坐标 $(c_y, c_x)$ | 真实裁剪偏移 | 
+| `target_size` | 裁剪后的训练尺寸，即当前分辨率桶的高度和宽度 | 训练分辨率 |
+
+</div>
+
+例如，一张高800、宽1200像素的图像，要制成1024×1024训练样本，可以先按比例缩放到1024×1536，再从横向偏移256的位置裁取1024×1024区域。对应条件是：
+
+>original_size         = (800, 1200)
+>
+>crops_coords_top_left = (0, 256)
+>
+>target_size           = (1024, 1024)
+
+注入U-Net的方式主要是将 `original_size`、`crop_top_left`、`target_size` 拆成六个标量，分别经过先经过与timestep相同的sinusoidal embedding后进行拼接，再与 OpenCLIP-bigG的Pooled Embedding一起经过add embedding MLP，最终和timestep embedding融合作为U-Net的全局调制信号。具体流程如下图所示：
+
+<div align="center">
+
+<img src="./imgs/SDXL尺寸裁剪条件训练流程.png" alt="SDXL 尺寸与裁剪条件注入训练流程" />
+
+</div>
+
+### 3、 Offset Noise加强对空间平均值的扰动，改善整体明暗范围的学习
+
+SDXL在高分辨率图像上训练时，普通的逐像素独立高斯噪声主要覆盖局部高频变化，无法充分改变整张图像的亮度、色调等低频统计。模型因此容易学习到“中等亮度、低对比度”的生成分布，在纯色背景、极亮或极暗场景中表现受限。
+
+offset Noise的做法是在标准噪声之外，为每个样本和每个Latent特征通道额外采样一个空间上共享的偏移噪声，并广播到整个 $H\times W$ 特征图。
 
 ```math
 \epsilon' = \epsilon + \lambda\,\epsilon_{\mathrm{offset}},\qquad
@@ -1255,36 +1400,15 @@ offset Noise 的做法是在标准噪声之外，为每个样本和每个 latent
 \epsilon_{\mathrm{offset}}\sim\mathcal{N}(0,I_{B\times C\times1\times1})
 ```
 
-其中 $\lambda$ 是 offset Noise 的强度，`epsilon_offset` 在空间维度上保持一致，因此会整体推动某个通道的亮度或色彩，而不是只改变局部纹理。训练时使用 $`\epsilon'`$ 构造带噪 latent，推理时仍使用普通噪声；模型由此学会覆盖更宽的低频范围，生成纯黑、纯白、低照度和高对比度画面时更稳定。
+其中 $\lambda$ 是 offset Noise 的强度，默认为 $λ=0.05$ ，这相当于直接增加对通道空间平均值，也就是零频分量的扰动，让模型在训练中更多接触整体偏移的去噪任务。它有助于改善较暗、较亮等全局外观的表达。训练时使用 $\epsilon'$ 构造带噪 Latent特征，推理时仍使用普通噪声；模型由此学会覆盖更宽的低频范围，生成纯黑、纯白、低照度和高对比度画面时更稳定。
 
-工程上需要注意三点：第一，offset Noise 是训练分布的改变，微调 SDXL 时应与基础模型的噪声配置保持一致，不能只在推理端临时添加；第二，$`\lambda`$ 过大可能造成颜色漂移、细节不稳定，通常从较小值开始调参；第三，它解决的是低频动态范围问题，不能替代 micro-conditioning，前者改变噪声覆盖，后者告诉模型图像尺寸和裁剪事实。
+Offset Noise加噪流程如下图所示：
 
-### 3. SDXL 的多尺度训练与 Ratio Bucketing 如何协同？
+<div align="center">
 
-仅把训练分辨率固定为 1024×1024，会让不同长宽比的样本被强行裁剪；只依赖随机裁剪，又会损失主体边缘信息。SDXL 在尺寸/裁剪条件化的基础上引入多尺度微调，并采用 Ratio Bucketing：先按纵横比将样本分桶，使每个 bucket 的像素数尽量接近 1024×1024，相邻 bucket 的高度或宽度通常相差约 64 像素；每个 step 从同一个 bucket 采样一个 batch，再在 step 之间切换 bucket。
+<img src="./imgs/sdxl_offset_noise_mechanism_4k.png" alt="Offset Noise：独立噪声叠加每通道共享偏移，增强 Latent 空间平均值的扰动" />
 
-<div align="center"><img src="./imgs/SDXL多尺度分桶训练.jpg" alt="SDXL 多尺度 Ratio Bucketing 训练策略" /></div>
-
-这样做有三层意图：第一，减少不必要的裁剪，保留主体完整性；第二，让模型在训练阶段看到多种宽高比，避免只会生成正方形；第三，通过 bucket 内像素数近似恒定控制显存与吞吐。Aspect Ratio 也可以作为额外条件注入 U-Net，使网络区分不同尺度下的构图先验。官方推荐的默认生成尺寸仍是 1024×1024，但同一模型可以自然覆盖多种宽高比。
-
-### 4. 尺寸、裁剪、宽高比与 pooled text embedding 如何注入 U-Net？
-
-SDXL 的条件化并不只是一组 `time_ids`：`original_size`、`crop_top_left`、`target_size` 三组图像条件（共六个标量）以及 Aspect Ratio 都先经过与 timestep 相同的傅里叶/sinusoidal 编码；OpenCLIP-bigG 的 pooled text embedding 则提供全局语义。它们拼接后形成条件向量，再经过两个 Linear 层映射到与 time embedding 相同的维度，最后与 time embedding 相加，作为 U-Net 各层的全局调制信号。
-
-<div align="center"><img src="./imgs/SDXL尺寸裁剪条件训练流程.png" alt="SDXL 尺寸与裁剪条件注入训练流程" /></div>
-
-这种设计把数据预处理事实、生成尺寸先验和文本整体语义放进同一条条件通路：训练时记录真实的原始长宽与裁剪左上角坐标，推理时通常设置 `crop_top_left=(0,0)` 以请求完整构图，再通过 `original_size/target_size` 控制目标尺寸风格。自定义训练脚本必须保证这些字段的顺序、单位和 CFG 的 unconditional 分支一致，否则会出现构图偏移或条件错位。
-
-### 5. SDXL 的训练目标与策略
-
-在上述条件注入之外，SDXL 仍采用 1000 步 DDPM noise scheduler 与 ε-prediction 目标。公开文章对训练配方的整理显示，模型先在 256×256 和 512×512 阶段分别进行约 600,000 步与 200,000 步预训练（batch size=2048），再在 1024×1024 为中心的多尺度桶上微调；这一安排先扩大数据覆盖，再让模型适应目标分辨率。带噪 latent 可写为
-
-```math
-\mathbf{x}_t=\sqrt{\bar{\alpha}_t}\mathbf{x}_0+\sqrt{1-\bar{\alpha}_t}\boldsymbol{\epsilon},\qquad
-\mathcal{L}_{\mathrm{SDXL}}=\mathbb{E}\left[\left\|\boldsymbol{\epsilon}-\boldsymbol{\epsilon}_\theta(\mathbf{x}_t,t,\mathbf{c})\right\|_2^2\right]
-```
-
-其中 `c` 同时包含 token-level text conditioning 与 pooled/micro-conditioning。完整训练路线可以概括为：先在 256×256、512×512 阶段用尺寸和裁剪条件化扩大数据利用率，再在 1024×1024 像素规模附近进行多尺度分桶微调，最后通过 offset Noise 拓展亮度与色彩动态范围。几项技巧分别解决数据覆盖、构图完整性、宽高比泛化和低频色彩受限问题，组合起来才构成 SDXL 的工程化优势。
+</div>
 
 
 <h2 id="q-065">面试问题：什么是SDXL Refiner？</h2>
