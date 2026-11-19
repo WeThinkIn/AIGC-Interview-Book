@@ -1554,18 +1554,11 @@ $$
 
 **难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-DiT（Diffusion Transformer）是把扩散模型的 Backbone 从 U-Net 换成 Transformer 的奠基工作；MM-DiT（Multimodal DiT）则是 DiT 在「文本-图像联合建模」上的关键升级，是 SD 3、FLUX.1 共同的 Backbone 架构基石。
+SD 3的生成Backbone主干采用MM-DiT（Multimodal Diffusion Transformer）。它为文本和图像保留各自的特征变换参数，再通过联合注意力建立联系。这项设计兼顾了两个需求：不同模态能够按照自身特点处理信息，图像生成过程又能持续读取具体的文本内容。
 
-### 1. 原始 DiT 的核心结构
+围绕这条主线，SD 3沿用DiT的Latent分块、Transformer堆叠和条件调制，并结合位置网格适配、QK归一化方案和模型规模扩展，支持更高分辨率的生成。下面我们一起来学习SD 3 Backbne架构的设计思路，以及它们解决的问题。
 
-- 输入只有图像 Latent Token；
-- 文本条件通过 **AdaLN-Zero**（Adaptive LayerNorm 调制 scale / shift）注入到 Transformer 的每一个 block；
-- 文本条件被压缩成一个 pooled embedding 后经 MLP 给出 scale / shift；
-- 文本与图像之间**不存在 token 级 attention 交互**，文本只能通过「全局调制」影响图像。
-
-这种范式在「类别条件生成」上效果好（如 ImageNet class-conditional），但**对长 prompt、复杂语义、文字渲染不够友好**——文本的细粒度信息在 pooling 中被丢失。
-
-### 2. MM-DiT 的核心改进
+**SD 3设计的MM_DiT架构，是基于原始DiT架构针对AIGC图像创作领域的一次改进，两者区别如下图所示：**
 
 <div align="center">
 
@@ -1575,389 +1568,422 @@ DiT（Diffusion Transformer）是把扩散模型的 Backbone 从 U-Net 换成 Tr
 | **文本注入方式** | AdaLN-Zero 全局调制 | **Self-Attention 内文本与图像 token 双向交互** |
 | **权重共享** | 单套 Transformer 权重 | **图像与文本各自一套独立 Linear / FFN 权重**，但共享 Attention |
 | **跨模态交互粒度** | 全局 | **Token 级、双向** |
-| **文字渲染能力** | 弱 | **强**（双向 attention 让模型知道每个文字 token 应该出现在哪个图像 token） |
+| **文字渲染能力** | 弱 | **强** |
 | **长 prompt 利用** | 有限 | 显著增强 |
 
 </div>
 
-### 3. 关键技术细节
-
-- **双权重单注意力（Dual-Stream → Single Attention）**：图像和文本 token 各自先经过自己的 Linear / FFN（参数不共享），再在 Self-Attention 中拼接序列做联合注意力，输出后再分回各自分支；这种「两路独立、共用 attention」是 MM-DiT 的标志性设计；
-- **QK-Norm**：对 Q、K 做 L2 norm，缓解高分辨率训练时 attention logits 爆炸 / NaN 的问题；
-- **AdaLN-Zero 仍然保留**：用于注入 timestep + Pooled Text Embedding 作为全局调制；
-- **Token 拼接顺序**：通常 `[text_tokens, image_tokens]`，attention mask 全开；
-- **位置编码**：图像走 2D RoPE / 2D positional embedding；文本走 1D positional embedding；统一序列内坐标各自独立。
-
-### 4. 为什么 SD 3 选择 MM-DiT 而非 DiT
-
-1. **文字渲染需求**：DALL-E 3、Imagen 已经证明强文本对齐与文字渲染需要文本与图像 token 级交互；DiT 的全局调制做不到；
-2. **多文本编码器组合**：SD 3 用了 CLIP-L、OpenCLIP-bigG、T5-XXL 三个编码器，文本 token 数量远大于一个 pooled vector，必须有 token 级注入通道；
-3. **多模态扩展性**：未来扩展到「文本 + 参考图 + 深度 + 姿态」多条件生成，MM-DiT 的拼接式注入可以无缝扩展为更多模态序列；
-4. **保留 DiT 的 Scaling Law**：MM-DiT 仍然是纯 Transformer，沿用 DiT 的良好 scaling 性质。
-
-### MM-DiT Block 组成、位置编码与 Scaling 能力
-
-从实现结构看，SD 3 的 MM-DiT 主要包含以下核心模块：
+从实现结构看，SD 3的MM-DiT主要包含以下核心模块：
 
 1. **MM-DiT Block**：SD 3 medium 使用 24 个 MM-DiT Block 构成 Backbone 主体。每个 Block 包含两个 AdaLayerNormZero 层、一个 MM-DiT Attention 层、两个 LayerNorm 层和两个 FeedForward 层。
 2. **MM-DiT Attention**：用于让图像特征和文本特征在同等级别上进行 Attention 交互。
 3. **FeedForward**：由 GELU、Dropout 和 Linear 组成。
 
-和原生 DiT 一样，MM-DiT 会先在 Latent 空间中将图像 Latent 特征转换成 Patches 特征，Patch Size 为 $2\times2$，再将 Patch Embedding 与 Positional Embedding 相加后输入 Transformer 主架构。SD 3 使用固定的二维 Sine-Cosine Positional Embedding，本质上通过正弦和余弦函数根据 Patch 的二维位置（行和列）生成固定位置编码，使 Transformer 能够感知图像的空间布局。
+MM-DiT处理的是VAE潜空间中的带噪特征。设目标图像尺寸为 $H\times W$ ，省略批次维，带噪Latent特征为：
 
-与此同时，MM-DiT 会将文本特征中的 CLIP Pooled Embedding（全局语义信息）直接与 Timestep Embedding 相加，并通过 AdaLayerNormZero 将融合后的 Conditioning 特征注入每一个 Transformer Block。这样既保留了全局条件控制，又通过文本 Token 与图像 Token 的联合 Attention 建立细粒度对齐。
+$$
+z_t\in\mathbb{R}^{\frac H8\times\frac W8\times16}
+$$
 
-SD 3 论文还将 MM-DiT 与引入 Cross-Attention 的 CrossDiT、U-Net 和 Transformer 混合的 UViT 进行对比。实验表明，MM-DiT 的性能明显优于其他架构。其参数规模主要由模型深度决定：论文中的中间特征维度设置为 $64\cdot d$，深度为 24 时参数量约为 2B，深度为 38 时参数量约为 8B。按照论文中的规模设定，深度从 24 增加到 38 时，参数量近似按立方关系增长，即 $2\mathrm{B}\times(38/24)^3\approx8\mathrm{B}$，这也解释了不同 SD 3 版本之间的容量跨度。
+Backbone将Latent划分为不重叠的2×2Patch。每个Patch包含 $2\times2\times16=64$ 个标量，通过可学习投影映射到隐藏维度 $D$ 。图像Token数量因此为：
 
-这说明基于 Transformer 的 SD 3 具备较好的 Scaling 能力。当模型参数量持续增加时，验证损失呈现平滑下降趋势，并且与 T2I-CompBench、GenEval 和人类视觉偏好等指标具有较强相关性。不过，参数规模扩大后，学习率等超参数也需要更细致地调整，否则大模型训练可能出现发散。整体而言，SD 3 的实验仍未观察到明显的性能饱和，Scaling Law 仍然是其持续提升的重要工程基础。
+$$
+N_{\mathrm{img}}=
+\frac H{16}\cdot\frac W{16}.
+$$
+
+例如，1024×1024图像对应128×128×16的Latent；经过2×2分块后，得到64×64，即4096个图像Token。对于论文中的24层、约2B主干配置，每个Token再由64维映射到1536维。
+
+通常可以使用卷积核为2、步长为2的卷积完成Patch Embedding。这等价于把每个不重叠Patch展平后，应用同一个线性投影。网格尺寸虽然变小，但每个Token汇集了一个Patch的内容，不能仅凭使用步长卷积就断言它丢掉了某些位置的信息。
+
+下图是SD 3 MM-DiT整体架构的示意图：
+
+<div align="center">
+
+![SD 3 MM-DiT整体架构：Latent分块、图文双分支、全局条件与速度预测](./imgs/sd3_mmdit_overview_4k.png)
+
+</div>
+
+在一个典型MM-DiT块中，文本和图像分别使用各自的条件调制、QKV投影、注意力输出投影与前馈网络。两路参数可以学习不同的特征变换，不要求文本表示和图像表示始终采用同一种处理方式。下图展示了典型MM-DiT块的计算流程：
+
+<div align="center">
+
+![MM-DiT块内流程：模态专属投影、联合注意力、分路残差与前馈网络](./imgs/sd3_mmdit_block_4k.png)
+
+</div>
+
+设图像分支得到 $Q_x,K_x,V_x$ ，文本分支得到 $Q_c,K_c,V_c$ 。以图像在前、文本在后的排列为例，沿序列维拼接：
+
+$$
+Q=\begin{bmatrix}
+Q_x\\
+Q_c
+\end{bmatrix},
+\qquad
+K=
+\begin{bmatrix}
+K_x\\
+K_c
+\end{bmatrix},
+\qquad
+V=
+\begin{bmatrix}
+V_x\\
+V_c
+\end{bmatrix}.
+$$
+
+接着进行联合注意力计算。对单个注意力头，可写成：
+
+$$
+A=\mathrm{softmax}
+\left(
+\frac{QK^\top}{\sqrt{d_h}}
+\right)V
+$$
+
+其中 $d_h$ 为每个注意力头的特征维度；启用QK-Norm时，上式中的Q、K指归一化后实际参与计算的张量。矩阵乘积可以分解为四部分：
+
+$$
+QK^\top=
+\begin{bmatrix}
+Q_xK_x^\top & Q_xK_c^\top\\
+Q_cK_x^\top & Q_cK_c^\top
+\end{bmatrix}
+$$
+
+行对应发起查询的Token，列对应被读取的Token。因此，这四部分分别表达：
+- 图像Token读取其他图像Token；
+- 图像Token读取文本Token；
+- 文本Token读取图像Token；
+- 文本Token读取其他文本Token。
+图文双向交互与图像内部交互同时存在于一次联合注意力中。
+
+注意力计算完成后，输出按图像和文本序列长度拆开，分别经过各自的输出投影与残差更新，再进入各自的归一化、条件调制和前馈网络。因此，联合注意力表示两路共同参与一次信息交互，不代表两路共享QKV、MLP或全部Transformer参数。
+
+前馈网络对每个Token分别进行非线性变换。论文采用的典型设置先将特征宽度从 $D$ 扩展到 $4D$ ，经GELU激活后再映射回 $D$ 。注意力负责在不同Token之间交换信息，前馈网络进一步加工每个位置已经汇集的特征，两者承担不同作用。
+
+Token级注意力让网络访问具体文本信息，全局条件则控制当前这次特征变换应如何进行。SD 3将两路CLIP的pooled表示拼成2048维向量，经过映射后，与时间步编码经过映射得到的向量相加：
+
+$$
+y=f_{\mathrm{text}}(c_{\mathrm{pooled}})
++
+f_{\mathrm{time}}(t).
+$$
+
+这里两路映射的输出维度与主干隐藏维度一致，并非把原始pooled向量与任意维度的时间嵌入直接相加。各个块再通过自己的可学习映射，从 $y$ 生成调制参数。我们以一个残差模块子层为例，其过程可以概括为：
+
+$$
+\widetilde H
+=
+(1+\gamma(y))\odot\mathrm{LN}(H)+\beta(y),
+$$
+
+$$
+H'=
+H+g(y)\odot F(\widetilde H).
+$$
+
+其中， $H$ 是输入特征，LN为LayerNorm， $F$ 表示该子层的变换， $\odot$ 表示逐元素相乘。缩放项 $\gamma$ 调节特征幅度，平移项 $\beta$ 调整特征偏置，门控项 $g$ 控制新结果写入残差的幅度。这些系数由当前文本与时间步共同决定，并沿Token维广播。
+
+图像和文本分支、注意力与前馈子层分别使用各自的调制参数。网络由此可以在不同噪声阶段，对同一提示词采用不同的特征处理方式，而不必用一组固定变换应对整个生成过程。**这一设计延续了DiT的自适应归一化与门控残差思路**。一个残差子层中的条件调制流程如下图所示：
+
+<div align="center">
+
+![SD 3条件调制与门控残差：缩放和平移作用于归一化特征，门控控制残差更新](./imgs/sd3_adaln_modulation_4k.png)
+
+</div>
+
+将图像展平为Token序列后，还需要告诉网络各个Patch位于哪里。**SD 3为图像Token加入二维正弦余弦位置编码，让特征同时携带内容信息和二维坐标信息：**
+
+$$
+X_{\mathrm{in}}=
+\mathrm{PatchEmbed}(z_t)+P_{\mathrm{2D}}.
+$$
+
+这是加性位置编码。当训练从低分辨率扩展到高分辨率和不同长宽比时，图像Token网格的高、宽都会改变。如果简单把所有图像的位置压缩到同一个正方形范围，可能无法准确保留不同形状之间的空间尺度关系。
+
+SD 3结合位置网格的缩放与扩展，为目标训练分辨率和长宽比范围构建坐标，再按当前图像的Token网格取中心区域。这些操作用于让位置表示与实际图像网格相匹配，支持多长宽比训练和推理。具体如下图所示：
+
+<div align="center">
+
+![SD 3二维位置网格：不同长宽比从参考网格取中心区域，再与Patch特征相加](./imgs/sd3_position_grid_4k.png)
+
+</div>
+
+高分辨率训练会增加Token数量，也会改变网络面对的特征分布。**SD 3论文观察到，混合精度训练可能出现注意力logit持续增大、注意力分布过度尖锐，进而训练不稳定的问题**。
+
+**论文采用的QK-Norm方案是在注意力点积之前，对文本和图像两路的Q、K分别施加带可学习缩放的RMSNorm**。对某个注意力头中的向量 $q$ ，可以概括为：
+
+$$
+\widehat q=
+\omega_q\odot
+\frac{q}
+{\sqrt{\frac{1}{d_h}\sum_{j=1}^{d_h}q_j^2+\delta}}.
+$$
+
+其中 $\omega_q$ 是可学习缩放向量， $\delta$ 是用于数值稳定的小常数；K也有对应的归一化与缩放。RMSNorm控制向量的均方根尺度，并保留可学习调节能力，它与将向量缩放为单位长度的L2归一化不同。
+
+这样可以缓解Q、K幅度增长造成的注意力logit失控，使混合精度训练更容易保持稳定。QK-Norm的训练稳定性对照实验如下图所示：
+
+<div align="center">
+
+![SD 3论文Figure 5：QK-Norm对注意力logit峰值与注意力熵的影响](./imgs/sd3_qknorm_paper_figure5.png)
+
+</div>
+
+上图中左侧图显示注意力logit峰值，右侧图显示注意力熵；两者均对约2B、24层模型的最后5个块取平均。黄色曲线未启用QK-Norm，约6k步时出现NaN；紫色曲线启用了QK-Norm，让训练更加稳定与高效。
+
 
 <h2 id="q-067c">面试问题：SD 3的Text Encoder部分有哪些创新？详细分析改进意图</h2>
 
 **难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-### Stable Diffusion 3的Text Encoder部分的创新
-
-Stable Diffusion 3 的 Text Encoder 设计，是其文字渲染和 Prompt Following 能力提升的关键。理解这一部分时，可以沿着“编码器分工—特征融合—条件注入—工程取舍”四个环节展开。
-
-Stable Diffusion 3的文字渲染能力很强，同时遵循文本Prompts的图像生成一致性也非常好，**这些能力主要得益于SD 3采用了三个Text Encoder模型**，它们分别是：
+SD 3在SDXL双CLIP文本编码器的基础上，引入了T5-v1.1-XXL的Text Encoder，为图像生成补充更丰富的语言条件。同时把文本条件分成两条路径送入生成主干：一条保留Token级的上下文信息，参与文本与图像的联合注意力；另一条提取整段提示词的全局表示，与时间步共同调制网络。三个文本编码器具体如下：
 
 1. CLIP ViT-L（参数量约124M）
 2. OpenCLIP ViT-bigG（参数量约695M）
 3. T5-XXL Encoder（参数量约4.76B）
 
-在SD系列模型的版本迭代中，Text Encoder部分一直在优化增强。一开始SD 1.x系列的Text Encoder部分使用了CLIP ViT-L，在SD 2.x系列中换成了OpenCLIP ViT-H，到了SDXL则使用CLIP ViT-L + OpenCLIP ViT-bigG的组合作为Text Encoder。有了之前的优化经验，SD 3更进一步增加Text Encoder的数量，加入了一个参数量更大的T5-XXL Encoder模型。
-
 与SD模型的结合其实不是T5-XXL与AI绘画领域第一次结缘，早在2022年谷歌发布Imagen时，就使用了T5-XXL Encoder作为Imagen模型的Text Encoder，**并证明了预训练好的纯文本大模型能够给AI绘画大模型提供更优良的文本特征**。接着OpenAI发布的DALL-E 3也采用了T5-XXL Encoder来提取文本（Prompts）的特征信息，足以说明T5-XXL Encoder模型在AI绘画领域已经久经考验。
 
-**SD 3 加入 T5-XXL Encoder，是其文本理解能力和文字渲染能力提升的关键设计**。它说明预训练语言模型中的长程语义建模能力，可以迁移到图像生成的条件建模环节。
+下面我们详细讲解三个文本编码器的作用，省略批次维度，其中 $L_{\mathrm{T5}}$ 为T5序列的实际配置长度，如下表所示：
+
+<div align="center">
+
+| 文本编码器 | Token级特征 | 全局条件 | 在SD 3中的用途 |
+|---|---|---|---|
+| CLIP-L Text Encoder | 倒数第二层， $77\times768$ | 768维pooled向量 | 同时参与Token条件与全局调制条件的构造 |
+| OpenCLIP-bigG Text Encoder | 倒数第二层，$77\times1280$ | 1280维pooled向量 | 与CLIP-L的对应特征拼接，保留互补的文本表示 |
+| T5-v1.1-XXL Text Encoder | 最终序列输出， $L_{\mathrm{T5}}\times4096$ | 此路径不使用T5 pooled向量 | 提供额外的上下文序列，供MM-DiT联合建模 |
+
+</div>
 
 总的来说，**SD 3一共需要提取输入文本的全局语义和文本细粒度两个层面的信息特征**。
 
-首先需要**提取CLIP ViT-L和OpenCLIP ViT-bigG的Pooled Text Embeddings，它们代表了输入文本的全局语义特征**，维度大小分别是768和1280，两个embeddings拼接（concat操作）得到2048的embeddings，然后经过一个MLP网络并和Timestep Embeddings相加（add操作）。
+**全局条件表达的是整段提示词要描述怎样的内容**。两路CLIP分别输出768维和1280维的pooled表示，沿特征维拼接为2048维向量：
 
-接着我们需要**提取输入文本的细粒度特征**。这里首先分别提取CLIP ViT-L和OpenCLIP ViT-bigG的倒数第二层的特征，拼接在一起得到77x2048维度的CLIP Text Embeddings；再从T5-XXL Encoder中提取最后一层的T5 Text Embeddings特征，维度大小是77x4096（这里也限制token长度为77）。紧接着对CLIP Text Embeddings使用zero-padding得到和T5 Text Embeddings相同维度的编码特征。最后，将padding后的CLIP Text Embeddings和T5 Text Embeddings在token维度上拼接在一起，得到154x4096维度的混合Text Embeddings。这个混合Text Embeddings将通过一个linear层映射到与图像Latent的Patch Embeddings特征相同的维度大小，最终和Patch Embeddings拼接在一起送入MM-DiT中。具体流程如下图所示：
+$$
+c_{\mathrm{global}}=
+\mathrm{Concat}_{\mathrm{feat}}(p_L,p_G)
+\in\mathbb{R}^{2048}.
+$$
+
+这里的pooled表示是编码器给出的整段文本表示，不能简单理解为所有Token向量的算术平均。该向量经MLP映射后，与时间步经过正弦编码和MLP映射得到的向量相加，构成全局条件：
+
+$$
+y=\mathrm{MLP}_{\mathrm{text}}(c_{\mathrm{global}})
++
+\mathrm{MLP}_{\mathrm{time}}(\mathrm{SinEmbed}(t)).
+$$
+
+MM-DiT利用 $y$ 生成各模块所需的调制参数，使特征变换同时受到文本内容和当前噪声阶段的影响。
+
+**Token条件表示的是提示词各部分的上下文表示**。它让图像Token能够通过注意力访问具体的文本信息。SD 3的序列条件融合包含两次方向不同的拼接。
+
+先取两路CLIP的倒数第二层特征，沿特征维拼接：
+
+$$
+H_{\mathrm{CLIP}}=
+\mathrm{Concat}_{\mathrm{feat}}(H_L,H_G)
+\in\mathbb{R}^{77\times2048}.
+$$
+
+这一步保留77个序列位置，把每个位置的特征宽度从各自的768维、1280维合并为2048维。它没有将序列长度变成154。
+
+接着，沿特征维补零，把CLIP特征扩展为77×4096，与T5输出的特征宽度一致。补零只解决张量形状的兼容问题，不会增加文本语义，也不会让CLIP多读一段提示词。
+
+最后，将两类特征沿Token序列维拼接：
+
+$$
+H_{\mathrm{text}}=
+\mathrm{Concat}_{\mathrm{seq}}
+\left(
+\mathrm{Pad}_{\mathrm{feat}}(H_{\mathrm{CLIP}}),
+H_{\mathrm{T5}}
+\right)
+\in\mathbb{R}^{(77+L_{\mathrm{T5}})\times4096}.
+$$
+
+沿序列维拼接时，两部分需要具有相同的特征宽度，Token数量可以不同。SD 3中将T5长度也设为77，因此得到154×4096的文本条件。
+
+完成融合后，文本特征经线性层映射到MM-DiT的隐藏维度，与图像Token进入联合建模。文本和图像分别使用各自的变换参数，在注意力计算时交换信息。这样，图像特征可以读取文本条件，文本分支的中间表示也能结合当前图像状态继续更新。
+
+SD 3 Text Encoder的注入总体流程如下图所示：
 
 <div align="center"><img src="./imgs/SD3中TextEncoder注入和融合文本特征的示意图.png" alt="SD 3中Text Encoder注入和融合文本特征的示意图" /></div>
 
 虽然 CLIP ViT-L、OpenCLIP ViT-bigG 与 T5-XXL Encoder 的组合带来了文字渲染和文本一致性增益，但也存在上下文长度上的约束：CLIP ViT-L 和 OpenCLIP ViT-bigG 默认只能编码 77 tokens，这使原本能够处理 512 tokens 的 T5-XXL 在 SD 3 中也受限于 77 tokens。作为对比，DALL-E 3 只使用 T5-XXL 作为 Text Encoder，可以输入 512 tokens，从而更充分地发挥其长上下文能力。
 
-### 三个 Text Encoder 的结构与工程取舍
-
-从模型结构看，SD 3 的三个 Text Encoder 都是已经预训练好的语言模型。CLIP ViT-L 只包含 Transformer 结构，由 12 个 CLIPEncoderLayer 模块组成；每个 CLIPEncoderLayer 包含一个 Self-Attention 层和一个 MLP 层。OpenCLIP ViT-bigG 同样只包含 Transformer 结构，由 32 个 CLIPEncoderLayer 模块组成，每个模块也包含 Self-Attention 层和 MLP 层。T5-XXL 则由 24 个 T5-XXL Block 模块组成，每个 Block 包含 T5LayerFF 层和 T5Self-Attention 层，与 CLIP 系列的网络结构存在明显差异。
-
-由于三个 Text Encoder 的参数在 SD 3 训练过程中被冻结，训练时可以对它们的特征分别进行独立 Dropout，再送入 MM-DiT 辅助训练。这样既能实现 Classifier-Free Guidance，也使 SD 3 在推理时可以灵活组合三个 Text Encoder。按照当前章节中的训练设置，三个编码器分别以 46.3% 的概率独立 Dropout；当三个编码器都被置空时，模型同时学习无条件分支。
-
-T5-XXL 的参数量最大，因此在 2080Ti 等显存有限的 GPU 上部署 SD 3 时，可以只加载 CLIP ViT-L 与 OpenCLIP ViT-bigG，并将 T5-XXL 特征设置为 zero。这样整体图像质量通常不会明显下降，但文本理解和文字渲染能力会下降，尤其是文字渲染效果更依赖 T5-XXL。若希望进一步降低显存占用，可以使用 FP8 精度的 T5-XXL 替代 FP16，通常能够节省约 6GB 显存，同时只损失少量生成精度；这仍然优于完全移除 T5-XXL 的方案。
 
 <h2 id="q-069">面试问题：训练Stable Diffusion 3过程中官方使用了哪些训练技巧？</h2>
 
 **难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-Stable Diffusion 3的训练优化围绕几个相互关联的问题展开：如何定义生成目标，如何分配不同噪声阶段的训练样本，以及如何让数据、模型容量和训练资源相互匹配。先理解Rectified Flow、Logit-Normal采样和分辨率相关的时间步偏移，再看后面的Caption、特征缓存与稳定性优化，就能把这些方法放进同一条训练链路。
+SD 3的训练方法可以沿着一条完整流程理解：先清洗图文数据、补充图像描述并预计算冻结编码器的特征，再训练MM-DiT预测潜空间中的速度场；训练从较低分辨率起步，随后适配高分辨率和不同长宽比，最后通过偏好优化改善生成结果。
 
-### Rectified Flow训练目标与损失函数
+### 1、 使用Rectified Flow：直接学习潜变量与噪声之间的变化速度
 
-**SD 3采用Rectified Flow，将图像生成建模为潜空间中的速度场学习。** Rectified Flow来自更早的[生成建模研究](https://arxiv.org/abs/2209.03003)，SD 3的贡献是结合文本到图像任务，系统比较训练目标、时间步分布和高分辨率适配方法；FLUX.1也采用了这一生成范式。
+SD 3采用Rectified Flow训练Backbone主干。设 $x_0$ 是图像经过VAE编码并按模型约定变换后的干净潜变量， $c$ 是文本条件， $\varepsilon\sim\mathcal N(0,I)$ 是同形状的高斯噪声。采用 $t=0$ 对应数据、 $t=1$ 对应噪声的约定，训练样本由线性插值得到：
 
-设 $`x_0`$ 是目标图像经过VAE编码、缩放后的干净潜变量， $c$ 是文本条件， $`\varepsilon\sim\mathcal{N}(0,I)`$ 是与潜变量同形状的标准高斯噪声。这里讨论的是Latent空间中的计算，后面再由VAE将生成结果解码成像素图像。
-
-采用 $t=0$ 对应数据、 $t=1$ 对应噪声的约定，训练路径为：
-
-```math
+$$
 z_t=(1-t)x_0+t\varepsilon,
 \qquad
-\frac{d z_t}{dt}=\varepsilon-x_0
-```
+\frac{dz_t}{dt}=\varepsilon-x_0
+$$
 
-模型读取带噪潜变量、时间步和文本条件，预测这条路径上的变化速度。将噪声采样也显式写入期望后，基本训练损失为：
+模型读取带噪潜变量、时间步和文本条件，预测这条路径的变化速度。损失函数则比较预测值与已知速度目标之间的差异：
 
-```math
-\mathcal{L}_{\mathrm{RF}}(\theta)=
-\mathbb{E}_{(x_0,c)\sim p_{\mathrm{data}},\;t\sim\pi(t),\;\varepsilon\sim\mathcal{N}(0,I)}
+$$
+\mathcal L_{\mathrm{RF}}(\theta)=
+\mathbb E_{(x_0,c)\sim p_{\mathrm{data}},\;t\sim\pi(t),\;\varepsilon\sim\mathcal N(0,I)}
 \left[
 \left\|v_\theta(z_t,t,c)-(\varepsilon-x_0)\right\|_2^2
 \right]
-```
+$$
 
-其中， $`v_\theta`$ 是模型预测的速度场， $\pi(t)$ 是训练时间步的概率密度。每次训练只需抽取目标图、文本、噪声和一个时间步，构造 $`z_t`$ 并计算损失，不必先运行完整的多步生成过程。
+其中， $\pi(t)$ 是训练时间步的采样分布。一次训练只需抽取图文样本、噪声和一个时间步，构造带噪潜变量后计算预测误差，不必先运行完整的多步图像生成。混合分辨率训练中，如果时间步分布随分辨率变化，还需要为 $\pi$ 加上相应条件。
 
-为了看清这个期望包含哪些随机量，也可以将它写成积分形式。记 $`p_{\mathrm{G}}`$ 为标准高斯噪声密度，则：
+推理时，采样器从噪声出发，沿模型预测的速度场从 $t=1$ 向 $t=0$ 更新潜变量。训练样本采用直线插值，为学习较易数值求解的生成路径提供了目标，更稳定高效的进行训练。
 
-```math
-\mathcal{L}_{\mathrm{RF}}(\theta)=
-\int_0^1\int_{x_0,c}\int_{\varepsilon}
-\pi(t)\,p_{\mathrm{data}}(x_0,c)\,p_{\mathrm{G}}(\varepsilon)
-\left\|v_\theta((1-t)x_0+t\varepsilon,t,c)-(\varepsilon-x_0)\right\|_2^2
-\,d\varepsilon\,d(x_0,c)\,dt
-```
+### 2、 Logit-Normal时间步采样：让中间噪声阶段获得更多训练机会
 
-这里的 $`d(x_0,c)`$ 统一表示对图文数据分布求和或积分；实际训练使用小批量样本估计。这个写法暂按固定分辨率下的时间步分布展开。混合分辨率训练时，如果采样策略依赖样本分辨率， $\pi(t)$ 还应带上对应条件。
+同一张训练图像在不同噪声强度下，对模型提出的去噪要求不同。低噪声时，输入已经保留较多图像结构；高噪声时，模型需要更多依靠文本条件和学到的图像分布；在两者混合的中间阶段，模型需要判断哪些变化来自内容、哪些来自噪声。
 
-推理时从高斯噪声出发，沿学到的速度场从 $t=1$ 积分到 $t=0$。例如，Euler更新为：
+SD 3据此比较了均匀采样、Logit-Normal、Mode Sampling等方法。其中，**位置参数为0、尺度参数为1的Logit-Normal在多个评测设置中表现较稳定。它会让模型更频繁地训练中间时间段，改变训练损失在不同噪声阶段上的权重**。
 
-```math
-z_{t_{k+1}}=z_{t_k}+(t_{k+1}-t_k)v_\theta(z_{t_k},t_k,c),
-\qquad t_{k+1}\lt t_k
-```
+采样过程只需两步：
 
-时间递减，因此步长为负，更新方向与训练目标 $`\varepsilon-x_0`$ 相互配合。最终潜变量再经VAE解码得到图像。
-
-**训练样本对之间采用直线插值，并不保证模型的生成轨迹也是严格直线。** 不同数据与噪声的配对可能在同一区域产生不同速度，平方误差下的最优预测对应给定当前位置、时间和条件后的平均速度。实际生成质量还受到模型拟合、时间步覆盖和数值求解误差影响，不能由直线插值直接推出“一步即可生成”。这里的速度预测也应与DDPM使用的 $v$-prediction目标区分：后者通常写成 $`v=\alpha_t\varepsilon-\sigma_t x_0`$，系数由另一套噪声调度决定。
-
-### Logit-Normal时间步采样：调整不同噪声阶段的训练频率
-
-确定路径和速度目标之后，还要决定每次训练抽取哪个时间步。均匀采样让相同长度的时间区间获得相同概率；非均匀采样则改变模型接触各个噪声阶段的频率。若不额外做重要性权重补偿，这也会改变期望损失在时间维度上的权重。
-
-[SD 3论文第3.1节及Table 1](https://arxiv.org/html/2403.03206v1#S3.SS1)比较了Logit-Normal、带重尾的Mode Sampling等策略，其中位置参数为0、尺度参数为1的Logit-Normal在多个评测设置中表现稳定。**这里的优化重点是训练预算如何分配，线性插值路径和速度监督目标本身仍然保留。**
-
-Logit-Normal的构造分成两步：先从正态分布采样，再通过Sigmoid把实数映射到 $(0,1)$：
-
-```math
-U\sim\mathcal{N}(\mu,\sigma^2),
+$$
+u\sim\mathcal N(\mu,\sigma^2),
 \qquad
-t=\mathrm{sigmoid}(U)=\frac{1}{1+e^{-U}}
-```
+t=\mathrm{sigmoid}(u)=\frac{1}{1+e^{-u}}
+$$
 
-它的逆变换是：
+先采样正态变量，再通过Sigmoid将它映射到 $(0,1)$ 。这里的 $\mu$ 和 $\sigma$ 描述的是变换前的正态分布，不能直接当成时间步 $t$ 的均值与标准差。
+- 当 $\mu=0,\sigma=1$ 时，时间步分布关于0.5对称，相比均匀采样更集中于中间区域。当 $\mu$ 和 $\sigma$ 变化时，会产生不一样的采样效果：
+- 增大 $\mu$ 会使采样偏向高噪声端；减小 $\mu$ 会使采样偏向低噪声端。
+- 增大 $\sigma$ 会扩大Logit空间中的分散程度，也可能增加接近两端的采样，因此不宜一概理解成“更宽的单峰”。
 
-```math
-\mathrm{logit}(t)=\log\frac{t}{1-t}
-```
+这种调整改变了训练样本在时间维度上的分配，保留了原来的线性插值路径与速度监督目标。下图展示了固定 $\sigma=1$，只改变 $\mu$，展示采样重心如何移动变化：
 
 <div align="center">
 
-![SD 3时间步采样中的Logit与Sigmoid变换](./imgs/SD3-Logit与Sigmoid变换.jpg)
+![SD 3中Logit-Normal位置参数对时间步密度的影响](./imgs/SD3-Logit-Normal位置参数与采样密度.pn
+g)
 
 </div>
 
-图：Logit与Sigmoid的数学关系示意，用于说明SD 3中Logit-Normal采样如何将正态变量映射为时间步。
 
-沿用上面的参数记号，时间步的概率密度为：
+### 3、 时间步偏移：让高分辨率训练接触足够强的噪声
 
-```math
-\pi_{\mathrm{LN}}(t;\mu,\sigma)=
-\frac{1}{\sigma\sqrt{2\pi}\,t(1-t)}
-\exp\left[-\frac{(\mathrm{logit}(t)-\mu)^2}{2\sigma^2}\right],
-\qquad 0\lt t\lt1,\quad\sigma>0
-```
+从低分辨率转向高分辨率时，相同的 $t$ 未必对应相同的学习难度。图像中的相邻位置通常存在相关性，独立噪声却可以通过平均被部分抵消。因此，即使每个位置的加噪强度相同，高分辨率图像的部分低频结构仍可能更容易辨认。
 
-SD 3原论文将这两个参数记作 $m,s$。这里使用 $\mu,\sigma$，分别表示Logit空间中正态分布的均值与标准差。**它们描述的是变换前的正态变量**： $\mu$ 并非时间步 $t$ 的均值或众数，而时间步的中位数为 $\mathrm{sigmoid}(\mu)$。通过中位数可以判断采样偏向哪一端。
+SD 3论文用常量图像解释这一点：如果所有像素的真实值相同，用更多带噪像素的平均值估计它，误差会减小。若像素数由 $N_0$ 增加到 $N_1$ ，保持该理想模型中的估计不确定性，可以得到时间步映射：
 
-- $\mu=0$、 $\sigma=1$：分布关于 $t=0.5$ 对称，相比均匀采样更集中在中间时间段。
-- $\mu>0$：中位数向1移动，采样偏向高噪声阶段。
-- $`\mu\lt0`$：中位数向0移动，采样偏向低噪声阶段。
-- 调整 $\sigma$：较小时，时间步集中在 $\mathrm{sigmoid}(\mu)$ 附近；较大时，分布在Logit空间中更分散，映射后可能增加两端附近的采样，不能始终理解为一个更宽的单峰。
-
-下面的图固定 $\sigma=1$，只改变 $\mu$，展示采样重心如何向高噪声端移动：
-
-<div align="center">
-
-![SD 3中Logit-Normal位置参数对时间步密度的影响](./imgs/SD3-Logit-Normal位置参数与采样密度.jpg)
-
-</div>
-
-图：依据Logit-Normal密度函数绘制的参数示意。图中 $\alpha=e^\mu$ 表示相对于 $\mu=0$ 基准的偏移因子，其等价关系见下文。
-
-工程上直接采样正态变量即可，不需要对密度函数做数值反演：
-
-```python
-import torch
-
-
-def sample_t(shape, mu=0.0, sigma=1.0, device=None):
-    u = mu + sigma * torch.randn(shape, device=device)
-    return torch.sigmoid(u)
-```
-
-这个函数解释采样原理，不代表SD 3完整训练代码。分辨率适配还需要在此基础上考虑时间步偏移。
-
-### Timestep Schedule Shifting：适配不同分辨率的信噪比
-
-在更高分辨率上，相同噪声系数不一定产生相同程度的信号破坏。相邻位置包含相关信息，而独立噪声可以通过局部或全局平均被部分抵消。因此，高分辨率图像的低频结构在相同 $t$ 下可能更容易辨认，需要重新安排噪声尺度与采样位置。
-
-[SD 3论文第5.3.2节、式23](https://arxiv.org/html/2403.03206v1#S5.SS3.SSS2.Px3)用一个常量图像例子解释这一现象。设图像有 $N$ 个像素，所有像素的真实值均为 $q$，则：
-
-```math
-z_{t,i}=(1-t)q+t\varepsilon_i,
-\qquad \varepsilon_i\sim\mathcal{N}(0,1)
-```
-
-其中各像素的噪声相互独立。如果已知原图是常量，可以通过观测均值估计它：
-
-```math
-\widehat q=\frac{1}{N(1-t)}\sum_{i=1}^{N}z_{t,i},
-\qquad
-\mathrm{Std}(\widehat q-q)=\frac{t}{(1-t)\sqrt N}
-```
-
-像素数越多，平均操作越能抵消独立噪声，估计的不确定性越小。若从 $`N_0`$ 个像素增加到 $`N_1`$ 个像素，并希望维持这个例子中的不确定性，就得到：
-
-```math
+$$
 t'=S_\alpha(t)=\frac{\alpha t}{1+(\alpha-1)t},
 \qquad
 \alpha=\sqrt{\frac{N_1}{N_0}}
-```
+$$
 
-当 $\alpha>1$ 时，区间内部的 $t'>t$，时间步被移向更高噪声端； $\alpha=1$ 时保持不变； $`0\lt\alpha\lt1`$ 时移向较低噪声端。映射保留0和1两个端点，改变的是中间时间位置。
+当 $\alpha>1$ 时，区间内部的时间步被移向更高噪声端，0和1两个端点仍保持不变。这让高分辨率训练接触更多强噪声样本。
 
-<div align="center">
-
-![SD 3的时间步偏移映射](./imgs/SD3-Timestep-Shift映射.jpg)
-
-</div>
-
-图：SD 3式23对应的分式映射，展示不同偏移因子如何改变时间坐标。
-
-这个常量图像推导提供了选择偏移方向的依据，真实图像及其Latent并不满足全部假设，所以最终系数仍需实验确定。从 $256^2$ 到 $1024^2$，上述理想化换算得到 $\alpha=4$；SD 3实际评测了多个偏移量，并在后续 $1024\times1024$ 的训练与采样实验中采用 $\alpha=3$。这一实验选择不能直接外推为其他模型或分辨率的固定推荐值。
-
-**训练端与推理端使用偏移，作用位置不同。** 训练端对随机采样的 $t$ 做变换，改变各噪声阶段出现的频率；推理端对有限个积分节点做变换，改变数值求解网格。SD 3在上述实验中两端都采用3，但这不构成“训练与推理的偏移必须相同”的普遍定理，推理调度仍应结合模型、采样步数和质量验证选择。
-
-### Log-SNR与Logit-Normal偏移之间是什么关系？
-
-对Rectified Flow的线性插值，记 $`a_t=1-t`$、 $`b_t=t`$。由这两个系数定义的名义对数信噪比为：
-
-```math
-\lambda(t)=\log\frac{a_t^2}{b_t^2}
-=2\log\frac{1-t}{t}
-=-2\,\mathrm{logit}(t)
-```
-
-这里的Log-SNR由噪声调度系数定义，真实特征在不同通道和空间频率上的有效信噪比还与其统计特性有关。随着 $t$ 从0增大到1，信号系数减小、噪声系数增大， $\lambda(t)$ 单调下降。
+下图展示了不同 $\alpha$ 取值下，时间步偏移的效果：
 
 <div align="center">
 
-![SD 3 Rectified Flow的Logit与Log-SNR关系](./imgs/SD3-Rectified-Flow标准LogSNR.jpg)
+![SD 3的时间步偏移映射](./imgs/SD3-Timestep-Shift映射.png)
 
 </div>
 
-图：标准线性插值路径中的Logit与名义Log-SNR曲线，展示二者相差负二倍的关系。
+真实图像及其Latent不满足常量图像的全部假设，最终偏移量仍需通过实验选择。由 $256^2$ 增加到 $1024^2$ 时，上述理想化关系得到 $\alpha=4$ ；论文在后续1024×1024实验中实际采用的是 $\alpha=3$ ，并将其用于训练时间步和推理采样网格。
 
-将分式偏移 $`t'=S_\alpha(t)`$ 代入，可以得到：
+该偏移也可以写成Logit空间中的平移：
 
-```math
-\mathrm{logit}(t')=\mathrm{logit}(t)+\log\alpha,
+$$
+\mathrm{logit}(t')=\mathrm{logit}(t)+\log\alpha
+$$
+
+因此，原本服从Logit-Normal分布的时间步，偏移后仍服从这一分布，位置参数增加 $\log\alpha$ ，尺度参数保持不变。以 $\mu_0=0$ 为基准时，偏移后的参数才可以直接写成 $\mu=\log\alpha$ 。
+
+由插值系数定义的Log-SNR为：
+
+$$
+\lambda(t)=2\log\frac{1-t}{t},
 \qquad
 \lambda(t')=\lambda(t)-2\log\alpha
-```
+$$
 
-于是，如果原始时间步满足 $`\mathrm{logit}(t)\sim\mathcal{N}(\mu_0,\sigma^2)`$，偏移后就有：
+训练时，偏移改变随机时间步的出现频率；推理时，偏移改变数值积分节点的位置。实际实现应确认偏移已经施加在哪一步，避免先调整Logit-Normal的位置参数，又重复施加相同的分式偏移。
 
-```math
-\mathrm{logit}(t')\sim
-\mathcal{N}(\mu_0+\log\alpha,\sigma^2)
-```
-
-**分式时间偏移会改变Logit-Normal的位置参数，保留它的尺度参数。** 新的位置参数比原来增加 $\log\alpha$；只有原始位置参数 $`\mu_0=0`$ 时，才能直接写成 $\mu=\log\alpha$。例如基准为 $\mu=0,\sigma=1$ 时， $\alpha=3$ 对应新位置参数 $\log3\approx1.0986$，这解释了下面两组采样分布的差别。
+下图展示了SD 3中Logit-Normal采样偏移前后的分布示意：
 
 <div align="center">
 
-![SD 3中Logit-Normal采样偏移前后的分布示意](./imgs/SD3-Logit-Normal偏移采样示意.jpg)
+![SD 3中Logit-Normal采样偏移前后的分布示意](./imgs/SD3-Logit-Normal偏移采样示意.png)
 
 </div>
 
-图：基准分布与 $\alpha=3$ 偏移分布的采样直方图示意，用于解释时间步概率的变化。
+### 4、 数据清洗与重标注：补足图文监督中缺失的信息
 
-还可以将Logit空间的平移推广到同时缩放。为避免与前面分布参数混淆，将变换系数记作 $s>0$ 和 $b$：
+模型能否遵循复杂Prompt，与训练时是否见过准确的图文对应关系密切相关。例如，一张图片中有红杯和蓝盘，但Caption标签只描述“桌上的物品”，模型就难以从这条样本中明确学到颜色归属和物体位置。
 
-```math
-t'=\mathrm{sigmoid}\left(s\,\mathrm{logit}(t)+b\right)
-=\frac{e^b}{e^b+(1/t-1)^s},
-\qquad
-\lambda(t')=s\lambda(t)-2b
-```
+SD 3首先进行数据筛选，包括内容过滤、美学质量筛选，以及近重复图像去重。其中，去重使用SSCD提取图像特征，再通过聚类和相似度检查识别重复样本。这可以减少少量重复内容反复主导训练，也有助于降低模型复现训练图片的风险。
 
-这是由Logit变换直接得到的数学关系。当 $s=1$、 $b=\log\alpha$ 时，退化为SD 3使用的分式偏移；如果基准 $\mathrm{logit}(t)$ 服从标准正态分布，则变换后服从均值为 $b$、标准差为 $s$ 的正态分布。
+在文本标注上，SD 3借鉴DALL-E 3使用合成Caption的思路，用CogVLM根据图像生成补充描述。需要补充的是主体、背景、构图、属性和可见文字等信息，更准确描述图像内容。
 
-因此，Logit-Normal回答“随机时间步从什么分布采样”，Timestep Shift回答“已有时间坐标如何变换”。它们可以按上述关系组合，但不能无条件视为同一件事：对均匀时间步做分式偏移，通常不会得到Logit-Normal分布。实际实现中，也不应在已经使用 $\mu=\log\alpha$ 采样后，又无意间重复施加同一个偏移。
+原始Caption与合成Caption按50/50混合，主要是为了兼顾描述完整性与概念覆盖。 CogVLM的知识并不完备，生成描述时可能遗漏某些原始标签包含的概念。保留原始Caption，可以减少训练数据完全依赖同一个标注模型所带来的概念损失。
 
-训练目标和噪声阶段的分配确定后，还需要让图文数据提供足够准确的监督；下面的数据标签工程解决的正是这一问题。
+**具体流程可以概括为：清洗图像及原始标签 → 用CogVLM生成合成描述 → 保留两类Caption → 按50/50比例组织训练条件。**
 
-### Stable Diffusion 3 中数据标签工程的具体流程是什么样的？
-
-除了训练目标与噪声调度，训练数据的 Caption 质量也直接决定模型的文本理解和 Prompt Following 能力。
-
-**目前AI绘画大模型存在一个很大的问题是模型的文本理解能力不强**，主要是指AI绘画大模型生成的图像和输入文本Prompt的一致性不高。举个例子，如果说输入的文本Prompt非常精细复杂，那么生成的图像内容可能会缺失这些精细的信息，导致图像与文本的内容不一致。这也是AI绘画大模型Prompt Following能力的体现。
-
-产生这个问题归根结底还是由训练数据集本身所造成的，**更本质说就是图像Caption标注太过粗糙**。
-
-SD 3借鉴了DALL-E 3的数据标注方法，使用**多模态大模型CogVLM**来对训练数据集中的图像生成高质量的Caption标签。
-
-**目前来说，DALL-E 3的数据标注方法已经成为AI绘画领域的主流标注方法，很多先进的AI绘画大模型都使用了这套标签精细化的方法**。
-
-这套数据标签精细化方法的主要流程如下：
-
-1. 首先整理数据集和对应的原始标签。
-2. 接着使用CogVLM多模态大模型对原始标签进行优化扩写，获得长Caption标签。
-3. 在SD 3的训练中使用50%的长Caption标签+50%的原始标签混合训练的方式，提升SD 3模型的整体性能，同时标签的混合使用也是对模型进行正则的一种方式。
-
-这套方法的本质，是先用图像 Captioner 将粗糙的网页 Alt Text 或数据集自带标签扩写为能够描述主体、背景、位置、数量和文字细节的 Caption，再把精细标签用于训练。DALL-E 3 先训练基于 CoCa 架构的 Image Captioner；CoCa 在 CLIP 对比损失之外增加 Multimodal Text Encoder，并同时使用 Captioning 交叉熵损失，因此可以生成更细致的图像描述。
-
-在 Captioner 预训练完成后，DALL-E 3 又分别使用短 Caption 数据和长 Caption 数据进行微调，得到生成短 Caption（Short Synthetic Captions，SSC）和长 Caption（Descriptive Synthetic Captions，DSC）的模型。实验表明，合成长 Caption 对 Prompt Following 能力提升更明显；同时在合成 Caption 中混入原始 Caption，可以避免模型过拟合到某一种固定措辞范式，是一种有效的正则化手段。
-
-SD 3 沿用了 DALL-E 3 的数据标注思路，只是将 Image Captioner 从 CoCa 替换为 CogVLM，并采用 50% 原始 Caption + 50% 合成长 Caption 的配方。这个比例在提升文本一致性的同时，保留了原始数据分布，避免模型只适应过度规整的长描述。
-
-具体效果如下所示：
+论文用两个深度为15的MM-DiT模型进行对照，均训练250k步。在这一设置下，混合Caption使GenEval总体得分从43.27%提高到49.78%，颜色归属、位置关系和数量等项目获得改善；颜色识别和单物体项目则略有下降。因此，这组结果支持在这种标注策略下，整体图文对齐能力有所改善。具体对比效果如下所示：
 
 <div align="center"><img src="./imgs/SD3数据标注工程.png" alt="SD 3数据标注工程" /></div>
 
-
-### Stable Diffusion 3的图像特征和文本特征在训练前缓存策略有哪些优缺点？
+### 5、 预计算冻结编码器特征：减少训练循环中的重复工作
 
 在训练资源优化层面，官方还分析了冻结模块的特征预计算与缓存策略。
 
 SD 3与之前的版本相比，整体的参数量级大幅增加，这无疑也增加了训练成本，所以官方的技术报告中也**对SD 3训练时冻结（frozen）部分进行了分析**，主要评估了VAE、CLIP-L、CLIP-G以及T5-XXL的显存占用（Mem）、推理耗时（FP）、存储成本（Storage）、训练成本（Delta），如下图所示，T5-XXL的整体成本是最大的：
 
-<div align="center"><img src="./imgs/SD3各个结构的整体成本.png" alt="SD 3各个结构的整体成本" /></div>
+<div align="center">
+
+<img src="./imgs/SD3各个结构的整体成本.png" alt="SD 3各个结构的整体成本" />
+
+</div>
 
 **为了减少训练过程中SD 3所需显存和特征处理耗时，SD 3设计了图像特征和文本特征的预计算策略**：由于VAE、CLIP-L、CLIP-G、T5-XXL都是预训练好且在SD 3微调过程中权重被冻结的结构，所以**在训练前可以将整个数据集预计算一次图像的Latent特征和文本的Text Embeddings，并将这些特征缓存下来**，这样在整个SD 3的训练过程中就无需再次计算。同时上述冻结的模型参数也无需加载到显卡中，可以节省约20GB的显存占用。
 
-但是根据机器学习领域经典的“没有免费的午餐”定理，**预计算策略虽然为我们大幅减少了SD 3的训练成本，但是也存在其他方面的代价**。第一点是训练数据不能在训练过程中做数据增强了，所有的数据增强操作都要在训练前预处理好。第二点是预处理好的图像特征和文本特征需要一定的存储空间。第三点是训练时加载这些预处理好的特征需要一定的时间。
+但是根据机器学习领域经典的“没有免费的午餐”定理，**预计算策略虽然为我们大幅减少了SD 3的训练成本，但是也存在其他方面的代价**。第一点是训练数据不能在训练过程中做数据增强了，所有的数据增强操作都要在训练前预处理好。若希望每轮重新裁剪图像、改变颜色，或重写Caption，就需要重新生成对应特征。第二点是预处理好的图像特征和文本特征需要一定的存储空间。
 
-整体上看，**其实SD 3的预计算策略是一个空间换时间的技术**。
+### 6、 独立丢弃文本条件：支持CFG与编码器组合
 
-### Classifier-Free Guidance 如何参与 SD 3 训练
+SD 3在训练时随机将文本编码器的输出置零，使同一个MM-DiT既接触完整文本条件，也接触部分条件缺失和全部条件缺失的样本。这为推理时的Classifier-Free Guidance提供了基础。
 
-Classifier-Free Guidance（CFG）从 SD 1.x 到 SD 3、FLUX.1 都是文本条件生成的重要训练技术。它通过在训练时以一定概率将条件标签置空，让同一个模型同时学习条件分支与无条件分支，从而避免额外训练一个显式分类器。
+三个编码器的条件分别独立丢弃。若希望三路同时缺失的概率约为10%，每路的丢弃概率可由下式理解：
 
-SD 3 的三个 Text Encoder 分别以 46.3% 的概率独立 Dropout。三个编码器同时被置空的概率约为 $(46.3\%)^3\approx9.9\%$，模型因此可以在同一套参数中学习有条件和无条件的生成路径。独立 Dropout 还让推理阶段可以灵活组合三个 Text Encoder：显存有限时可以不加载 T5-XXL，只使用两个 CLIP；但如果需要高质量文字渲染，仍然应该保留 T5-XXL，因为去掉它对文字生成能力的影响最明显。
+$$
+p^3\approx0.1,
+\qquad
+p\approx\sqrt[3]{0.1}\approx0.464
+$$
 
-从机制上看，训练时被置空的文本条件相当于无条件分支，保留文本条件的样本则对应有条件分支；推理时再用两次前向结果做线性外推：
+这里丢弃的是编码器输出的条件特征。只有三路条件都缺失时，才对应完整的无文本条件情形；只缺失一路或两路时，模型仍能利用剩余的文本信息。
 
-```math
-v_{\mathrm{cfg}}=v_{\mathrm{uncond}}+s\left(v_{\mathrm{cond}}-v_{\mathrm{uncond}}\right)
-```
+推理时，在相同的带噪潜变量和时间步下，分别得到条件预测与无条件预测，再按引导强度组合：
 
-其中 $s$ 是 guidance scale。这样不需要额外训练一个显式分类器，就能在采样阶段调节文本条件的引导强度；三个编码器独立 Dropout 则进一步让模型学会不同编码器子集的组合，而不是只能依赖完整的三编码器输入。
+$$
+v_{\mathrm{cfg}}(z_t,t,c)=
+v_\theta(z_t,t,\varnothing)
++w\left[
+v_\theta(z_t,t,c)-v_\theta(z_t,t,\varnothing)
+\right]
+$$
 
-### DPO 偏好微调
+其中， $w$ 是CFG scale， $\varnothing$ 表示无文本条件。通常增大引导强度会加强文本条件的影响，但过强引导可能损害自然度与多样性。
 
-DPO（Direct Preference Optimization）最初应用于 NLP 领域，后来也用于 AI 绘画模型的偏好微调。与 SDXL 使用的 RLHF 相比，DPO 不需要单独训练 Reward Model，而是直接基于成对的人类偏好数据设计损失函数，使模型倾向于生成更符合偏好的图像。它省去了强化学习中的试错过程，训练过程更稳定，也更适合拥有大量图像偏好数据的场景。
-
-SD 3 的官方实验没有直接微调整个网络，而是在 2B 和 8B 模型上引入 Rank=128 的 LoRA 权重，分别进行约 4000 次和 2000 次迭代的偏好微调。微调后图像生成质量有所提升，尤其是文字渲染能力更强。换句话说，DPO 在这里不仅是一种优化算法，也是一种利用偏好数据校正生成分布的训练思想。
-
-### QK-Normalization 稳定高分辨率训练
-
-随着 SD 3 参数量增大，官方发现在高分辨率混合精度训练时，Attention 层的 attention-logit（Q 和 K 的矩阵乘）可能变得不稳定，导致梯度出现 NaN。为提升训练稳定性，SD 3 在 MM-DiT 的 Self-Attention 层使用 RMSNorm 对 Q-Embeddings 和 K-Embeddings 进行归一化，这就是技术报告中的 QK-Normalization。
-
-RMSNorm 不再计算均值和方差，而是基于参数激活值的均方根进行归一化。对输入向量 $x$，其核心计算可以写成：
-
-```math
-\mathrm{RMS}(x)=\sqrt{\frac{1}{d}\sum_{i=1}^{d}x_i^2},\qquad \hat{x}=\frac{x}{\mathrm{RMS}(x)},\qquad y=\gamma\hat{x}+\beta
-```
-
-它的优势在于计算量相对较小、不依赖 Batch Size，并能在小批量或单样本训练中缓解梯度爆炸和梯度消失问题。
-
-### 多尺度位置编码
-
-SD 3 先在 256×256 分辨率数据上预训练，再围绕 1024×1024 进行多尺寸微调，因此 MM-DiT 的位置编码必须支持多尺度，否则在 256×256 上学习到的位置编码无法直接适配其他分辨率。SD 3 借鉴 ViT 的二维 Frequency Embeddings，将两个一维 Frequency Embeddings 拼接，并在此基础上进行插值与扩展。
-
-假设目标分辨率的像素量为 $S^2$，SD 3 还使用 bucketed sampling，使数据集中各尺寸图像满足 $H\times W\approx S^2$，例如 2048×2048、1024×4096 和 4096×1024。由于 VAE 进行 8 倍下采样、Patch Size=2 又带来 2 倍下采样，输入 MM-DiT 的 Patch 网格相当于进行了 16 倍下采样，因此位置编码需要同时适配不同的 $h\times w$ 网格。工程上可以先将 256×256 的位置编码插值到目标正方形网格，再扩展到最大宽高，最后对具体尺寸进行 Center Crop。
-
-### 基于 DiT 的 Scaling 能力
-
-相比 U-Net，Transformer Backbone 的重要优势是具备稳定的 Scaling 能力：增加模型参数量、训练数据量和计算资源，通常可以持续提升生成能力与泛化性能。SD 3 论文设置了深度为 15、18、21、30、38 的多种 MM-DiT 规模，其中深度 38 对应约 8B 参数模型。
-
-实验显示，MM-DiT 参数量持续增加时，模型性能稳步提升，验证损失平滑下降，并与 T2I-CompBench、GenEval 和人类视觉偏好等指标保持较强相关性。不过，大模型训练也需要更细致的超参数管理：例如深度为 38 的模型训练到约 $3\times10^5$ 步时需要调整学习率以避免发散。当前参数规模下尚未出现明显的性能饱和，说明 Scaling Law 仍是 SD 3 及后续 DiT 图像模型的重要增长路径。
+独立丢弃还让模型适应不同编码器子集。论文测试了推理时保留两路CLIP、用零向量替代T5特征的情况：普通Prompt下仍有较好的可用性，复杂描述和较长文字渲染对T5的依赖更明显。**这是一种质量与资源之间的取舍**。
 
 
 <h2 id="q-075">面试问题：Stable Diffusion 3.5有哪些改进点？</h2>
