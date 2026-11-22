@@ -65,7 +65,7 @@ Apple 在 ICCV 2025 发表的 *Scaling Laws for Native Multimodal Models* 把原
 三档之间的差别可以由前向计算与梯度路径给出形式化描述。缝合路线的前向计算与损失如下式所示：
 
 $$
-\mathbf{z}=\mathrm{sg}\bigl(\mathrm{ViT}(I)\bigr),\quad \mathbf{h}=W\mathbf{z},\quad \mathcal{L}=-\sum_t\log p_\theta(y_t\mid \mathbf{h},\,y_{\lt t})
+\mathbf{z}=\mathrm{sg}\bigl(\mathrm{ViT}(I)\bigr),\quad \mathbf{h}=W\mathbf{z},\quad \mathcal{L}=-\sum_t\log p_\theta(y_t\mid \mathbf{h},\thinspace y_{\lt t})
 $$
 
 其中 $`\mathrm{sg}(\cdot)`$ 表示停止梯度，$`W`$ 为投影矩阵，$`y_t`$ 为第 $`t`$ 个文本 token。交叉熵只作用于文本 token，视觉编码器因此不接收梯度。中期融合去掉 $`\mathrm{sg}`$，视觉编码器与语言模型优化同一个语言建模损失。离散词表上的早期融合把各模态映射到同一张嵌入表，图像、文本和音频的编号在一条序列中交错排列，训练目标就是标准的下一个 token 预测（next-token prediction）：
@@ -169,7 +169,7 @@ Apple 对 457 个从零训练模型的扫描讨论的是另一个问题[1]。该
 视觉编码器先输出连续特征 $`\mathbf{z}_e\in\mathbb{R}^{d}`$，再对码本 $`\{e_k\}_{k=1}^{K}`$ 做最近邻量化：
 
 $$
-k^*=\arg\min_k\|\mathbf{z}_e-e_k\|_2,\quad \mathbf{z}_q=e_{k^*}
+k^{\ast}=\arg\min_k\Vert\mathbf{z}_e-e_k\Vert_2,\quad \mathbf{z}_q=e_{k^{\ast}}
 $$
 
 其中 $`K`$ 为码本大小，$`e_k`$ 为第 $`k`$ 个码字，$`k^*`$ 即视觉 token。Chameleon（2024）的视觉分词器（Visual Tokenizer）把一张 $`512\times 512`$ 的图像编码为 1024 个编号（对应 $`32\times 32`$ 的特征图），码本大小 $`K=8192`$，这些编号并入规模为 65536 的 BPE 统一词表；7B 和 34B 两个规模的单一 Transformer 从零开始训练，理解和生成共用 $`\mathcal{L}_{\mathrm{NTP}}`$[7]。视觉分词器通常另设重建项 $`\|\mathbf{z}_e-\mathbf{z}_q\|_2^2`$，码本用指数滑动平均或 straight-through 估计更新[26]，惯例是先训练好分词器，再训练 Transformer。
@@ -231,7 +231,7 @@ $$
 网络结构通常是一个 Transformer、两套注意力掩码和两个输出头。文本位置使用因果掩码，在词表上计算 next-token prediction；图像 patch 保持连续表征 $`\mathbf{x}\in\mathbb{R}^{N\times d}`$，损失取扩散或流匹配：
 
 $$
-\mathcal{L}_{\mathrm{diff}}=\mathbb{E}_{t,\boldsymbol{\epsilon}}\bigl[\|\boldsymbol{\epsilon}-\epsilon_\theta(\mathbf{x}_t,t,\mathbf{c})\|_2^2\bigr],\qquad \mathbf{x}_t=\alpha_t\mathbf{x}_0+\sigma_t\boldsymbol{\epsilon}
+\mathcal{L}_{\mathrm{diff}}=\mathbb{E}_{t,\boldsymbol{\epsilon}}\bigl[\Vert\boldsymbol{\epsilon}-\epsilon_\theta(\mathbf{x}_t,t,\mathbf{c})\Vert_2^2\bigr],\qquad \mathbf{x}_t=\alpha_t\mathbf{x}_0+\sigma_t\boldsymbol{\epsilon}
 $$
 
 其中 $`\mathbf{x}_0`$ 为干净的图像表征，$`\boldsymbol{\epsilon}\sim\mathcal{N}(0,I)`$ 为噪声，$`\alpha_t,\sigma_t`$ 为噪声调度系数，$`\mathbf{c}`$ 为条件。图像 token 之间通常允许双向注意力，以满足去噪对全局上下文的需求，文本保持因果约束；两类位置共享参数，只是掩码不同。总损失为 $`\mathcal{L}=\mathcal{L}_{\mathrm{NTP}}+\lambda\mathcal{L}_{\mathrm{diff}}`$，$`\lambda`$ 取值偏大时生成质量上升而语言能力下降，取值偏小时模型退化为以视觉为条件的语言模型。
@@ -271,7 +271,7 @@ $$
 其中 $`N`$ 为视觉 token 数，$`d_v`$ 和 $`d`$ 分别为视觉特征维度和语言模型隐藏维度。$`\mathbf{H}_v'`$ 作为条件前缀与文本嵌入拼接，自回归损失只作用于文本位置 $`\mathcal{T}_{\mathrm{text}}`$：
 
 $$
-\mathcal{L}=-\sum_{t\in\mathcal{T}_{\mathrm{text}}}\log p_\theta(y_t\mid \mathbf{H}_v',\,y_{\lt t})
+\mathcal{L}=-\sum_{t\in\mathcal{T}_{\mathrm{text}}}\log p_\theta(y_t\mid \mathbf{H}_v',\thinspace y_{\lt t})
 $$
 
 视觉位置不进入词表、不参与 softmax，因此不与文本竞争 logit 空间，语言分布受到的扰动较小。与缝合路线的关键差别在于这里的 ViT 不冻结，$`\partial\mathcal{L}/\partial\theta_{\mathrm{ViT}}`$ 从联合训练开始就存在。生成能力的缺失同样由结构决定：模型没有学习 $`p(\mathbf{H}_v\mid y)`$，需要图像生成时必须另接扩散头或离散码本。与缝合路线的详细对照见 [5.4.9.1](4_AI多模态主流模型核心技术高频考点.md#q5-4-9-1) ：*BLIP-2 两阶段改装与 InternVL3 原生多模态预训练有何本质区别？*
@@ -350,7 +350,7 @@ $$
 预训练阶段影响最大的可调因素之一是数据课程，即模态组成、混合比例和注入时机。混合比例在优化中对应梯度混合，每一步的有效更新可以写成：
 
 $$
-\Delta\theta \propto \alpha\,\nabla\mathcal{L}_{\mathrm{mm}}+(1-\alpha)\,\nabla\mathcal{L}_{\mathrm{text}}
+\Delta\theta \propto \alpha\thinspace\nabla\mathcal{L}_{\mathrm{mm}}+(1-\alpha)\thinspace\nabla\mathcal{L}_{\mathrm{text}}
 $$
 
 其中 $`\alpha`$ 为多模态数据所占比例，$`\mathcal{L}_{\mathrm{mm}}`$ 和 $`\mathcal{L}_{\mathrm{text}}`$ 分别为多模态数据和纯文本数据上的损失。$`\alpha`$ 过大时文本方向的梯度被淹没，$`\alpha`$ 过小时视觉梯度稀疏，对齐难以充分完成。需要区分的是，本题的「早期」指注入时机，与早期融合结构无关。2025 至 2026 年 Apple、Kimi K2.5、LongCat-Next 和文心 5.0 的公开结果可以归纳为四点结论。
