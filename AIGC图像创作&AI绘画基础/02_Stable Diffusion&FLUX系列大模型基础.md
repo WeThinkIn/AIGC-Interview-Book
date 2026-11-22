@@ -100,7 +100,7 @@ Stable Diffusion采用潜空间扩散架构。以SD 1.x为例，模型由由VAE�
 
 <div align="center">
 
-<img src="./imgs/stable-diffusion-overall-architecture.jpg" alt="Stable Diffusion 整体架构及条件扩散流程" />
+<img src="./imgs/stable-diffusion-overall-architecture.png" alt="Stable Diffusion 整体架构及条件扩散流程" />
 
 </div>
 
@@ -179,13 +179,13 @@ Stable Diffusion的图生图（img2img）是常用的二次创作能力，把输
 接着，选择一个起始时间步 $t^* = \lfloor s \cdot T \rfloor$ ，并采样与 $z_0$ 同形状的高斯噪声 $\epsilon$ 。在DDPM式的噪声参数化下，可以直接构造：
 
 $$
-z_{t^*}=
-\sqrt{\bar{\alpha}_{t^*}}\,z_0
+z_{t^*}=\sqrt{\bar{\alpha}_{t^*}}\,z_0
 +
 \sqrt{1-\bar{\alpha}_{t^*}}\,\epsilon,
 \qquad
 \epsilon\sim\mathcal{N}(0,I)
 $$
+
 其中 $z_0$ 是原图的干净Latent； $z_{t^*}$ 是用于启动图生图采样的带噪Latent； $\bar{\alpha}_{t^*}$ 由噪声调度决定，控制原图信号与噪声的相对比例； $\epsilon$ 是本次采样生成的高斯噪声。
 
 这个公式已经包含从干净Latent到指定噪声水平的累计效果，因此可以一步完成初始化，无须先执行一串逐步加噪操作。采用其他噪声参数化的采样器时，公式形式可能不同，但同样需要依据起始噪声水平构造采样状态。
@@ -272,9 +272,7 @@ SD 1.x模型中通常在采样过程中通过外部Mask与Latent特征进行融�
 假设一次采样从 $t$ 推进到较低噪声水平 $t'$ ，得到候选结果 $\widetilde{z}_{t'}$ 。同时，根据原图的干净Latent构造相同噪声水平下的参考状态：
 
 $$
-z^{\mathrm{orig}}_{t'}
-=
-\sqrt{\bar{\alpha}_{t'}}\,z^{\mathrm{orig}}_0
+z^{\mathrm{orig}}_{t'}=\sqrt{\bar{\alpha}_{t'}}\,z^{\mathrm{orig}}_0
 +
 \sqrt{1-\bar{\alpha}_{t'}}\,\epsilon
 $$
@@ -282,14 +280,12 @@ $$
 然后按照Mask融合：
 
 $$
-z_{t'}
-=
-m\odot\widetilde{z}_{t'}
+z_{t'}=m\odot\widetilde{z}_{t'}
 +
 (1-m)\odot z^{\mathrm{orig}}_{t'}
 $$
 
-其中 $\widetilde{z}_{t'}$ 是模型预测与采样器更新得到的候选结果； $z^{\mathrm{orig}}_{t'}$是原图在相同噪声水平下的Latent； $m$决定哪些位置使用生成结果； $\odot$表示逐元素相乘，单通道Mask在Latent通道上广播。
+其中 $\widetilde{z}_{t'}$ 是模型预测与采样器更新得到的候选结果； $z^{\mathrm{orig}}_{t'}$ 是原图在相同噪声水平下的Latent； $m$决定哪些位置使用生成结果； $\odot$表示逐元素相乘，单通道Mask在Latent通道上广播。
 
 这样，Mask内部沿生成过程继续变化，Mask外部则受到原图Latent的约束。融合后的结果再进入下一轮采样。到最后一步，可以使用干净原图Latent作为保留部分。下图具体展示了整个Inpainting流程：
 
@@ -1480,12 +1476,10 @@ SD 3论文中比较了4、8、16通道自编码器，三者的空间下采样倍
 SD 3 VAE将2×2的潜空间区域映射为一个图像Token，通道数从4增至16时，每个patch 包含的标量数从16增至64；同样的空间网格仍产生相同数量的图像Token。
 
 $$
-N_{\mathrm{image}}=
-\frac{H}{16}\frac{W}{16},
+N_{\mathrm{image}}=\frac{H}{16}\frac{W}{16},
 \qquad
-D_{\mathrm{patch}}
-=
-2\times2\times c_z.
+D_{\mathrm{patch}}=
+2\times2\times c_z
 $$
 
 其中， $c_z$ 是潜变量通道数， $D_{\mathrm{patch}}$ 是投影前每个patch的特征维度。
@@ -1544,9 +1538,7 @@ $$
 其中平移量 $b$ 调整整体数值中心，缩放量 $s$ 调整整体幅度。接着在SD 3 Backbone采样完成后，必须先执行逆变换，再调用 VAE Decoder：
 
 $$
-z_{\mathrm{raw}}
-=
-\frac{z}{1.5305}+0.0609.
+z_{\mathrm{raw}}=\frac{z}{1.5305}+0.0609
 $$
 
 
@@ -1674,14 +1666,11 @@ $$
 这里两路映射的输出维度与主干隐藏维度一致，并非把原始pooled向量与任意维度的时间嵌入直接相加。各个块再通过自己的可学习映射，从 $y$ 生成调制参数。我们以一个残差模块子层为例，其过程可以概括为：
 
 $$
-\widetilde H
-=
-(1+\gamma(y))\odot\mathrm{LN}(H)+\beta(y),
+\widetilde H=(1+\gamma(y))\odot\mathrm{LN}(H)+\beta(y),
 $$
 
 $$
-H'=
-H+g(y)\odot F(\widetilde H).
+H'=H+g(y)\odot F(\widetilde H)
 $$
 
 其中， $H$ 是输入特征，LN为LayerNorm， $F$ 表示该子层的变换， $\odot$ 表示逐元素相乘。缩放项 $\gamma$ 调节特征幅度，平移项 $\beta$ 调整特征偏置，门控项 $g$ 控制新结果写入残差的幅度。这些系数由当前文本与时间步共同决定，并沿Token维广播。
@@ -2120,9 +2109,7 @@ $$
 与之对应的，SD 3的平移系数为0.0609，缩放系数为1.5305，因此编码后的处理为：
 
 $$
-z_{\mathrm{SD3}}
-=
-1.5305\left(z_{\mathrm{raw}}-0.0609\right)
+z_{\mathrm{SD3}}=1.5305\left(z_{\mathrm{raw}}-0.0609\right)
 $$
 
 平移和缩放操作能将Latent特征分布的均值和方差归一化到0和1，和扩散过程加的高斯噪声在同一范围内，更加严谨和合理。
@@ -2275,9 +2262,7 @@ $$
 其中， $\mathbf p_a$ ， $\mathbf p_b$ 是两个Token的位置坐标。对于按坐标轴构造的旋转矩阵，有：
 
 $$
-\widetilde q_a^{\mathsf T}\widetilde k_b
-=
-q_a^{\mathsf T}
+\widetilde q_a^{\mathsf T}\widetilde k_b=q_a^{\mathsf T}
 R(\mathbf p_b-\mathbf p_a)
 k_b
 $$
@@ -2359,11 +2344,11 @@ FLUX.1模型完成训练后，还需要选择在哪些时间点调用Backbone进
 在公开默认路径中，映射取 $\sigma=1$ ，可以写成：
 
 $$
-t'=
-\frac{e^{\mu}t}
+t'=\frac{e^{\mu}t}
 {1+(e^{\mu}-1)t}
 $$
-其中，$\mu$是Logit空间的偏移量。若用$\alpha$表示分式映射中的乘性系数，则：
+
+其中， $\mu$ 是Logit空间的偏移量。若用 $\alpha$ 表示分式映射中的乘性系数，则：
 
 $$
 \alpha=e^\mu
@@ -2372,17 +2357,14 @@ $$
 这里调整的是时间坐标，不会改变初始高斯噪声的均值。根据图像Token数量 $L$ ，通过两个校准点构造线性函数：
 
 $$
-\mu(L)
-=
-0.5+
+\mu(L)=0.5+
 \frac{1.15-0.5}{4096-256}(L-256)
 $$
 
 FLUX.1的VAE进行8倍空间下采样，随后将潜变量中的$2\times2$区域pack处理为一个Token。在图像高宽已经按16的倍数对齐时，有：
 
 $$
-L=
-\frac{H}{16}\frac{W}{16}
+L=\frac{H}{16}\frac{W}{16}
 =
 \frac{HW}{256}
 $$
@@ -2493,9 +2475,7 @@ $$
 这里， $L_t$ 和 $L_{\mathrm{ref}}$ 分别是目标图像与参考图像的Token数量， $d$ 是每个打包Token的特征维度。随后，两组Token沿序列维度拼接：
 
 $$
-X_{\mathrm{concat}}
-=
-\mathrm{Concat}_{\mathrm{seq}}
+X_{\mathrm{concat}}=\mathrm{Concat}_{\mathrm{seq}}
 \left(X_t,X_{\mathrm{ref}}\right)
 \in
 \mathbb{R}^{(L_t+L_{\mathrm{ref}})\times d}
@@ -2534,8 +2514,7 @@ $$
 \begin{bmatrix}
 \widetilde{x}_{2j}\\
 \widetilde{x}_{2j+1}
-\end{bmatrix}
-=
+\end{bmatrix}=
 \begin{bmatrix}
 \cos(p\omega_j)&-\sin(p\omega_j)\\
 \sin(p\omega_j)&\cos(p\omega_j)
