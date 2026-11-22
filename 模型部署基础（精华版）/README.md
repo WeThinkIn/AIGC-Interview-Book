@@ -1,6 +1,6 @@
 # 《三年面试五年模拟》之模型部署基础知识高频考点（精华版）
 
-> **4 个章节 · 48 个大问题 · 128 道面试题**
+> **4 个章节 · 49 个大问题 · 131 道面试题**
 
 本模块系统梳理模型部署方向的高频面试考点，整体按「**综述 → 传统模型 → 大模型 → 性能调优**」的主线组织：先建立推理部署的全局认知框架，再分别深入 ONNX/TensorRT 的传统模型部署链路与大模型推理框架（vLLM / SGLang）的核心技术，最后落地到性能分析与调优的工具链和方法论。
 
@@ -16,9 +16,9 @@
 
   以 ONNX 与 TensorRT 两条主线展开：ONNX 的 Graph/Node/Tensor/Opset 组成、中间表示的多方对比、PyTorch 导出流程（dynamic_axes、opset_version）与实战排错（算子不支持、动态 Shape、精度不一致）；ONNX Runtime 的 Execution Provider 与图优化；TensorRT 的加速原理、从 ONNX 到 Engine 的构建流程、动态 Shape 调优与 FP16/INT8 精度评估；最后是 Triton Inference Server 的模型仓库、Backend、Instance Group 与动态批处理。
 
-- :rocket: **[6.3 大模型部署技术](6.3大模型部署技术.md)** — 10 个大问题 · 32 道面试题
+- :rocket: **[6.3 大模型部署技术](6.3大模型部署技术.md)** — 11 个大问题 · 37 道面试题
 
-  从大模型推理与传统推理的本质差异（自回归解码、Prefill/Decode 两阶段、KV Cache 显存墙）切入，深入 vLLM V1（EngineCore、PagedAttention、连续批处理、Prefix Caching）与 SGLang（RadixAttention、前端 DSL、约束解码）；覆盖大模型量化（PTQ/QAT/AWQ/GPTQ/FP8、KV Cache 量化）与底层优化（FlashAttention、MQA/GQA、CUDA Graph）；再延伸至 PD 分离、推测解码、TTFT/TPOT 评测与压测、分布式并行部署（TP/PP/DP），以及显存 OOM、延迟抖动等生产环境排查。
+  从大模型推理与传统推理的本质差异（自回归解码、Prefill/Decode 两阶段、KV Cache 显存墙）切入，深入 vLLM V1（EngineCore、PagedAttention、Eager/CUDA Graph、Prefix Caching）与 SGLang（RadixAttention、前端 DSL、约束解码）；覆盖大模型量化（PTQ/QAT/AWQ/GPTQ/FP8、KV Cache 量化）、Continuous Batching、底层 Attention 优化（FlashAttention、MQA/GQA、DSA、FlashMLA）与大模型推理中的常见算子融合方案（Input+Embedding、Add+RMSNorm）；再延伸至 PD 分离、推测解码、TTFT/TPOT 评测与压测、分布式并行部署（TP/PP/DP），以及显存 OOM、延迟抖动等生产环境排查。
 
 - :eyes: **[6.4 性能分析与调优工具](6.4性能分析与调优工具.md)** — 12 个大问题 · 28 道面试题
 
