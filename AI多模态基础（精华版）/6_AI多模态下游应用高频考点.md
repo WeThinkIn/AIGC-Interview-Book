@@ -17,7 +17,7 @@
 ### [5.6.3 如何拆解代表性产品中理解类功能背后的多模态方案](#q563)
 - [5.6.3.1 面试问题：豆包「拍照解题」功能背后应用了哪些多模态方案？](#q5631)
 - [5.6.3.2 面试问题：Kimi「长 PDF 解析问答」应该用长上下文直读还是多模态 RAG？](#q5632)
-- [5.6.3.3 面试问题：以图搜图与拍照购物为什么采用检索式而非生成式方案？](#q5633)
+- [5.6.3.3 面试问题：以图搜图与拍照购物为什么以检索式方案为主链路？](#q5633)
 
 ### [5.6.4 如何拆解代表性产品中交互与生成类功能背后的多模态方案](#q564)
 - [5.6.4.1 面试问题：豆包「实时语音视频通话」功能背后应用了哪些多模态方案？](#q5641)
@@ -122,7 +122,7 @@ $$
 任务固定、流量增大之后，用大模型批量生成带推理链的标注，再训练一个专用小模型。Hinton 等人提出的蒸馏目标是硬标签交叉熵与教师软分布 KL 散度的加权[3]：
 
 $$
-\mathcal{L}_{\text{distill}} = \alpha\,\mathcal{L}_{\text{CE}}\bigl(y,\,p_s\bigr) + (1-\alpha)\,\tau^{2}\,\mathrm{KL}\bigl(p_t^{\tau}\,\Vert\,p_s^{\tau}\bigr)
+\mathcal{L}_{\text{distill}} = \alpha\thinspace\mathcal{L}_{\text{CE}}\bigl(y,\thinspace p_s\bigr) + (1-\alpha)\thinspace\tau^{2}\thinspace\mathrm{KL}\bigl(p_t^{\tau}\thinspace\Vert\thinspace p_s^{\tau}\bigr)
 $$
 
 其中温度 $`\tau`$ 使教师分布 $`p_t`$ 更平滑，学生 $`p_s`$ 因此能学到类别之间的相对关系，$`\alpha`$ 为两项损失的权重。蒸馏的代价是模型失去通用性，任务边界一旦变化就要重新蒸馏。
@@ -167,7 +167,7 @@ JSON Schema 约束解码只保证结构合法。系统还应要求模型同时�
 金额、身份证号等关键字段用专用 OCR 或规则再校验一遍，两条通道结果不一致时转人工。低置信输出可以拒答，前提是置信度本身可信。期望校准误差（Expected Calibration Error，ECE）把样本按置信度分桶，逐桶比较平均置信度与实际准确率[5]：
 
 $$
-\mathrm{ECE}=\sum_{b=1}^{B}\frac{|S_b|}{N}\,\Bigl|\,\mathrm{acc}(S_b)-\mathrm{conf}(S_b)\,\Bigr|
+\mathrm{ECE}=\sum_{b=1}^{B}\frac{|S_b|}{N}\thinspace\Bigl|\thinspace\mathrm{acc}(S_b)-\mathrm{conf}(S_b)\thinspace\Bigr|
 $$
 
 其中 $`B`$ 为桶数，$`S_b`$ 为第 $`b`$ 个桶的样本集合，$`N`$ 为样本总数。ECE 越大说明模型越过度自信，此时应先做温度缩放一类的校准[5]，再按阈值分流。
@@ -320,7 +320,7 @@ ColPali 把每一页编码为多向量，按 MaxSim 打分。这种逐 token 匹
 
 ---
 
-#### <a id="q5633"></a>5.6.3.3 面试问题：以图搜图与拍照购物为什么采用检索式而非生成式方案？
+#### <a id="q5633"></a>5.6.3.3 面试问题：以图搜图与拍照购物为什么以检索式方案为主链路？
 
 **难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐ (3/5)**
 
@@ -465,7 +465,7 @@ OSWorld（2024）包含 369 个真实电脑任务，在虚拟机中执行，用�
 没有回滚机制时，任务成功要求每一步都成功，端到端成功率随步数连乘下降：
 
 $$
-P_{\text{task}}=\prod_{t=1}^{n}p_t\approx p^{\,n}
+P_{\text{task}}=\prod_{t=1}^{n}p_t\approx p^{\thinspace n}
 $$
 
 其中 $`p_t`$ 为第 $`t`$ 步的成功率，$`n`$ 为步数。若单步成功率 $`p=0.95`$、任务需要 $`n=20`$ 步，则 $`0.95^{20}\approx 0.36`$，这是一个算术示例，并非某个产品的实测值。$`p`$ 提高到 0.99 时，同样 20 步的成功率约回升到 0.82。另一个方向是把高频操作序列封装为单个工具，以缩短 $`n`$。
@@ -533,8 +533,8 @@ A4 纸的尺寸为 210 mm × 297 mm，按 300 dpi 扫描时，$`210/25.4\times 3
 直接把页面缩放到编码器的原生分辨率，正文小字的笔画会模糊到难以辨认。InternVL-1.5 的动态分块在块数不超过上限 $`n_{\max}`$ 的全部网格 $`(i,j)`$ 中，选出长宽比 $`i/j`$ 最接近原图长宽比 $`W/H`$ 的一个，把原图缩放到 $`448i\times 448j`$，再切成 $`i\times j`$ 个 $`448\times 448`$ 的块[32]。$`n_{\max}`$ 在训练时为 12（对应 35 种预设长宽比），测试时最多为 40[32]。每块经 ViT 得到 1024 个 patch，再做 2×2 下采样压到 256 个 token；块数大于 1 时另加一张 $`448\times 448`$ 的全局缩略图[32]。视觉 token 数按下式计算：
 
 $$
-(i^*,j^*)=\mathop{\arg\min}_{(i,j):\ ij\le n_{\max}}\left|\frac{W}{H}-\frac{i}{j}\right|,\qquad
-N_{\text{tokens}}=\bigl(i^*j^*+\mathbf{1}[\,i^*j^*\gt 1\,]\bigr)\times 256
+(i^{\ast},j^{\ast})=\mathop{\arg\min}_{(i,j):\ ij\le n_{\max}}\left|\frac{W}{H}-\frac{i}{j}\right|,\qquad
+N_{\text{tokens}}=\bigl(i^{\ast}j^{\ast}+\mathbf{1}[\thinspace i^{\ast}j^{\ast}\gt 1\thinspace]\bigr)\times 256
 $$
 
 其中 $`W`$ 和 $`H`$ 为原图的宽和高，$`\mathbf{1}[\cdot]`$ 为指示函数。长宽比相同的网格（如 1×1 与 2×2）之间，官方代码优先选择放大后面积不超过原图两倍的那个[33]。
@@ -684,11 +684,11 @@ OpenVLA 是 7B 模型，视觉侧融合 SigLIP 和 DINOv2 的特征，语言侧�
 $`\pi_0`$ 以约 3B 参数的 PaliGemma 为底座，另加约 300M 参数、从零初始化的动作专家，合计约 3.3B[44]。它的动作块长度 $`H=50`$，用条件流匹配（Flow Matching）一次生成整段连续动作，论文写明控制频率最高约 50 Hz，示例任务包括叠衣服；推理时从噪声积分到动作块，实验中使用 10 步 Euler 积分[44]。直线路径与训练目标为：
 
 $$
-a_{\tau}=(1-\tau)\,a_0+\tau\,a_1,\qquad
-\mathcal{L}_{\mathrm{FM}}=\mathbb{E}\bigl\|v_{\theta}(a_{\tau},\tau\mid o)-(a_1-a_0)\bigr\|^{2}
+a_{\tau}=(1-\tau)\thinspace a_0+\tau\thinspace\boldsymbol{\epsilon},\qquad
+\mathcal{L}_{\mathrm{FM}}=\mathbb{E}\bigl\Vert v_{\theta}(a_{\tau},\tau\mid o)-(\boldsymbol{\epsilon}-a_0)\bigr\Vert^{2}
 $$
 
-这里 $`a_0`$ 是噪声，$`a_1`$ 是真实动作块，$`o`$ 为观测，$`v_\theta`$ 为待学习的速度场，速度目标是动作减去噪声，与 $`\pi_0`$ 论文中的 $`A-\epsilon`$ 一致[44]。
+这里 $`a_0`$ 是真实动作块，$`\boldsymbol{\epsilon}\sim\mathcal{N}(0,I)`$ 是噪声，$`\tau=0`$ 对应动作、$`\tau=1`$ 对应纯噪声，$`o`$ 为观测，$`v_\theta`$ 为待学习的速度场；推理时从 $`\tau=1`$ 积分到 $`\tau=0`$。这一写法与本书第 2 章的流匹配记号一致。$`\pi_0`$ 原文的方向相反：$`\tau=0`$ 为噪声、$`\tau=1`$ 为动作，插值写作 $`\tau A+(1-\tau)\epsilon`$，速度目标为 $`A-\epsilon`$，两种写法只差一个符号，相互等价[44]。
 
 双系统架构同样输出连续动作，共性是把语义推理与高频控制解耦，各家的控制频率不同。Figure 的 Helix 中，System 2 是 7B 参数的开源 VLM，运行频率 7~9 Hz，输出一个连续潜变量；System 1 约 80M 参数，以 200 Hz 输出连续动作[45]。GR00T N1 论文给出的数字不同：System 2 是 VLM，在 NVIDIA L40 上约以 10 Hz 运行；System 1 是用流匹配训练的扩散 Transformer，以 120 Hz 生成动作[46]。NVIDIA 于 2026 年 4 月公开的 GR00T N1.7 约 3B 参数，仓库写明其视觉语言骨干是 Qwen3-VL 架构的 Cosmos-Reason2-2B，动作头仍是流匹配扩散 Transformer[47]；N1 的频率数字只适用于 N1 论文中的配置。
 

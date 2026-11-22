@@ -891,9 +891,9 @@ Qwen2-VL 提出的 M-RoPE（Multimodal RoPE）把旋转位置编码拆成时间�
 
 **1、扩散模型：预测噪声并迭代去噪**
 
-主体是一个去噪网络（U-Net 或基于 Transformer 的 DiT），训练时预测加进数据里的噪声 $`\epsilon`$，损失为：
+主体是一个去噪网络（U-Net 或基于 Transformer 的 DiT），训练时预测加进数据里的噪声 $`\boldsymbol{\epsilon}`$，损失为：
 
-$$\mathcal{L} = \mathbb{E}_{t, x_0, \epsilon}[\|\epsilon - \epsilon_\theta(x_t, t, c)\|^2]$$
+$$\mathcal{L} = \mathbb{E}_{t, x_0, \boldsymbol{\epsilon}}[\Vert\boldsymbol{\epsilon} - \epsilon_\theta(x_t, t, c)\Vert^2]$$
 
 推理时从纯噪声 $`x_T \sim \mathcal{N}(0, I)`$ 出发，用 DDIM、DPM-Solver 等采样器迭代去噪到 $`x_0`$，常用 20 到 50 步[77,78]。LDM（Latent Diffusion）是一项关键的工程优化，先用 VAE 把 512×512×3 的图像压成 64×64×4 的 latent，每边缩小到 1/8，像素数减少到 1/64，再在 latent 空间做扩散，计算量大幅下降[49]。
 
@@ -905,7 +905,7 @@ $$\mathcal{L} = \mathbb{E}_{t, x_0, \epsilon}[\|\epsilon - \epsilon_\theta(x_t, 
 
 流匹配的思路和扩散相近，表述更直接，直接学习从噪声分布到数据分布的条件速度场 $`v_\theta(x_t, t)`$，损失为：
 
-$$\mathcal{L} = \mathbb{E}_{t, x_0, \boldsymbol{\epsilon}}[\|v_\theta(x_t, t) - (\boldsymbol{\epsilon} - x_0)\|^2]$$
+$$\mathcal{L} = \mathbb{E}_{t, x_0, \boldsymbol{\epsilon}}[\Vert v_\theta(x_t, t) - (\boldsymbol{\epsilon} - x_0)\Vert^2]$$
 
 其中 $`x_t = (1-t)\,x_0 + t\,\boldsymbol{\epsilon}`$，$`x_0`$ 为数据，$`\boldsymbol{\epsilon}`$ 为噪声。推理时用 ODE 求解器从 $`t=1`$ 的噪声积分到 $`t=0`$ 的数据。直线路径让采样步数比传统扩散少，SD3 官方示例默认 28 步[81]；再经过蒸馏，FLUX.1 [schnell] 用 1 到 4 步就能出图[82]。
 
@@ -1059,7 +1059,7 @@ $$\mathcal{L} = \mathbb{E}_{t, x_0, \boldsymbol{\epsilon}}[\|v_\theta(x_t, t) - 
 
 流匹配不再定义加噪和反向去噪过程，直接学习一个随时间变化的速度场 $`v_\theta(x_t, t)`$，描述数据分布 $`x_0 \sim p_{\text{data}}`$ 与噪声分布 $`\boldsymbol{\epsilon} \sim \mathcal{N}(0, I)`$ 之间的连续变换。训练目标为：
 
-$$\mathcal{L}_{\text{FM}} = \mathbb{E}_{t, x_0, \boldsymbol{\epsilon}}\left[\|v_\theta(x_t, t) - (\boldsymbol{\epsilon} - x_0)\|^2\right]$$
+$$\mathcal{L}_{\text{FM}} = \mathbb{E}_{t, x_0, \boldsymbol{\epsilon}}\left[\Vert v_\theta(x_t, t) - (\boldsymbol{\epsilon} - x_0)\Vert^2\right]$$
 
 其中 $`x_t = (1-t) x_0 + t \boldsymbol{\epsilon}`$ 是两点之间的直线插值，$`t=0`$ 对应数据，$`t=1`$ 对应纯噪声。Lipman 等[94]的原文把噪声记为 $`x_0`$、数据记为 $`x_1`$，方向与本书相反，两种写法等价。推理时用欧拉法或 RK4 求解 ODE $`\frac{dx}{dt} = v_\theta(x_t, t)`$，从 $`t=1`$ 的噪声沿 $`t`$ 减小的方向积分到 $`t=0`$ 的数据。Rectified Flow 是工业界最常用的形式，它让噪声和数据之间走直线，reflow 操作可以把路径进一步拉直，减少采样步数[95]。
 

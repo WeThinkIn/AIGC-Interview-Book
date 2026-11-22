@@ -237,7 +237,7 @@ Wang 和 Isola 证明，对比损失在负样本数量足够大时渐近地优�
 
 两个阶段的训练目标都是以视觉输入为条件的自回归语言建模，损失写作：
 
-$$\mathcal{L}_{\text{AR}} = -\sum_{i\in\mathcal{T}}\log p_\theta\left(x_i \mid \mathbf{H}_v,\, x_{<i}\right)$$
+$$\mathcal{L}_{\text{AR}} = -\sum_{i\in\mathcal{T}}\log p_\theta\left(x_i \mid \mathbf{H}_v,\thinspace x_{\lt i}\right)$$
 
 其中 $`\mathbf{H}_v`$ 是投影器输出的视觉 token 序列，$`x_i`$ 是文本序列的第 $`i`$ 个 token，$`x_{<i}`$ 是它之前的文本，$`\mathcal{T}`$ 是参与计算损失的文本位置集合，$`p_\theta`$ 是模型给出的条件概率。视觉 token 不在 $`\mathcal{T}`$ 中，不产生损失；在指令数据上，$`\mathcal{T}`$ 只包含回答部分，LLaVA 的式 (3) 就是这种写法[2]。视觉 token 是投影器输出的连续向量，不在 LLM 的词表中，无法用词表上的交叉熵监督，因此损失只算在文本 token 上。这一损失只约束语言模型能否根据视觉输入生成正确的文本，跨模态对齐是在优化它的过程中间接建立的。要让模型生成图像内容，需要离散的视觉分词器或扩散解码头，这条路线见 [5.5.2.1](5_AI多模态原生模型高频考点.md#q5521) ：*离散 token 统一自回归路线的基本思想是什么，工程上有哪些难题？*
 
