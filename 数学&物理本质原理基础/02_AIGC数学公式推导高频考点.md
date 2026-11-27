@@ -1,1378 +1,892 @@
 # 目录
 
-## 第一章 基础求导与损失函数推导
 
-[1. Softmax + Cross Entropy 的梯度如何推导？](#q-001)
-[2. Sigmoid + Binary Cross Entropy 的梯度如何推导？](#q-002)
-[3. MSE 为什么对应高斯噪声假设？](#q-003)
-[4. MAE 为什么对应 Laplace 噪声假设？](#q-004)
-[5. LayerNorm 和 RMSNorm 的核心反向传播直觉是什么？](#q-005)
+[1. 基础求导与损失函数](#q-101)
+  - [面试问题：Softmax + Cross Entropy 的梯度如何推导？](#q-001)
+  - [面试问题：Sigmoid + Binary Cross Entropy 的梯度如何推导？](#q-002)
+  - [面试问题：MSE 为什么对应高斯噪声假设？](#q-003)
+  - [面试问题：MAE 为什么对应 Laplace 噪声假设？](#q-004)
+  - [面试问题：LayerNorm 和 RMSNorm 的核心反向传播直觉是什么？](#q-005)
 
-## 第二章 概率统计与信息论推导
+[2. 概率、信息论与变分推断](#q-102)
+  - [面试问题：最大似然估计为什么等价于最小化负对数似然？](#q-006)
+  - [面试问题：Cross Entropy、KL 散度和最大似然之间有什么关系？](#q-007)
+  - [面试问题：KL 散度非负性如何证明？](#q-008)
+  - [面试问题：Jensen 不等式在机器学习推导中如何使用？](#q-009)
+  - [面试问题：VAE 的 ELBO 如何推导？](#q-010)
 
-[6. 最大似然估计为什么等价于最小化负对数似然？](#q-006)
-[7. Cross Entropy、KL 散度和最大似然之间有什么关系？](#q-007)
-[8. KL 散度非负性如何证明？](#q-008)
-[9. Jensen 不等式在机器学习推导中如何使用？](#q-009)
-[10. VAE 的 ELBO 如何推导？](#q-010)
+[3. Transformer 与注意力计算](#q-103)
+  - [面试问题：Attention 为什么要除以 $`\sqrt{d_k}`$？](#q-011)
+  - [面试问题：RoPE 为什么能表达相对位置信息？](#q-012)
+  - [面试问题：KV Cache 为什么能降低自回归推理计算？](#q-013)
+  - [面试问题：FlashAttention 的 Online Softmax 如何保证精确？](#q-014)
 
-## 第三章 Transformer 数学推导
+[4. 扩散与连续生成](#q-104)
+  - [面试问题：DDPM 的前向边缘一步采样公式如何推导？](#q-015)
+  - [面试问题：DDPM 的训练目标为什么可以化简为预测噪声 MSE？](#q-016)
+  - [面试问题：DDIM 为什么可以做确定性采样？](#q-017)
+  - [面试问题：Score、SDE、ODE 三者如何互相联系？](#q-018)
+  - [面试问题：Flow Matching 的速度场目标如何理解？](#q-019)
 
-[11. Attention 为什么要除以 $\sqrt{d_k}$？](#q-011)
-[12. RoPE 为什么能表达相对位置信息？](#q-012)
-[13. KV Cache 为什么能降低自回归推理计算？](#q-013)
-[14. FlashAttention 的 Online Softmax 如何保证精确？](#q-014)
-
-## 第四章 扩散模型与 Flow 推导
-
-[15. DDPM 的 $q(x_t|x_0)$ 一步采样公式如何推导？](#q-015)
-[16. DDPM 的训练目标为什么可以化简为预测噪声 MSE？](#q-016)
-[17. DDIM 为什么可以做确定性采样？](#q-017)
-[18. Score、SDE、ODE 三者如何互相联系？](#q-018)
-[19. Flow Matching 的速度场目标如何理解？](#q-019)
-
-## 第五章 对齐学习与高效微调推导
-
-[20. DPO Loss 如何从 KL 约束优化目标推导？](#q-020)
-[21. PPO clipped objective 的数学意义是什么？](#q-021)
-[22. GRPO 的组内相对优势如何计算？](#q-022)
-[23. LoRA 的参数量和计算量如何推导？](#q-023)
-[24. 量化 scale 和 zero-point 如何计算？](#q-024)
-[25. 知识蒸馏中的温度系数为什么常配 $T^2$？](#q-025)
+[5. 对齐、低秩更新与量化](#q-105)
+  - [面试问题：DPO Loss 如何从 KL 约束优化目标推导？](#q-020)
+  - [面试问题：PPO clipped objective 的数学意义是什么？](#q-021)
+  - [面试问题：GRPO 的组内相对优势如何计算？](#q-022)
+  - [面试问题：LoRA 的参数量和计算量如何推导？](#q-023)
+  - [面试问题：量化 scale 和 zero-point 如何计算？](#q-024)
+  - [面试问题：知识蒸馏中的温度系数为什么常配 $`T^2`$？](#q-025)
 
 ---
 
-<h1 id="q-001">1. Softmax + Cross Entropy 的梯度如何推导？</h1>
+<h1 id="q-101">1. 基础求导与损失函数</h1>
 
-设 logits 为 $z \in \mathbb{R}^{K}$，Softmax 输出为：
+<h2 id="q-001">面试问题：Softmax + Cross Entropy 的梯度如何推导？</h2>
 
-$$
-p_i=\frac{e^{z_i}}{\sum_{j=1}^{K}e^{z_j}}
-$$
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-交叉熵损失为：
+先固定对象：$`z\in\mathbb R^K`$ 是 logits，$`y_i\ge0`$、$`\sum_i y_i=1`$，且标签不依赖 $`z`$。记 $`p_i=e^{z_i}/\sum_j e^{z_j}`$，交叉熵 $`L=-\sum_i y_i\log p_i`$。
 
-$$
-L=-\sum_{i=1}^{K}y_i\log p_i
-$$
+对商求导，得到 Softmax Jacobian：
 
-其中 $y$ 是真实标签分布。若 $y$ 是 one-hot，设真实类别为 $c$，则：
+```math
+\frac{\partial p_i}{\partial z_k}
+=\frac{\delta_{ik}e^{z_i}\sum_j e^{z_j}-e^{z_i}e^{z_k}}
+{(\sum_j e^{z_j})^2}
+=p_i(\delta_{ik}-p_k).
+```
 
-$$
-L=-\log p_c
-$$
+代入链式法则：
 
-先写出 Softmax 的 Jacobian：
-
-$$
-\frac{\partial p_i}{\partial z_k}=p_i(\delta_{ik}-p_k)
-$$
-
-对损失求导：
-
-$$
+```math
 \frac{\partial L}{\partial z_k}
-=-\sum_i y_i\frac{1}{p_i}\frac{\partial p_i}{\partial z_k}
-$$
+=-\sum_i y_i\frac1{p_i}p_i(\delta_{ik}-p_k)
+=-y_k+p_k\sum_i y_i=p_k-y_k.
+```
 
-代入 Softmax 导数：
+所以软标签也适用，关键是标签和为 1。若 $`p=(0.25,0.75)`$、$`y=(1,0)`$，梯度 $`(-0.75,0.75)`$ 会提高第一类相对 logit。梯度元素和为零，反映所有 logits 同加一个常量不会改变概率。
 
-$$
-\frac{\partial L}{\partial z_k}
-=-\sum_i y_i(\delta_{ik}-p_k)
-$$
+再求导得到 $`H=\mathrm{diag}(p)-pp^{\mathsf T}`$。对任意 $`v`$，$`v^{\mathsf T}Hv`$ 等于按 $`p`$ 加权的 $`v_i`$ 方差，因此非负，说明交叉熵关于 logits 是凸的；关于深层网络参数不必凸。
 
-因为 $\sum_i y_i=1$，所以：
+实现用 log-sum-exp，避免先算出极小概率再取 log。若使用 $`z/T`$，梯度变为 $`(p^{(T)}-y)/T`$；若类别加权，$`\sum_iw_iy_i`$ 会进入表达；按 batch 平均还会除以有效样本数。推导应一直追踪这些缩放。
 
-$$
-\frac{\partial L}{\partial z_k}=p_k-y_k
-$$
+<h2 id="q-002">面试问题：Sigmoid + Binary Cross Entropy 的梯度如何推导？</h2>
 
-**结论：**
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-$$
-\nabla_z L = p-y
-$$
+令 $`p=\sigma(z)`$、$`y\in[0,1]`$，二元交叉熵为：
 
-**面试要点：**
+```math
+L=-y\log p-(1-y)\log(1-p).
+```
 
-- Softmax 和 Cross Entropy 合并后梯度非常简洁。
-- 真实类别的 logit 梯度为 $p_c-1$，非真实类别为 $p_k$。
-- 工程实现通常使用 `log_softmax + nll_loss` 或 fused cross entropy，避免数值溢出。
+因为 $`dp/dz=p(1-p)`$：
 
----
+```math
+\frac{dL}{dz}
+=\left(-\frac y p+\frac{1-y}{1-p}\right)p(1-p)
+=-y(1-p)+(1-y)p=p-y.
+```
 
-<h1 id="q-002">2. Sigmoid + Binary Cross Entropy 的梯度如何推导？</h1>
+两项相消使饱和区仍可对自信错误给出明显的 logit 梯度。例如 $`y=1`$、$`p`$ 接近零时，梯度接近 -1。若改用 Sigmoid 后的平方误差，链式法则会留下额外的 $`p(1-p)`$，学习可能更慢。
 
-二分类中，设 logit 为 $z$：
+数值稳定的损失可直接写成：
 
-$$
-p=\sigma(z)=\frac{1}{1+e^{-z}}
-$$
+```math
+L=\max(z,0)-yz+\log(1+e^{-\vert z\vert}).
+```
 
-Binary Cross Entropy：
+这避免直接形成 $`\log0`$ 或 $`e^{1000}`$，是 `BCEWithLogitsLoss` 一类实现的基础。输入应是原始 logits，提前再做一次 Sigmoid 会改变目标。
 
-$$
-L=-y\log p-(1-y)\log(1-p)
-$$
+多标签任务对每类使用独立二元概率，各类概率不要求总和为 1；互斥多分类则通常使用 Softmax。正样本权重 $`w`$ 加到 $`-wy\log p`$ 后，梯度变为 $`(1-y)p-wy(1-p)`$，不再普遍等于 $`p-y`$。二阶导数在未加权时为 $`p(1-p)`$，说明该损失关于单个 logit 凸。
 
-Sigmoid 导数：
+<h2 id="q-003">面试问题：MSE 为什么对应高斯噪声假设？</h2>
 
-$$
-\frac{dp}{dz}=p(1-p)
-$$
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-先对 $p$ 求导：
+假设给定输入后，样本误差独立、零均值且同方差高斯：
 
-$$
-\frac{\partial L}{\partial p}
-=-\frac{y}{p}+\frac{1-y}{1-p}
-$$
+```math
+y_i=f_\theta(x_i)+\epsilon_i,\qquad
+\epsilon_i\sim\mathcal N(0,\sigma^2).
+```
 
-链式法则：
+条件似然的乘积取负对数：
 
-$$
-\frac{\partial L}{\partial z}
-=\left(-\frac{y}{p}+\frac{1-y}{1-p}\right)p(1-p)
-$$
+```math
+-\log p(y_{1:N}\mid x_{1:N},\theta)
+=\frac N2\log(2\pi\sigma^2)
++\frac1{2\sigma^2}\sum_i[y_i-f_\theta(x_i)]^2.
+```
 
-展开：
+当 $`\sigma^2`$ 固定且不依赖 $`\theta`$ 时，第一项与正比例系数都不改变最优参数，于是最大似然等价于最小化平方误差和。除以 $`N`$ 得到 MSE，不改变最优点，但改变梯度尺度。
 
-$$
-\frac{\partial L}{\partial z}
-=-y(1-p)+(1-y)p
-$$
+若让模型同时预测方差 $`\sigma_\theta^2(x)`$，则必须保留：
 
-整理得到：
+```math
+L_i=\frac{(y_i-\mu_\theta(x_i))^2}{2\sigma_\theta^2(x_i)}
++\frac12\log\sigma_\theta^2(x_i)+\text{常数}.
+```
 
-$$
-\frac{\partial L}{\partial z}=p-y
-$$
+遗漏对数方差项会让模型通过无限增大方差降低第一项，失去合理估计。相关多维噪声则导出 Mahalanobis 二次型和对数行列式。
 
-**结论：**
+MSE 的另一个更一般结论是：在平方可积条件下，最优预测为条件均值 $`\mathbb E[Y\mid X]`$，无需真实误差一定高斯。高斯假设提供似然解释，条件均值提供决策论解释。
 
-Sigmoid + BCE 与 Softmax + CE 一样，logit 层梯度都是“预测概率 - 真实标签”。
+大残差的平方增长使异常值影响显著。例如残差从 1 变成 10，损失从 1 变成 100。选择 MSE 应看目标是否确实需要惩罚这种大误差。
 
-**工程注意：**
+<h2 id="q-004">面试问题：MAE 为什么对应 Laplace 噪声假设？</h2>
 
-实际训练中优先使用 `BCEWithLogitsLoss`，它把 Sigmoid 和 BCE 合并，避免 $p$ 接近 0 或 1 时出现 $\log 0$ 和数值不稳定。
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
----
+设条件误差服从固定尺度 Laplace 分布：
 
-<h1 id="q-003">3. MSE 为什么对应高斯噪声假设？</h1>
+```math
+p(y_i\mid x_i,\theta)=\frac1{2b}
+\exp\left[-\frac{\vert y_i-f_\theta(x_i)\vert}{b}\right],\qquad b>0.
+```
 
-假设回归标签由真实函数加高斯噪声得到：
+独立样本负对数似然为：
 
-$$
-y=f_{\theta}(x)+\epsilon,\quad \epsilon\sim\mathcal{N}(0,\sigma^2)
-$$
+```math
+L=N\log(2b)+\frac1b\sum_i\vert y_i-f_\theta(x_i)\vert.
+```
 
-则条件概率为：
+固定 $`b`$ 时，最大似然等价于 MAE 最小化；若尺度也要学习，对数尺度项不能删除。
 
-$$
-p(y|x;\theta)=\frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(-\frac{(y-f_{\theta}(x))^2}{2\sigma^2}\right)
-$$
+绝对损失的总体最优解是条件中位数。对连续条件分布，将 $`\mathbb E[\vert Y-a\vert\mid X=x]`$ 对 $`a`$ 求导得到 $`2F_{Y\mid x}(a)-1`$，零点满足一半概率在两边。含原子的分布可用次梯度表达，中位数可能不唯一。
 
-对数据集取负对数似然：
+例如目标为 $`(0,0,0,10)`$，常数模型的 MSE 最优值是均值 2.5，MAE 最优值是中位数 0。离群观测对 MAE 的梯度幅度有界，但这不表示它对所有形式的数据污染都免疫。
 
-$$
--\log p(D|\theta)
-=-\sum_i \log p(y_i|x_i;\theta)
-$$
+绝对值在零处不可微，其次梯度为 $`[-1,1]`$；实现通常选择 0。Huber 损失在小残差内用二次项、大残差处用线性项：
 
-代入高斯密度：
-
-$$
--\log p(D|\theta)
-=\sum_i \left[\frac{(y_i-f_{\theta}(x_i))^2}{2\sigma^2}+\frac{1}{2}\log(2\pi\sigma^2)\right]
-$$
-
-若 $\sigma$ 固定，与 $\theta$ 无关的常数项可忽略：
-
-$$
-\theta^*=\arg\min_{\theta}\sum_i (y_i-f_{\theta}(x_i))^2
-$$
-
-这就是 MSE。
-
-**结论：**
-
-MSE 等价于假设观测误差服从同方差高斯分布时的最大似然估计。
-
-**面试追问：为什么 MSE 对异常值敏感？**
-
-因为误差被平方放大，大残差会主导损失。
-
----
-
-<h1 id="q-004">4. MAE 为什么对应 Laplace 噪声假设？</h1>
-
-假设误差服从 Laplace 分布：
-
-$$
-y=f_{\theta}(x)+\epsilon,\quad \epsilon\sim\text{Laplace}(0,b)
-$$
-
-Laplace 密度：
-
-$$
-p(y|x;\theta)=\frac{1}{2b}\exp\left(-\frac{|y-f_{\theta}(x)|}{b}\right)
-$$
-
-负对数似然：
-
-$$
--\log p(D|\theta)
-=\sum_i\left[\log(2b)+\frac{|y_i-f_{\theta}(x_i)|}{b}\right]
-$$
-
-若 $b$ 固定，忽略常数和比例系数：
-
-$$
-\theta^*=\arg\min_{\theta}\sum_i |y_i-f_{\theta}(x_i)|
-$$
-
-这就是 MAE。
-
-**结论：**
-
-MAE 等价于假设观测误差服从 Laplace 分布时的最大似然估计。
-
-**MSE 与 MAE 对比：**
-
-- MSE 对大误差更敏感，优化更平滑。
-- MAE 对异常值更鲁棒，但在 0 点不可导，实践中可用 Smooth L1/Huber Loss 折中。
-
-Huber Loss：
-
-$$
-L_{\delta}(r)=
+```math
+L_\delta(r)=
 \begin{cases}
-\frac{1}{2}r^2, & |r|\le\delta \\
-\delta(|r|-\frac{1}{2}\delta), & |r|>\delta
+\tfrac12r^2,&\vert r\vert\le\delta,\\
+\delta(\vert r\vert-\tfrac12\delta),&\vert r\vert>\delta.
 \end{cases}
-$$
+```
 
----
+阈值 $`\delta`$ 带有残差的单位，目标尺度改变后应相应调整。某些框架的 Smooth L1 与 Huber 相差整体比例，比较训练超参数时需要核对定义。
 
-<h1 id="q-005">5. LayerNorm 和 RMSNorm 的核心反向传播直觉是什么？</h1>
+<h2 id="q-005">面试问题：LayerNorm 和 RMSNorm 的核心反向传播直觉是什么？</h2>
 
-LayerNorm 对单个样本的 hidden 维度归一化：
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-$$
-\mu=\frac{1}{d}\sum_i x_i
-$$
+归一化的反向关键在于分母依赖全部坐标。对一条长度 $`d`$ 的特征向量，记 $`\mu=\frac1d\sum_i x_i`$、$`r=\sqrt{\frac1d\sum_i(x_i-\mu)^2+\epsilon}`$、$`\widehat x_i=(x_i-\mu)/r`$，输出 $`y_i=\gamma_i\widehat x_i+\beta_i`$。令上游梯度 $`g_i=\partial L/\partial y_i`$，$`a_i=g_i\gamma_i`$。
 
-$$
-\sigma^2=\frac{1}{d}\sum_i(x_i-\mu)^2
-$$
+微分中心化量和分母，分别有：
 
-$$
-\hat{x}_i=\frac{x_i-\mu}{\sqrt{\sigma^2+\epsilon}}
-$$
+```math
+d(x_i-\mu)=dx_i-\frac1d\sum_jdx_j,\qquad
+dr=\frac1d\sum_j\widehat x_j\,dx_j.
+```
 
-$$
-y_i=\gamma_i\hat{x}_i+\beta_i
-$$
+第二式利用 $`\sum_j(x_j-\mu)=0`$。代入 $`d\widehat x_i=d(x_i-\mu)/r-(\widehat x_i/r)dr`$，收集各个 $`dx_i`$ 的系数：
 
-反向传播中，每个 $x_i$ 的梯度不仅来自自己的输出，还会通过均值 $\mu$ 和方差 $\sigma^2$ 影响所有维度。因此 LayerNorm 的梯度是跨 hidden 维耦合的。
+```math
+\frac{\partial L}{\partial x_i}
+=\frac1r\left[
+a_i-\overline a-\widehat x_i\,\overline{a\widehat x}
+\right].
+```
 
-RMSNorm：
+上横线表示沿隐藏维取均值。参数梯度是 $`\partial L/\partial\gamma_i=g_i\widehat x_i`$、$`\partial L/\partial\beta_i=g_i`$，参数共享的 token 和 batch 维度还需累加。
 
-$$
-\text{RMS}(x)=\sqrt{\frac{1}{d}\sum_i x_i^2+\epsilon}
-$$
+RMSNorm 令 $`r=\sqrt{\overline{x^2}+\epsilon}`$、$`\widehat x=x/r`$，推导得到：
 
-$$
-y_i=\gamma_i\frac{x_i}{\text{RMS}(x)}
-$$
+```math
+\frac{\partial L}{\partial x_i}
+=\frac1r[a_i-\widehat x_i\,\overline{a\widehat x}].
+```
 
-RMSNorm 不减均值，只按均方根缩放，反向传播少了均值中心化相关项，计算更简单。
+它少了中心化相关的 $`-\overline a`$。忽略 $`\epsilon`$ 时，公式呈现沿某些方向投影的几何意义；保留 $`\epsilon`$ 后不应把所有投影性质当成严格等式。以上公式可直接用小维度中心差分核对，比只背“稳定分布”更能解释梯度行为。
 
-**面试回答重点：**
+<h1 id="q-102">2. 概率、信息论与变分推断</h1>
 
-- LayerNorm 稳定每个 token 的 hidden 分布。
-- RMSNorm 保留方向信息，只控制向量尺度。
-- 两者都让残差网络中的激活尺度更稳定，改善深层 Transformer 训练。
-- Pre-Norm Transformer 中归一化放在子层前，更利于梯度通过残差路径传播。
+<h2 id="q-006">面试问题：最大似然估计为什么等价于最小化负对数似然？</h2>
 
----
+**难度评分：⭐⭐⭐ (3/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-<h1 id="q-006">6. 最大似然估计为什么等价于最小化负对数似然？</h1>
+最大似然把观测数据固定，寻找最能解释它的参数。若样本在给定参数下独立：
 
-给定独立同分布数据：
+```math
+p(D\mid\theta)=\prod_{i=1}^N p(x_i\mid\theta).
+```
 
-$$
-D=\{x_1,x_2,...,x_N\}
-$$
+对数在正数上严格递增，所以不改变最优点：
 
-似然函数：
+```math
+\arg\max_\theta p(D\mid\theta)
+=\arg\max_\theta\sum_i\log p(x_i\mid\theta)
+=\arg\min_\theta-\sum_i\log p(x_i\mid\theta).
+```
 
-$$
-L(\theta)=p(D|\theta)=\prod_{i=1}^{N}p(x_i|\theta)
-$$
+对数还把极小概率乘积转成可稳定累加的量。如果模型给实际出现的事件零概率，负对数似然是无穷大；代码中的截断会改变此时的目标，需要明确处理。
 
-最大似然估计：
+独立假设只用于第一行的样本乘积分解。序列内部即使相关，也可以用链式法则写成 $`\prod_t p_\theta(x_t\mid x_{\lt t})`$。不能把 token 级损失相加解释成忽略上下文依赖。
 
-$$
-\theta_{\text{MLE}}=\arg\max_{\theta}\prod_i p(x_i|\theta)
-$$
+以 Bernoulli 数据为例，$`k`$ 次成功、总共 $`N`$ 次，负对数似然为 $`-k\log p-(N-k)\log(1-p)`$。内部驻点给出 $`\widehat p=k/N`$；若全部成功或失败，最优点位于边界，应检查边界而不是强求导数为零。
 
-乘积不方便计算，取对数：
+MLE 不自动纠正偏采样、重复样本或标签污染。损失按 token 平均、按用户平均或按序列平均，也代表不同的经验分布。先确定想拟合的对象，再决定似然与权重。
 
-$$
-\log L(\theta)=\sum_i \log p(x_i|\theta)
-$$
+<h2 id="q-007">面试问题：Cross Entropy、KL 散度和最大似然之间有什么关系？</h2>
 
-因为 $\log$ 是单调递增函数，最大化似然等价于最大化对数似然：
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-$$
-\theta_{\text{MLE}}=\arg\max_{\theta}\sum_i\log p(x_i|\theta)
-$$
+对同一离散样本空间，且相关熵有限、模型覆盖数据支撑时：
 
-深度学习优化器通常做最小化，因此写成最小化负对数似然：
+```math
+D_{\mathrm{KL}}(P\Vert Q)
+=\sum_xP(x)\log P(x)-\sum_xP(x)\log Q(x)
+=H(P,Q)-H(P).
+```
 
-$$
-\theta_{\text{MLE}}=\arg\min_{\theta}-\sum_i\log p(x_i|\theta)
-$$
+数据分布 $`P`$ 固定，$`H(P)`$ 与模型参数无关，因此最小化交叉熵等价于最小化前向 KL。有限离散数据的经验分布 $`\widehat P`$ 代入后：
 
-**大模型对应：**
+```math
+H(\widehat P,Q_\theta)
+=-\frac1N\sum_{i=1}^N\log q_\theta(x_i),
+```
 
-自回归语言模型：
+正是平均负对数似然。监督分类则对输入分布再取期望，逐个输入比较标签条件分布与模型条件分布。
 
-$$
-p_{\theta}(x)=\prod_t p_{\theta}(x_t|x_{<t})
-$$
+连续变量中要小心：平滑真实密度与模型密度之间，在共同参考测度及积分存在的条件下，也有交叉熵与微分熵关系。但有限数据的经验分布是点质量测度，而连续模型给每个点零概率，两者之间的测度 KL 通常为无穷大。
 
-训练损失：
+因此不能无条件把“连续样本经验 NLL”写成“经验点质量分布到连续密度的有限 KL”。经验 NLL 是用样本平均估计真实期望对数损失；这个统计解释足够支撑最大似然，不需要错误的测度等价。
 
-$$
-L=-\sum_t \log p_{\theta}(x_t|x_{<t})
-$$
+实际训练还可能使用重加权、截断似然或标签平滑，它们改变目标分布。说三者“等价”，必须明确固定的是哪个分布、积分是否有限，以及损失里有没有其他参数相关项。
 
-这就是 token 级负对数似然。
+<h2 id="q-008">面试问题：KL 散度非负性如何证明？</h2>
 
----
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-<h1 id="q-007">7. Cross Entropy、KL 散度和最大似然之间有什么关系？</h1>
+先处理零概率：若某处 $`p(x)>0`$ 而 $`q(x)=0`$，则 KL 为无穷大，非负性直接成立。其余情形令 $`S=\{x:p(x)>0\}`$，用 $`-\log`$ 的凸性：
 
-交叉熵：
+```math
+D_{\mathrm{KL}}(P\Vert Q)
+=\mathbb E_P\left[-\log\frac{q(X)}{p(X)}\right]
+\ge-\log\mathbb E_P\left[\frac{q(X)}{p(X)}\right].
+```
 
-$$
-H(P,Q)=-\sum_x P(x)\log Q(x)
-$$
+右侧的期望只遍历 $`P`$ 的支撑：
 
-KL 散度：
+```math
+\mathbb E_P[q(X)/p(X)]=\sum_{x\in S}q(x)\le1.
+```
 
-$$
-D_{KL}(P\|Q)=\sum_x P(x)\log\frac{P(x)}{Q(x)}
-$$
+于是 $`D_{\mathrm{KL}}(P\Vert Q)\ge-\log\sum_{x\in S}q(x)\ge0`$。原证明常把最后求和直接写成 1；若 $`Q`$ 还在 $`P`$ 支撑外分配概率，这一步应是不等式。
 
-展开 KL：
+等号要求 $`q/p`$ 在 $`P`$ 几乎处处为常数，同时 $`Q(S)=1`$，归一化后得到 $`P=Q`$。连续情形在共同密度及绝对连续条件下用积分替代求和，等号理解为几乎处处相等。
 
-$$
-D_{KL}(P\|Q)=\sum_x P(x)\log P(x)-\sum_x P(x)\log Q(x)
-$$
+例如 $`P=(1,0)`$、$`Q=(1/2,1/2)`$，KL 为 $`\log2`$；这里 $`Q(S)=1/2`$，正好展示了支撑外概率不能凭空消失。
 
-因为：
+非负只是一项性质。KL 不对称、不满足三角不等式，因此它是散度而不是通常意义的距离。算法中有限样本估计偶尔出现负值，也不推翻总体 KL 的非负定理。
 
-$$
-H(P)=-\sum_xP(x)\log P(x)
-$$
+<h2 id="q-009">面试问题：Jensen 不等式在机器学习推导中如何使用？</h2>
 
-所以：
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-$$
-D_{KL}(P\|Q)=H(P,Q)-H(P)
-$$
+Jensen 不等式把函数曲率与平均操作联系起来。若 $`f`$ 凸且相关期望存在：
 
-即：
+```math
+f(\mathbb E[X])\le\mathbb E[f(X)].
+```
 
-$$
-H(P,Q)=H(P)+D_{KL}(P\|Q)
-$$
+凹函数方向相反。直观上，凸函数的弦位于图像上方；严格凸情况下，常见等号情形是 $`X`$ 几乎必然为常数。
 
-当真实分布 $P$ 固定时，$H(P)$ 与模型无关，最小化交叉熵等价于最小化 $D_{KL}(P\|Q)$。
+取 $`X`$ 以相同概率为 1 或 3，则 $`\mathbb E[X^2]=5`$，而 $`\mathbb E[X]^2=4`$。差值是方差，展示了“先变换后平均”与“先平均后变换”不能随意互换。
 
-经验分布下：
+在变分推断中，用凹函数 log：
 
-$$
-\hat{P}(x)=\frac{1}{N}\sum_i\delta(x-x_i)
-$$
+```math
+\log\mathbb E_q[Z]\ge\mathbb E_q[\log Z].
+```
 
-最小化交叉熵：
+这里要确保 $`Z>0`$ 及积分条件。把 $`Z`$ 选为联合密度与近似后验密度的比值，就得到 ELBO；若支撑不匹配，换写期望的那一步本身可能不成立。
 
-$$
--\frac{1}{N}\sum_i\log q_{\theta}(x_i)
-$$
+对固定标签、关于预测凸的损失，多个预测的平均满足“平均预测的损失不超过平均损失”。这解释了部分集成收益，但不适用于任意非凸评价指标，也不表示平均后准确率一定上升。
 
-等价于最大似然估计。
+Jensen 给的是界，不是精确交换 log 与期望。看到对数内的积分时，应该先确认曲率、正性、支撑及等号条件，再决定这个界是否适合优化。
 
-**一句话总结：**
+<h2 id="q-010">面试问题：VAE 的 ELBO 如何推导？</h2>
 
-最大似然、交叉熵训练、最小化真实分布到模型分布的 KL，在监督学习和语言模型预训练中本质上是同一件事的不同表述。
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
----
+VAE 希望优化 $`\log p_\theta(x)`$，但边缘化潜变量 $`z`$ 的积分困难。引入近似后验 $`q_\phi(z\mid x)`$，在支撑允许换写时：
 
-<h1 id="q-008">8. KL 散度非负性如何证明？</h1>
+```math
+\log p_\theta(x)=
+\log\mathbb E_{q_\phi}\left[\frac{p_\theta(x,z)}{q_\phi(z\mid x)}\right]
+\ge\mathbb E_{q_\phi}
+\left[\log p_\theta(x,z)-\log q_\phi(z\mid x)\right].
+```
 
-KL 散度：
+把联合分布分成似然和先验，得到：
 
-$$
-D_{KL}(P\|Q)=\sum_xP(x)\log\frac{P(x)}{Q(x)}
-$$
+```math
+\mathcal L_{\mathrm{ELBO}}
+=\mathbb E_{q_\phi}[\log p_\theta(x\mid z)]
+-D_{\mathrm{KL}}(q_\phi(z\mid x)\Vert p(z)).
+```
 
-使用 Jensen 不等式。因为 $-\log x$ 是凸函数：
+更能说明“下界差多少”的恒等式是：
 
-$$
-D_{KL}(P\|Q)
-=\sum_xP(x)\left[-\log\frac{Q(x)}{P(x)}\right]
-$$
+```math
+\log p_\theta(x)-\mathcal L_{\mathrm{ELBO}}
+=D_{\mathrm{KL}}(q_\phi(z\mid x)\Vert p_\theta(z\mid x))\ge0.
+```
 
-由 Jensen 不等式：
+在相关量有限时，近似后验等于真实后验，下界才变紧。先验 KL 与这个“后验近似误差 KL”不是同一个对象。
 
-$$
-\sum_xP(x)\left[-\log\frac{Q(x)}{P(x)}\right]
-\ge
--\log\sum_xP(x)\frac{Q(x)}{P(x)}
-$$
+若 $`q_\phi=\mathcal N(\mu,\mathrm{diag}(\sigma^2))`$、先验为标准高斯：
 
-右边化简：
+```math
+D_{\mathrm{KL}}(q_\phi\Vert p)
+=\frac12\sum_j(\mu_j^2+\sigma_j^2-\log\sigma_j^2-1).
+```
 
-$$
--\log\sum_xQ(x)=-\log 1=0
-$$
+用 $`z=\mu+\sigma\odot\epsilon`$、$`\epsilon\sim\mathcal N(0,I)`$ 进行可微重参数化。重构项取决于解码似然，不天然就是 MSE。
 
-因此：
+重构要求潜变量携带输入信息，先验 KL 对这种信息与分布偏离施加代价。过强 KL 或过强解码器可能引起后验坍塌。潜空间生成用的自编码器还可能加入感知或对抗目标，这时完整训练目标不再等于上述纯 ELBO，不能直接继承所有似然解释。
 
-$$
-D_{KL}(P\|Q)\ge 0
-$$
+<h1 id="q-103">3. Transformer 与注意力计算</h1>
 
-当且仅当 $P=Q$ 时取等号。
+<h2 id="q-011">面试问题：Attention 为什么要除以 $`\sqrt{d_k}`$？</h2>
 
-**面试易错点：**
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-- KL 非负，但不是距离，因为它不对称，也不满足三角不等式。
-- 若存在 $P(x)>0$ 但 $Q(x)=0$，KL 会发散到无穷大。
+缩放因子来自点积的方差。设 $`q,k\in\mathbb R^{d_k}`$ 相互独立，所有分量零均值、单位方差，并且坐标间满足所需的不相关条件。则：
 
----
+```math
+\mathbb E[q_ik_i]=0,\qquad
+\mathrm{Var}(q_ik_i)=\mathbb E[q_i^2]\mathbb E[k_i^2]=1.
+```
 
-<h1 id="q-009">9. Jensen 不等式在机器学习推导中如何使用？</h1>
+不同乘积项的协方差为零，所以：
 
-Jensen 不等式：
+```math
+\mathrm{Var}\left(\sum_iq_ik_i\right)=d_k,\qquad
+\mathrm{Var}\left(\frac{q^{\mathsf T}k}{\sqrt{d_k}}\right)=1.
+```
 
-若 $f$ 是凸函数，则：
+更一般地，零均值且相互独立的向量可以有非单位协方差 $`\Sigma_q,\Sigma_k`$：
 
-$$
-f(\mathbb{E}[X])\le \mathbb{E}[f(X)]
-$$
+```math
+\mathrm{Var}(q^{\mathsf T}k)
+=\mathbb E[q^{\mathsf T}kk^{\mathsf T}q]
+=\mathrm{tr}(\Sigma_q\Sigma_k).
+```
 
-若 $f$ 是凹函数，则：
+只有两者均为单位矩阵时才化为 $`d_k`$。若 $`q,k`$ 相关，还会出现其他项。这个一般式说明训练后真实方差不必等于初始化估计。
 
-$$
-f(\mathbb{E}[X])\ge \mathbb{E}[f(X)]
-$$
+Softmax 的导数为 $`\mathrm{diag}(p)-pp^{\mathsf T}`$。当某个概率趋近 1、其余趋近零时，多数局部导数趋零；大幅 logits 差距容易造成这种状态。因此缩放帮助避免无意的早期饱和。
 
-机器学习中常见用途：
+这里讨论注意力内部 Softmax 的局部梯度。分类交叉熵对 logits 的 $`p-y`$ 在自信错误时仍可很大，不能把“Softmax 饱和”误解成所有组合损失梯度都必然消失。缩放给出合理起点，实际网络还要依靠学习、归一化和数值实现维持合适范围。
 
-**1. 证明 KL 非负**
+<h2 id="q-012">面试问题：RoPE 为什么能表达相对位置信息？</h2>
 
-使用 $-\log x$ 的凸性。
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-**2. 推导 VAE 的 ELBO**
+先看一个二维坐标对：
 
-因为 $\log$ 是凹函数：
+```math
+R(\varphi)=
+\begin{bmatrix}\cos\varphi&-\sin\varphi\\
+\sin\varphi&\cos\varphi\end{bmatrix}.
+```
 
-$$
-\log \mathbb{E}[X]\ge \mathbb{E}[\log X]
-$$
+位置 $`m,n`$ 的 query 和 key 分别旋转为 $`R(m\theta)q_m`$、$`R(n\theta)k_n`$。利用旋转的复合规律：
 
-可把难以直接优化的 $\log p_{\theta}(x)$ 转成可优化下界。
+```math
+R(a)^{\mathsf T}=R(-a),\qquad R(a)R(b)=R(a+b),
+```
 
-**3. 分析期望损失**
+可得：
 
-例如凸损失下，平均预测与平均损失之间存在 Jensen 关系。
+```math
+\widetilde q_m^{\mathsf T}\widetilde k_n
+=q_m^{\mathsf T}R((n-m)\theta)k_n.
+```
 
-**面试回答模板：**
+完整 RoPE 把多个不同频率的二维旋转拼成分块对角矩阵，每个频率都具有同样的相对位移性质。共同平移位置索引，不改变**固定内容向量下的位置旋转部分**。
 
-看到“对数里面有积分/求和/期望”，通常可以考虑用 Jensen 不等式把 log 与 expectation 交换，从而得到上界或下界。
+例如 $`q=k=(1,0)`$，点积就是 $`\cos((n-m)\theta)`$。它随距离振荡，不是距离越远一定越小。多频率和内容投影共同决定实际注意力行为。
 
----
+完整网络中的内容向量会随上下文、掩码和前层表示变化，所以不应把结论写成“所有注意力分数只依赖相对距离”。有限训练位置也不能覆盖任意长的频率组合，旋转群恒等式正确不等于长度外推已经解决。
 
-<h1 id="q-010">10. VAE 的 ELBO 如何推导？</h1>
+如果某层只对一部分维度应用 RoPE，剩余维度仍保留内容项。MLA 的解耦位置分支正利用这种区分，在状态压缩与相对位置建模之间安排结构。
 
-VAE 要最大化边缘似然：
+<h2 id="q-013">面试问题：KV Cache 为什么能降低自回归推理计算？</h2>
 
-$$
-\log p_{\theta}(x)=\log\int p_{\theta}(x,z)dz
-$$
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-引入近似后验 $q_{\phi}(z|x)$：
+KV Cache 成立依赖因果性：固定模型、位置设置和前缀时，追加未来 token 不改变已处理位置的隐藏状态，所以各层历史键和值可重用。双向编码器追加输入通常会改变旧表示，不能直接照搬这一结论。
 
-$$
-\log p_{\theta}(x)
-=\log\int q_{\phi}(z|x)\frac{p_{\theta}(x,z)}{q_{\phi}(z|x)}dz
-$$
+用总生成长度 $`T`$、隐藏宽度 $`D`$ 简化估算。若每生成一个 token 都重算长度为 $`t`$ 的完整前缀，该步投影与 FFN 主项为 $`O(tD^2)`$，稠密注意力为 $`O(t^2D)`$。累加得到：
 
-写成期望：
+```math
+\sum_{t=1}^T O(tD^2)=O(T^2D^2),\qquad
+\sum_{t=1}^T O(t^2D)=O(T^3D).
+```
 
-$$
-\log p_{\theta}(x)
-=\log \mathbb{E}_{q_{\phi}(z|x)}\left[\frac{p_{\theta}(x,z)}{q_{\phi}(z|x)}\right]
-$$
+缓存后，每步只计算新位置的投影与 FFN，并让新 query 读取已有键值：
 
-由于 $\log$ 是凹函数，由 Jensen 不等式：
+```math
+\text{累计投影/FFN}=O(TD^2),\qquad
+\text{累计注意力}=O(T^2D).
+```
 
-$$
-\log p_{\theta}(x)
-\ge
-\mathbb{E}_{q_{\phi}(z|x)}
-\left[
-\log\frac{p_{\theta}(x,z)}{q_{\phi}(z|x)}
-\right]
-$$
+这些是重复全前缀与逐 token 缓存的对比，省略层数等常数。实际还包括长度为 $`P`$ 的 prompt prefill，以及每步对 $`P+t`$ 个历史位置的访问。
 
-右边就是 ELBO：
+缓存以空间换计算，常见存储为 $`2LBSH_{kv}d_hb`$ 字节。例如 32 层、8 个 KV 头、头宽 128、8192 个 token、BF16、batch 为 1，KV 主项约 1 GiB。
 
-$$
-\mathcal{L}_{\text{ELBO}}
-=
-\mathbb{E}_{q_{\phi}(z|x)}[\log p_{\theta}(x|z)]
--D_{KL}(q_{\phi}(z|x)\|p(z))
-$$
+若动态修改 RoPE 频率、编辑历史前缀或改变 adapter，原缓存可能不再有效。多轮复用也应匹配模型版本、token 前缀、位置和注意力配置。计算公式证明缓存能少算什么，实际加速还受显存带宽、batch 与 kernel 约束。
 
-**两项含义：**
+<h2 id="q-014">面试问题：FlashAttention 的 Online Softmax 如何保证精确？</h2>
 
-- 重构项：让 $z$ 能生成原始数据 $x$。
-- KL 正则：让近似后验接近先验，保证潜空间可采样。
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-**与扩散/Stable Diffusion 的联系：**
+对一行注意力，令 logits 为 $`s_j`$、值向量为 $`v_j`$。保持三个统计量：
 
-Latent Diffusion 先用 VAE 把图像压缩到潜空间，再在潜空间做扩散建模。VAE 的质量会影响潜空间信息保真上限。
+```math
+m=\max_j s_j,\qquad
+\ell=\sum_j e^{s_j-m},\qquad
+o=\sum_j e^{s_j-m}v_j.
+```
 
----
+最终输出为 $`o/\ell`$。假设已处理集合 A，新块 B 的局部统计量为 $`m_B,\ell_B,o_B`$。取共同基准 $`m'=\max(m,m_B)`$：
 
-<h1 id="q-011">11. Attention 为什么要除以 $\sqrt{d_k}$？</h1>
+```math
+\ell'=e^{m-m'}\ell+e^{m_B-m'}\ell_B,\qquad
+o'=e^{m-m'}o+e^{m_B-m'}o_B.
+```
 
-假设 query 和 key 的每个分量独立，均值为 0，方差为 1：
+代入定义，每一项都变成 $`e^{s_j-m'}`$，所以合并结果与一次处理整个 A∪B 完全相同。只更新分母却不重缩放加权分子，输出就会错。
 
-$$
-q_i,k_i \sim (0,1)
-$$
+例如第一块只有 $`s=0,v=2`$，第二块只有 $`s=\log3,v=4`$。合并后 $`m'=\log3`$、$`\ell'=1/3+1=4/3`$、$`o'=2/3+4=14/3`$，输出为 3.5，正好等于权重 $`(1/4,3/4)`$ 的加权和。
 
-点积：
+FlashAttention 把这种合并放进适合片上存储的分块计算，避免保存完整注意力矩阵。反向可以重计算部分中间量，以 FLOPs 换取更少的显存读写。
 
-$$
-q\cdot k=\sum_{i=1}^{d_k}q_ik_i
-$$
+数学“精确”是相对近似注意力而言。浮点归约顺序、低精度乘法、掩码边界和 dropout 随机数处理仍会影响数值结果。全掩码行应专门处理；不能让 $`-\infty-(-\infty)`$ 进入指数而生成 NaN。
 
-因为：
+<h1 id="q-104">4. 扩散与连续生成</h1>
 
-$$
-\mathbb{E}[q_ik_i]=0
-$$
+<h2 id="q-015">面试问题：DDPM 的前向边缘一步采样公式如何推导？</h2>
 
-且在独立假设下：
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-$$
-\text{Var}(q_ik_i)=\mathbb{E}[q_i^2]\mathbb{E}[k_i^2]=1
-$$
+将前向一步写成独立噪声的重参数化：
 
-所以：
+```math
+x_t=\sqrt{\alpha_t}x_{t-1}+\sqrt{\beta_t}\epsilon_t,\qquad
+\epsilon_t\overset{\mathrm{iid}}{\sim}\mathcal N(0,I),\quad \beta_t=1-\alpha_t.
+```
 
-$$
-\text{Var}(q\cdot k)=d_k
-$$
+假设 $`x_{t-1}\mid x_0`$ 的均值为 $`\sqrt{\overline\alpha_{t-1}}x_0`$、协方差为 $`(1-\overline\alpha_{t-1})I`$。独立噪声线性变换后：
 
-点积标准差为：
+```math
+\mathbb E[x_t\mid x_0]=\sqrt{\alpha_t\overline\alpha_{t-1}}x_0
+=\sqrt{\overline\alpha_t}x_0,
+```
 
-$$
-\sqrt{d_k}
-$$
+```math
+\mathrm{Cov}(x_t\mid x_0)
+=[\alpha_t(1-\overline\alpha_{t-1})+\beta_t]I
+=(1-\overline\alpha_t)I.
+```
 
-若不缩放，$d_k$ 越大，attention logits 绝对值越大，Softmax 越容易饱和，梯度越小。
+高斯在线性组合下封闭，归纳得到：
 
-缩放后：
+```math
+q(x_t\mid x_0)=
+\mathcal N(\sqrt{\overline\alpha_t}x_0,(1-\overline\alpha_t)I).
+```
 
-$$
-\frac{q\cdot k}{\sqrt{d_k}}
-$$
+因此可直接采一个标准高斯 $`\epsilon`$，构造 $`x_t=\sqrt{\overline\alpha_t}x_0+\sqrt{1-\overline\alpha_t}\epsilon`$。这里的合并噪声与逐步链中的各个噪声不是同一个随机变量。
 
-方差约为 1，训练更稳定。
+一步公式保证给定 $`x_0`$ 后该时刻的边缘分布正确。若对每个时刻独立使用新噪声，会得到正确单时刻边缘，却不一定得到原始马尔可夫链的联合轨迹。训练只需随机挑一个时刻时可以这样做，研究路径相关性时则不能混用。
 
-**结论：**
+端点约定 $`\overline\alpha_0=1`$ 对应无噪声；$`\overline\alpha_T`$ 足够小才使终点接近标准高斯。噪声日程决定信号与噪声的相对尺度。
 
-除以 $\sqrt{d_k}$ 不是经验魔法，而是为了控制点积方差，使 Softmax 工作在更稳定的区间。
+<h2 id="q-016">面试问题：DDPM 的训练目标为什么可以化简为预测噪声 MSE？</h2>
 
----
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-<h1 id="q-012">12. RoPE 为什么能表达相对位置信息？</h1>
+对 $`t\ge2`$，给定干净数据的前向后验是高斯：
 
-RoPE 在二维子空间中对位置 $m$ 的向量做旋转：
+```math
+q(x_{t-1}\mid x_t,x_0)=\mathcal N(\widetilde\mu_t,\widetilde\beta_tI),\quad
+\widetilde\beta_t=\frac{1-\overline\alpha_{t-1}}{1-\overline\alpha_t}\beta_t.
+```
 
-$$
-R(m\theta)=
-\begin{bmatrix}
-\cos m\theta & -\sin m\theta \\
-\sin m\theta & \cos m\theta
-\end{bmatrix}
-$$
+由高斯条件分布或配方，后验均值为：
 
-对 query 和 key 分别注入位置：
+```math
+\widetilde\mu_t=
+\frac{\sqrt{\overline\alpha_{t-1}}\beta_t}{1-\overline\alpha_t}x_0
++\frac{\sqrt{\alpha_t}(1-\overline\alpha_{t-1})}{1-\overline\alpha_t}x_t.
+```
 
-$$
-\tilde{q}_m=R(m\theta)q
-$$
+利用一步采样中的 $`x_0`$ 表达式，可改写为：
 
-$$
-\tilde{k}_n=R(n\theta)k
-$$
+```math
+\widetilde\mu_t=\frac1{\sqrt{\alpha_t}}
+\left(x_t-\frac{\beta_t}{\sqrt{1-\overline\alpha_t}}\epsilon\right).
+```
 
-注意力点积：
+用 $`\epsilon_\theta`$ 替代真实噪声参数化反向均值，并固定反向方差 $`\sigma_t^2I`$。两个高斯 KL 中与均值有关的部分变为：
 
-$$
-\tilde{q}_m^T\tilde{k}_n
-=q^TR(m\theta)^TR(n\theta)k
-$$
+```math
+L_t=\frac1{2\sigma_t^2}\Vert\widetilde\mu_t-\mu_\theta\Vert_2^2+\text{常数}
+=\frac{\beta_t^2}{2\sigma_t^2\alpha_t(1-\overline\alpha_t)}
+\Vert\epsilon-\epsilon_\theta(x_t,t)\Vert_2^2+\text{常数}.
+```
 
-旋转矩阵满足：
+这证明的是**带时间权重的噪声 MSE**。常用 $`L_{\mathrm{simple}}`$ 丢掉该权重后，是重新加权的训练目标，不是完整变分目标逐项严格相等。
 
-$$
-R(a)^T=R(-a)
-$$
+完整负 ELBO 还包含终端先验匹配项与 $`t=1`$ 的重构项。若方差也由网络学习，方差相关 KL 项不能再当成参数无关常数。
 
-所以：
+不同噪声日程、时间采样分布和预测参数化会改变各噪声尺度的实际训练权重。比较模型时，应核对这些设置，而不能只因都使用 MSE 就认为学习问题相同。
 
-$$
-R(m\theta)^TR(n\theta)=R((n-m)\theta)
-$$
+<h2 id="q-017">面试问题：DDIM 为什么可以做确定性采样？</h2>
 
-因此：
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-$$
-\tilde{q}_m^T\tilde{k}_n
-=q^TR((n-m)\theta)k
-$$
+DDIM 构造与 DDPM 共享 $`q(x_t\mid x_0)`$ 边缘的**非马尔可夫前向推断过程族**，由此导出可控制随机性的生成更新。不能把它简单表述成“反向过程非马尔可夫”，因为常用采样代码仍可从当前状态递推。
 
-点积只依赖相对位置 $n-m$，而不是绝对位置 $m,n$。
+从噪声时刻 $`t`$ 跳到较干净的 $`s\lt t`$，先估计：
 
-**结论：**
+```math
+\widehat x_0=
+\frac{x_t-\sqrt{1-\overline\alpha_t}\epsilon_\theta(x_t,t)}
+{\sqrt{\overline\alpha_t}}.
+```
 
-RoPE 通过旋转矩阵的群结构，把绝对位置注入到 $Q,K$ 中，但注意力分数天然包含相对位置信息。
+再使用：
 
----
+```math
+\sigma_{t\to s}=
+\eta\sqrt{\frac{1-\overline\alpha_s}{1-\overline\alpha_t}}
+\sqrt{1-\frac{\overline\alpha_t}{\overline\alpha_s}},
+```
 
-<h1 id="q-013">13. KV Cache 为什么能降低自回归推理计算？</h1>
+```math
+x_s=\sqrt{\overline\alpha_s}\widehat x_0+
+\sqrt{1-\overline\alpha_s-\sigma_{t\to s}^2}\,
+\epsilon_\theta(x_t,t)+\sigma_{t\to s}z.
+```
 
-自回归生成第 $t$ 个 token 时：
+$`z`$ 是新标准高斯噪声。$`\eta=0`$ 时没有额外随机项，给定初始噪声、条件、网络及时间网格，整条离散轨迹确定；样本多样性来自不同初始噪声。
 
-$$
-p(x_t|x_{<t})
-$$
+跳步降低网络调用次数，但更大的时间跨度也放大模型误差和离散化误差。“共享训练边缘”不保证有限步、近似网络的采样边缘完全正确。$`\eta=1`$ 在相邻时刻与特定 DDPM 方差选择相对应，也不能无条件等同于所有 DDPM 实现。
 
-每层注意力需要：
+确定性提供反演研究的基础，但离散 DDIM 反演一般只有近似一致性；网络依赖当前输入，不能简单把更新式中的加号改成减号就保证精确还原。
 
-$$
-Q_t = h_tW_Q
-$$
+<h2 id="q-018">面试问题：Score、SDE、ODE 三者如何互相联系？</h2>
 
-$$
-K_{1:t}=h_{1:t}W_K
-$$
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-$$
-V_{1:t}=h_{1:t}W_V
-$$
+概率流 ODE 中的 $`1/2`$ 来自 Fokker–Planck 方程。考虑仅随时间变化的标量扩散系数：
 
-如果没有 KV Cache，每生成一个新 token，都要重新计算所有历史 token 的 $K,V$。
+```math
+dX_t=f(X_t,t)\,dt+g(t)\,dW_t.
+```
 
-但历史 token 的 hidden state 在自回归推理中已经确定，对当前步不会变化，因此历史 $K,V$ 可缓存：
+在密度光滑、边界通量适当等条件下：
 
-$$
-K_{\text{cache}}=[K_1,...,K_{t-1}]
-$$
+```math
+\partial_t p_t=-\nabla\cdot(fp_t)+\tfrac12g(t)^2\Delta p_t.
+```
 
-$$
-V_{\text{cache}}=[V_1,...,V_{t-1}]
-$$
+因为 $`p_t\nabla\log p_t=\nabla p_t`$，可整理成连续性方程：
 
-当前步只计算：
+```math
+\partial_t p_t=
+-\nabla\cdot\left[\left(f-\tfrac12g(t)^2\nabla\log p_t\right)p_t\right].
+```
 
-$$
-K_t,V_t,Q_t
-$$
+确定性 ODE $`\dot X_t=v(X_t,t)`$ 的密度也服从 $`\partial_t p=-\nabla\cdot(vp)`$。因此取 $`v=f-\tfrac12g^2s_t`$，就得到同边缘演化的概率流 ODE。
 
-并与缓存拼接。
+时间反演定理给出的反向 SDE 漂移为 $`f-g^2s_t`$，配反向布朗运动，从终点向起点积分。把反向 SDE 的噪声直接删掉，会留下错误的系数；需要按密度演化重新分配扩散贡献。
 
-**复杂度直觉：**
+以平稳 OU 过程 $`dX=-aX\,dt+\sqrt{2a}\,dW`$ 为例，标准高斯 score 是 $`-x`$。概率流速度为 $`-ax-\tfrac12(2a)(-x)=0`$。ODE 样本保持原位，SDE 样本持续抖动，但各时刻都服从标准高斯，直观展示了同边缘与同路径的区别。
 
-- 无缓存：每步重复处理长度 $t$ 的前缀，总计算近似 $O(T^2)$ 次投影。
-- 有缓存：每步只对新增 token 做投影，投影部分近似 $O(T)$。
-- 注意力打分仍需当前 token 和所有历史 key 交互，所以每步 attention 仍随上下文长度增长。
+若扩散系数依赖位置或是一般矩阵，方程含额外导数结构；若 score 由近似网络提供或求解步长有限，也只能近似保持理论边缘。似然计算还需要速度场散度，确定性本身不意味着似然自动可得。
 
-**工程代价：**
+<div align="center">
 
-KV Cache 显著加速推理，但显存占用随层数、batch、上下文长度、KV head 数线性增长。
+![平稳 OU 随机过程和静止概率流 ODE 的样本轨迹及相同高斯边缘](imgs/ode_sde_marginals.png)
 
----
+图 4：精确 OU 转移模拟与概率流 ODE。两者从标准高斯初始化，理论上各时刻边缘相同；中间轨迹不同，有限样本直方图会有统计波动。
 
-<h1 id="q-014">14. FlashAttention 的 Online Softmax 如何保证精确？</h1>
+</div>
 
-标准 Softmax 为：
+<h2 id="q-019">面试问题：Flow Matching 的速度场目标如何理解？</h2>
 
-$$
-\text{softmax}(x_i)=\frac{e^{x_i}}{\sum_j e^{x_j}}
-$$
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-为数值稳定，通常减去最大值：
+先定义端点耦合 $`(X_0,X_1)\sim\pi`$，其边缘分别为噪声和数据。线性插值 $`X_t=(1-t)X_0+tX_1`$ 的条件速度为 $`U=X_1-X_0`$。
 
-$$
-\text{softmax}(x_i)=\frac{e^{x_i-m}}{\sum_j e^{x_j-m}},\quad m=\max_jx_j
-$$
+对候选速度场 $`v`$，平方损失可分解为：
 
-FlashAttention 分块处理 attention logits，不能一次性拿到完整行的所有 $x_j$，因此使用 online softmax 维护当前块之前的最大值和归一化分母。
+```math
+\mathbb E\Vert v(X_t,t)-U\Vert^2
+=\mathbb E\Vert v(X_t,t)-\mathbb E[U\mid X_t,t]\Vert^2
++\mathbb E\Vert U-\mathbb E[U\mid X_t,t]\Vert^2.
+```
 
-假设已处理部分的最大值为 $m_{\text{old}}$，分母为 $l_{\text{old}}$：
+交叉项的条件期望为零，第二项与 $`v`$ 无关。所以最优边缘速度是：
 
-$$
-l_{\text{old}}=\sum_{\text{old}}e^{x_j-m_{\text{old}}}
-$$
+```math
+v^*(x,t)=\mathbb E[X_1-X_0\mid X_t=x,t].
+```
 
-新块最大值为 $m_{\text{block}}$，新全局最大值：
+它为什么能推动正确分布？对任意光滑测试函数 $`\varphi`$：
 
-$$
-m_{\text{new}}=\max(m_{\text{old}},m_{\text{block}})
-$$
+```math
+\frac d{dt}\mathbb E[\varphi(X_t)]
+=\mathbb E[\nabla\varphi(X_t)^{\mathsf T}U]
+=\mathbb E[\nabla\varphi(X_t)^{\mathsf T}v^*(X_t,t)].
+```
 
-旧分母需要换基准：
+在可交换求导与期望、边界条件适当时，这就是连续性方程的弱形式。由此把简单条件路径上的回归，与边缘分布的 ODE 联系起来。
 
-$$
-l_{\text{old}}' = l_{\text{old}}e^{m_{\text{old}}-m_{\text{new}}}
-$$
+多组端点可能在同一时刻穿过同一区域，条件速度平均后会改变实际轨迹方向。因此“训练配对是直线”不等于“学习到的每条 ODE 轨迹都是直线”。端点耦合、reflow 和数值求解共同影响路径难度。
 
-新块分母：
+采样解 $`\dot x=v_\theta(x,t)`$，从 $`t=0`$ 到 1。若论文采用数据到噪声的反向时间约定，速度符号和积分方向都要一起转换。条件变量也应保留在条件期望中，不能只在最终网络调用处补一个提示词。
 
-$$
-l_{\text{block}}'=\sum_{\text{block}}e^{x_j-m_{\text{new}}}
-$$
+<h1 id="q-105">5. 对齐、低秩更新与量化</h1>
 
-合并：
+<h2 id="q-020">面试问题：DPO Loss 如何从 KL 约束优化目标推导？</h2>
 
-$$
-l_{\text{new}}=l_{\text{old}}'+l_{\text{block}}'
-$$
+**难度评分：⭐⭐⭐⭐⭐ (5/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-输出加权和也按同样比例重标定。因此分块计算能得到与完整 Softmax 等价的结果。
+固定 prompt $`x`$，参考分布 $`q(y)=\pi_{\mathrm{ref}}(y\mid x)`$，考虑 $`\beta>0`$ 的目标：
 
-**结论：**
+```math
+\max_\pi\left\{\sum_y\pi(y)r(y)-\beta\sum_y\pi(y)\log\frac{\pi(y)}{q(y)}\right\},
+\qquad \sum_y\pi(y)=1.
+```
 
-FlashAttention 不是近似注意力。它通过分块、重计算和 online softmax 降低显存读写，数学结果仍是精确 attention。
+假设目标输出在参考支撑内，且 $`Z=\sum_yq(y)e^{r(y)/\beta}`$ 有限。加入归一化乘子并对 $`\pi(y)`$ 求导：
 
----
+```math
+r(y)-\beta\left(\log\frac{\pi(y)}{q(y)}+1\right)+\lambda=0.
+```
 
-<h1 id="q-015">15. DDPM 的 $q(x_t|x_0)$ 一步采样公式如何推导？</h1>
+整理并归一化，得到：
 
-DDPM 前向过程：
+```math
+\pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}}{Z(x)},
+\quad
+r(x,y)=\beta\log\frac{\pi^*(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}
++\beta\log Z(x).
+```
 
-$$
-q(x_t|x_{t-1})=\mathcal{N}(x_t;\sqrt{\alpha_t}x_{t-1},(1-\alpha_t)I)
-$$
+同一 prompt 的两条回答相减，$`\log Z(x)`$ 消去。再假设偏好服从 Bradley–Terry 模型：
 
-其中：
+```math
+P(y_w\succ y_l\mid x)=\sigma(r(x,y_w)-r(x,y_l)).
+```
 
-$$
-\alpha_t=1-\beta_t
-$$
+用参数策略表示隐式奖励，对观察到的优选标签最大化似然，得到：
 
-可重参数化为：
+```math
+L_{\mathrm{DPO}}=
+-\log\sigma\left[
+\beta\left(
+\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}
+-\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}
+\right)\right].
+```
 
-$$
-x_t=\sqrt{\alpha_t}x_{t-1}+\sqrt{1-\alpha_t}\epsilon_t
-$$
+这个推导连接了奖励倾斜分布与偏好分类。它没有证明有限离线数据、有限模型容量和非凸训练一定恢复真实最优策略。参考模型给零概率的输出也无法通过有限 KL 倾斜获得正概率。
 
-对 $x_{t-1}$ 继续展开：
+更大的 $`\beta`$ 在理想奖励固定问题中降低倾斜幅度，但 DPO 训练中的 margin、梯度饱和与数据噪声也会一起变化。实现还需核对回答 token 的求和口径、参考模型冻结和 prompt 掩码。
 
-$$
-x_{t-1}=\sqrt{\alpha_{t-1}}x_{t-2}+\sqrt{1-\alpha_{t-1}}\epsilon_{t-1}
-$$
+<h2 id="q-021">面试问题：PPO clipped objective 的数学意义是什么？</h2>
 
-代入得到：
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-$$
-x_t=\sqrt{\alpha_t\alpha_{t-1}}x_{t-2}+\text{Gaussian noise}
-$$
+PPO 使用采样旧策略下的动作，记新旧策略概率比为 $`\rho_t=\pi_\theta(a_t\mid s_t)/\pi_{\mathrm{old}}(a_t\mid s_t)`$，优势估计 $`A_t`$ 在策略更新时视作固定：
 
-由于独立高斯噪声的线性组合仍是高斯噪声，递推可得：
+```math
+J_{\mathrm{clip}}=
+\mathbb E\left[
+\min\{\rho_tA_t,\,
+\mathrm{clip}(\rho_t,1-\epsilon,1+\epsilon)A_t\}
+\right].
+```
 
-$$
-x_t=\sqrt{\bar{\alpha}_t}x_0+\sqrt{1-\bar{\alpha}_t}\epsilon
-$$
+这是要最大化的目标；写成训练 loss 时通常加负号。其单样本分段结构为：
 
-其中：
+```math
+\ell(\rho,A)=
+\begin{cases}
+A\min(\rho,1+\epsilon),& A\ge0,\\
+A\max(\rho,1-\epsilon),& A\lt0.
+\end{cases}
+```
 
-$$
-\bar{\alpha}_t=\prod_{s=1}^{t}\alpha_s,\quad \epsilon\sim\mathcal{N}(0,I)
-$$
+正优势样本的概率比超过上界后，不再因继续增大该比值获得额外代理收益；负优势样本低于下界后同理。朝错误方向变化时，目标仍然保留惩罚。
 
-因此：
+例如 $`\epsilon=0.2`$、$`A=1`$，$`\rho=1.5`$ 与 1.2 的该项收益都为 1.2。它只把这项梯度截平，**没有把参数或概率比投影回区间**。其他样本共享参数、动量和多轮优化，都可能让比值继续越界。
 
-$$
-q(x_t|x_0)=\mathcal{N}(x_t;\sqrt{\bar{\alpha}_t}x_0,(1-\bar{\alpha}_t)I)
-$$
+因此 clipping 不提供硬 KL 上界，也不保证每次真实性能提高。实际常监测近似 KL、clip fraction、熵和验证回报，必要时提前停止更新。参考策略 KL 与此处旧策略概率比又是不同约束来源。
 
-**意义：**
+如果采样策略版本不一致、概率比用错 token 掩码，重要性校正的意义也会改变。PPO 稳定性的讨论必须包括 rollout 来源与更新次数。
 
-训练时不需要一步步加噪到 $t$，可以随机采样 $t$ 后直接生成 $x_t$，极大提高训练效率。
+<div align="center">
 
----
+![PPO 对正负优势使用不同方向的收益平台，概率比仍可超出裁剪区间](imgs/ppo_clipping.png)
 
-<h1 id="q-016">16. DDPM 的训练目标为什么可以化简为预测噪声 MSE？</h1>
+图 5：优势分别取 +1、−1，裁剪参数为 0.2。平台表示停止提供该方向的额外代理收益，横轴仍包含区间外的概率比。
 
-DDPM 反向过程学习：
+</div>
 
-$$
-p_{\theta}(x_{t-1}|x_t)=\mathcal{N}(x_{t-1};\mu_{\theta}(x_t,t),\sigma_t^2I)
-$$
+<h2 id="q-022">面试问题：GRPO 的组内相对优势如何计算？</h2>
 
-变分下界中包含真实后验和模型反向分布之间的 KL：
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-$$
-D_{KL}(q(x_{t-1}|x_t,x_0)\|p_{\theta}(x_{t-1}|x_t))
-$$
+设同一 prompt 的旧策略回答有 $`G`$ 条，序列奖励为 $`r_i`$。采用总体标准差约定：
 
-两个高斯分布方差固定时，KL 关于均值的部分等价于加权 MSE：
+```math
+\overline r=\frac1G\sum_i r_i,\qquad
+s_r=\sqrt{\frac1G\sum_i(r_i-\overline r)^2},\qquad
+\widehat A_i=\frac{r_i-\overline r}{s_r+\epsilon}.
+```
 
-$$
-\|\tilde{\mu}_t(x_t,x_0)-\mu_{\theta}(x_t,t)\|_2^2
-$$
+忽略很小的 $`\epsilon`$，奖励 $`(0,0,1,1)`$ 得到优势 $`(-1,-1,1,1)`$；奖励全部相等则优势全部为零。这是相对比较没有区分信号，不是除法稳定技巧能够补救的问题。
 
-真实后验均值可写为 $x_t$ 和 $x_0$ 的函数，而 $x_0$ 又可由噪声表达：
+对长度 $`T_i`$ 的回答，常见 GRPO 版本将相同序列优势分配到各 token，使用：
 
-$$
-x_0=\frac{x_t-\sqrt{1-\bar{\alpha}_t}\epsilon}{\sqrt{\bar{\alpha}_t}}
-$$
+```math
+J=\frac1G\sum_i\frac1{T_i}\sum_{t=1}^{T_i}
+\ell(\rho_{i,t},\widehat A_i)
+-\beta\,\widehat D_{\mathrm{KL}},
+```
 
-因此模型预测均值可以重参数化为预测噪声：
+其中 $`\rho_{i,t}`$ 比较当前与采样旧策略在相同前缀下的 token 概率，$`\ell`$ 是 PPO 裁剪项。这里按序列平均的写法是一个具体版本，不能假定所有实现完全一致。
 
-$$
-\mu_{\theta}(x_t,t)=
-\frac{1}{\sqrt{\alpha_t}}
-\left(
-x_t-\frac{\beta_t}{\sqrt{1-\bar{\alpha}_t}}\epsilon_{\theta}(x_t,t)
-\right)
-$$
+减去组均值降低题目尺度差异；再除组标准差，相当于按题目奖励离散程度重新加权。组均值包含该回答自身，与独立于该回答动作的基线有区别；标准化和裁剪之后，不应直接把它称作无偏的原始策略梯度估计。
 
-忽略与时间步相关的权重后，得到简化目标：
+没有 critic 能节省部分训练资源，但组采样要付出额外 rollout 成本。组大小、难度分布、长度归一化、奖励截断及是否动态过滤零优势组，都会影响结果。可验证奖励只保证被检测的性质，判分器覆盖不足仍会产生优化偏差。
 
-$$
-L_{\text{simple}}=
-\mathbb{E}_{t,x_0,\epsilon}
-\left[
-\|\epsilon-\epsilon_{\theta}(x_t,t)\|_2^2
-\right]
-$$
+<h2 id="q-023">面试问题：LoRA 的参数量和计算量如何推导？</h2>
 
-**结论：**
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-DDPM 不是随意选择预测噪声，而是因为高斯后验 KL 在特定参数化下可以化简为噪声预测 MSE，训练稳定且效果好。
+对权重 $`W\in\mathbb R^{d_{\mathrm{out}}\times d_{\mathrm{in}}}`$，LoRA 增量为 $`(\alpha/r)BA`$，其中 $`B`$ 有 $`d_{\mathrm{out}}r`$ 个参数，$`A`$ 有 $`rd_{\mathrm{in}}`$ 个参数。可训练参数总数及比例为：
 
----
+```math
+N_{\mathrm{LoRA}}=r(d_{\mathrm{in}}+d_{\mathrm{out}}),\qquad
+\frac{N_{\mathrm{LoRA}}}{N_W}
+=r\left(\frac1{d_{\mathrm{in}}}+\frac1{d_{\mathrm{out}}}\right).
+```
 
-<h1 id="q-017">17. DDIM 为什么可以做确定性采样？</h1>
+令两边宽度均为 4096、秩为 16，比例为 $`1/128`$。这比较的是可训练参数，不是整个模型文件或总显存。
 
-DDPM 采样通常包含随机噪声项：
+单个向量前向先算 $`u=Ax`$，再算 $`Bu`$，额外乘加次数约为：
 
-$$
-x_{t-1}=\mu_{\theta}(x_t,t)+\sigma_t z,\quad z\sim\mathcal{N}(0,I)
-$$
+```math
+r\,d_{\mathrm{in}}+r\,d_{\mathrm{out}}.
+```
 
-DDIM 构造了一个非马尔可夫反向过程，使得边缘分布 $q(x_t|x_0)$ 与 DDPM 保持一致，但采样路径可以由参数 $\eta$ 控制随机性。
+若采用一次乘法加一次加法记作 2 FLOPs，数值再乘以 2；有 $`N`$ 个 token 时再乘 $`N`$。原始 $`Wx`$ 仍需要 $`d_{\mathrm{out}}d_{\mathrm{in}}`$ 次乘加。
 
-常见形式：
+训练还节省了基座权重梯度和其优化器状态，但需要保留激活，且可能仍需计算输入梯度 $`W^{\mathsf T}g`$。因此“可训练参数少 128 倍”不能推出训练 FLOPs 或显存同样少 128 倍。
 
-$$
-x_{t-1}
-=
-\sqrt{\bar{\alpha}_{t-1}}\hat{x}_0
-+
-\sqrt{1-\bar{\alpha}_{t-1}-\sigma_t^2}\epsilon_{\theta}(x_t,t)
-+
-\sigma_t z
-$$
+合并为 $`W_{\mathrm{merged}}=W+(\alpha/r)BA`$ 后，单个固定适配器的线性层推理可恢复为一次矩阵乘法。量化、adapter dropout、动态选择或其他非线性变体需另行检查等价条件。性能评估应报告是否合并、精度格式和批大小。
 
-其中：
+<h2 id="q-024">面试问题：量化 scale 和 zero-point 如何计算？</h2>
 
-$$
-\hat{x}_0=\frac{x_t-\sqrt{1-\bar{\alpha}_t}\epsilon_{\theta}(x_t,t)}{\sqrt{\bar{\alpha}_t}}
-$$
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐⭐ (5/5)**
 
-当 $\eta=0$ 时：
+先选一个包含零且非退化的浮点范围 $`[a,b]`$ 与整数范围 $`[q_{\min},q_{\max}]`$。仿射量化常取：
 
-$$
-\sigma_t=0
-$$
+```math
+s=\frac{b-a}{q_{\max}-q_{\min}},\qquad
+z=\mathrm{clip}\left(\mathrm{round}(q_{\min}-a/s),q_{\min},q_{\max}\right).
+```
 
-于是：
+再量化、反量化：
 
-$$
-x_{t-1}
-=
-\sqrt{\bar{\alpha}_{t-1}}\hat{x}_0
-+
-\sqrt{1-\bar{\alpha}_{t-1}}\epsilon_{\theta}(x_t,t)
-$$
+```math
+q=\mathrm{clip}(\mathrm{round}(x/s)+z,q_{\min},q_{\max}),\qquad
+\widehat x=s(q-z).
+```
 
-不再注入随机噪声，因此给定初始噪声 $x_T$ 和条件，采样轨迹是确定的。
+$`z`$ 必须为整数，舍入意味着两端一般不能同时精确匹配，但浮点零能精确映射为整数 $`z`$。不同后端对舍入、饱和及参数计算的规定要保持一致。
 
-**意义：**
+例：范围 $`[-1,2]`$ 映射到 uint8 的 $`[0,255]`$，$`s=3/255`$、$`z=85`$。取 $`x=0.8`$，得到 $`q=153`$，反量化仍为 0.8。范围外数值则发生饱和。
 
-- DDIM 可以少步采样。
-- 确定性路径便于图像反演和编辑。
-- 随机性由 $\eta$ 控制，$\eta=0$ 是确定性，$\eta>0$ 更接近随机采样。
+对称 int8 常选 $`[-127,127]`$、$`z=0`$、$`s=\max\vert x\vert/127`$；若使用 $`[-128,127]`$，正负端不完全对称，需说明端点约定。全零或极窄范围需要最小尺度等专门处理。
 
----
+未裁剪且最近舍入时，$`\vert x-\widehat x\vert\le s/2`$；若输入低于或高于范围，误差不受这个界约束。离群值与分组尺度会改变误差分布。
 
-<h1 id="q-018">18. Score、SDE、ODE 三者如何互相联系？</h1>
+NF4 是查非均匀码本，不能直接套一个统一步长 $`s`$ 的半间隔界。校准权重误差还不够，应进一步检查代表性输入下的输出和任务指标。
 
-Score 定义为：
+<h2 id="q-025">面试问题：知识蒸馏中的温度系数为什么常配 $`T^2`$？</h2>
 
-$$
-s_t(x)=\nabla_x\log p_t(x)
-$$
+**难度评分：⭐⭐⭐⭐ (4/5)  |  考察频率：⭐⭐⭐⭐ (4/5)**
 
-它表示当前噪声尺度下，对数密度对样本的梯度。
+记教师 logits 为 $`a`$、学生 logits 为 $`z`$，相同温度下的概率分别为 $`p^{(T)},q^{(T)}`$。教师固定，对学生 logits 求导：
 
-连续扩散正向过程可写为 SDE：
+```math
+\frac{\partial}{\partial z_i}D_{\mathrm{KL}}(p^{(T)}\Vert q^{(T)})
+=\frac1T(q_i^{(T)}-p_i^{(T)}).
+```
 
-$$
-dx=f(x,t)dt+g(t)dw
-$$
+第一个 $`1/T`$ 来自 $`z/T`$ 的链式法则。高温使各 logit 相对均值的差远小于 $`T`$ 时，对指数做一阶展开：
 
-反向时间 SDE 为：
+```math
+q_i^{(T)}\approx\frac1K+\frac{z_i-\overline z}{KT},\qquad
+p_i^{(T)}\approx\frac1K+\frac{a_i-\overline a}{KT}.
+```
 
-$$
-dx=[f(x,t)-g(t)^2\nabla_x\log p_t(x)]dt+g(t)d\bar{w}
-$$
+所以概率差又提供一个 $`1/T`$：
 
-其中 $\nabla_x\log p_t(x)$ 就是 score，通常由神经网络学习。
+```math
+\frac{\partial L}{\partial z_i}
+\approx\frac{(z_i-\overline z)-(a_i-\overline a)}{KT^2}.
+```
 
-对应的 Probability Flow ODE：
+乘 $`T^2`$ 后，近似梯度与温度解耦，并表现为对齐中心化 logits。Softmax 对共同平移不敏感，因此比较的是去均值后的相对差异。
 
-$$
-dx=\left[f(x,t)-\frac{1}{2}g(t)^2\nabla_x\log p_t(x)\right]dt
-$$
+这依赖高温展开有效、教师与学生使用相同温度、标签分布固定等条件。普通温度或概率截断下，乘 $`T^2`$ 不保证每个坐标梯度完全不变；温度很高还可能把有用结构压得过平。
 
-它与反向 SDE 具有相同的边缘分布演化，但采样路径是确定性的。
-
-**关系总结：**
-
-- Score：告诉模型如何朝高密度区域移动。
-- SDE：随机微分方程，包含噪声项。
-- ODE：确定性流，去掉随机项但保持相同边缘分布。
-- DDPM 是离散时间版本，Score SDE 是连续统一框架。
-
----
-
-<h1 id="q-019">19. Flow Matching 的速度场目标如何理解？</h1>
-
-Flow Matching 希望学习一个速度场：
-
-$$
-v_{\theta}(x,t)
-$$
-
-使样本从简单分布 $p_0$ 流动到数据分布 $p_1$。
-
-设 $x_0\sim p_0$ 是噪声，$x_1\sim p_1$ 是数据。若使用线性路径：
-
-$$
-x_t=(1-t)x_0+tx_1
-$$
-
-则路径对时间求导：
-
-$$
-\frac{dx_t}{dt}=x_1-x_0
-$$
-
-因此目标速度可以写为：
-
-$$
-u_t=x_1-x_0
-$$
-
-训练目标：
-
-$$
-L_{\text{FM}}=
-\mathbb{E}_{t,x_t}
-\left[
-\|v_{\theta}(x_t,t)-u_t(x_t)\|_2^2
-\right]
-$$
-
-采样时从噪声出发，求解 ODE：
-
-$$
-\frac{dx}{dt}=v_{\theta}(x,t)
-$$
-
-从 $t=0$ 积分到 $t=1$ 得到数据样本。
-
-**与扩散模型对比：**
-
-- 扩散模型常学习 score 或噪声。
-- Flow Matching 学习速度场。
-- Rectified Flow 希望路径更直，让少步采样更高效。
-
----
-
-<h1 id="q-020">20. DPO Loss 如何从 KL 约束优化目标推导？</h1>
-
-RLHF 的理想目标可以写成在 KL 约束下最大化奖励：
-
-$$
-\max_{\pi}
-\mathbb{E}_{y\sim\pi(\cdot|x)}[r(x,y)]
--
-\beta D_{KL}(\pi(\cdot|x)\|\pi_{\text{ref}}(\cdot|x))
-$$
-
-该目标的最优策略满足：
-
-$$
-\pi^*(y|x)=\frac{1}{Z(x)}\pi_{\text{ref}}(y|x)\exp\left(\frac{1}{\beta}r(x,y)\right)
-$$
-
-两边取对数并整理：
-
-$$
-r(x,y)=
-\beta\log\frac{\pi^*(y|x)}{\pi_{\text{ref}}(y|x)}
-+
-\beta\log Z(x)
-$$
-
-对于同一个 prompt 下的两个回答 $y_w,y_l$，归一化项 $\log Z(x)$ 抵消：
-
-$$
-r(x,y_w)-r(x,y_l)
-=
-\beta
-\left[
-\log\frac{\pi^*(y_w|x)}{\pi_{\text{ref}}(y_w|x)}
--
-\log\frac{\pi^*(y_l|x)}{\pi_{\text{ref}}(y_l|x)}
-\right]
-$$
-
-偏好模型使用 Bradley-Terry 形式：
-
-$$
-P(y_w \succ y_l|x)=\sigma(r(x,y_w)-r(x,y_l))
-$$
-
-用当前策略 $\pi_{\theta}$ 近似 $\pi^*$，得到 DPO 损失：
-
-$$
-L_{\text{DPO}}
-=
--\log\sigma
-\left(
-\beta
-\left[
-\log\frac{\pi_{\theta}(y_w|x)}{\pi_{\text{ref}}(y_w|x)}
--
-\log\frac{\pi_{\theta}(y_l|x)}{\pi_{\text{ref}}(y_l|x)}
-\right]
-\right)
-$$
-
-**一句话：**
-
-DPO 把 KL 约束 RL 问题转成了偏好对上的二分类问题，避免显式训练 reward model 和在线 PPO。
-
----
-
-<h1 id="q-021">21. PPO clipped objective 的数学意义是什么？</h1>
-
-PPO 定义新旧策略概率比：
-
-$$
-r_t(\theta)=\frac{\pi_{\theta}(a_t|s_t)}{\pi_{\theta_{\text{old}}}(a_t|s_t)}
-$$
-
-普通策略梯度目标可写为：
-
-$$
-L(\theta)=\mathbb{E}[r_t(\theta)A_t]
-$$
-
-如果 $r_t$ 变化过大，策略更新会过猛，导致训练不稳定。PPO 使用裁剪目标：
-
-$$
-L^{\text{CLIP}}(\theta)=
-\mathbb{E}
-\left[
-\min
-\left(
-r_t(\theta)A_t,
-\text{clip}(r_t(\theta),1-\epsilon,1+\epsilon)A_t
-\right)
-\right]
-$$
-
-理解方式：
-
-- 当 $A_t>0$，说明动作好，希望提高概率，但最多提高到 $1+\epsilon$ 附近。
-- 当 $A_t<0$，说明动作差，希望降低概率，但最多降低到 $1-\epsilon$ 附近。
-
-**数学意义：**
-
-PPO clipped objective 是一种简单的 trust region 近似，用概率比限制策略每步变化幅度，降低策略崩坏风险。
-
----
-
-<h1 id="q-022">22. GRPO 的组内相对优势如何计算？</h1>
-
-GRPO 对同一个 prompt 采样一组回答：
-
-$$
-\{y_1,y_2,...,y_G\}
-$$
-
-对每个回答计算奖励：
-
-$$
-\{r_1,r_2,...,r_G\}
-$$
-
-组内均值：
-
-$$
-\mu_r=\frac{1}{G}\sum_{i=1}^{G}r_i
-$$
-
-组内标准差：
-
-$$
-\sigma_r=\sqrt{\frac{1}{G}\sum_{i=1}^{G}(r_i-\mu_r)^2+\epsilon}
-$$
-
-相对优势：
-
-$$
-A_i=\frac{r_i-\mu_r}{\sigma_r}
-$$
-
-之后将 $A_i$ 放入类似 PPO 的 clipped policy objective，并加入 KL 约束。
-
-**为什么这样做？**
-
-- 不需要单独训练 value model。
-- 同题多答案之间的相对好坏更容易估计。
-- 对数学、代码、推理任务，奖励常来自规则判分或自动验证，适合组内比较。
-
-**注意：**
-
-如果一组回答奖励几乎相同，$\sigma_r$ 很小，需要加 $\epsilon$ 防止数值不稳定。
-
----
-
-<h1 id="q-023">23. LoRA 的参数量和计算量如何推导？</h1>
-
-原始线性层：
-
-$$
-y=Wx
-$$
-
-其中：
-
-$$
-W\in\mathbb{R}^{d_{out}\times d_{in}}
-$$
-
-原始参数量：
-
-$$
-d_{out}d_{in}
-$$
-
-LoRA 冻结 $W$，学习：
-
-$$
-\Delta W=BA
-$$
-
-其中：
-
-$$
-B\in\mathbb{R}^{d_{out}\times r},\quad A\in\mathbb{R}^{r\times d_{in}}
-$$
-
-LoRA 可训练参数量：
-
-$$
-rd_{out}+rd_{in}=r(d_{out}+d_{in})
-$$
-
-当 $r\ll \min(d_{out},d_{in})$ 时，参数量大幅减少。
-
-前向计算：
-
-$$
-y=Wx+\frac{\alpha}{r}BAx
-$$
-
-LoRA 分支计算量：
-
-1. 先算 $Ax$：约 $rd_{in}$。
-2. 再算 $B(Ax)$：约 $d_{out}r$。
-
-总额外计算量：
-
-$$
-O(r(d_{in}+d_{out}))
-$$
-
-而完整更新矩阵的计算量为：
-
-$$
-O(d_{in}d_{out})
-$$
-
-**面试结论：**
-
-LoRA 的高效来自低秩假设：下游任务所需权重变化 $\Delta W$ 位于低维子空间。
-
----
-
-<h1 id="q-024">24. 量化 scale 和 zero-point 如何计算？</h1>
-
-量化把浮点数 $x$ 映射到整数 $q$。
-
-非对称均匀量化设浮点范围为：
-
-$$
-[x_{\min},x_{\max}]
-$$
-
-整数范围为：
-
-$$
-[q_{\min},q_{\max}]
-$$
-
-scale：
-
-$$
-s=\frac{x_{\max}-x_{\min}}{q_{\max}-q_{\min}}
-$$
-
-zero-point：
-
-$$
-z=q_{\min}-\text{round}\left(\frac{x_{\min}}{s}\right)
-$$
-
-量化：
-
-$$
-q=\text{clip}\left(\text{round}\left(\frac{x}{s}\right)+z,q_{\min},q_{\max}\right)
-$$
-
-反量化：
-
-$$
-\hat{x}=s(q-z)
-$$
-
-对称量化通常令 zero-point 为 0：
-
-$$
-q=\text{round}\left(\frac{x}{s}\right)
-$$
-
-$$
-\hat{x}=sq
-$$
-
-**误差来源：**
-
-$$
-e=x-\hat{x}
-$$
-
-均匀量化中，未裁剪情况下误差通常被限制在半个量化间隔附近：
-
-$$
-|e|\le \frac{s}{2}
-$$
-
-**LLM 量化要点：**
-
-- per-channel 或 group-wise scale 通常比 per-tensor 更准。
-- outlier channel 会显著影响 scale，导致大多数普通值量化精度下降。
-- NF4 使用非均匀码本，更适合近似正态分布的权重。
-
----
-
-<h1 id="q-025">25. 知识蒸馏中的温度系数为什么常配 $T^2$？</h1>
-
-蒸馏使用带温度 Softmax：
-
-$$
-p_i^{(T)}=\frac{\exp(z_i/T)}{\sum_j\exp(z_j/T)}
-$$
-
-蒸馏损失：
-
-$$
-L_{\text{KD}}=D_{KL}(p_T^{\text{teacher}}\|p_T^{\text{student}})
-$$
-
-温度 $T$ 变大时，Softmax 分布变平滑，logits 对概率的影响被缩小。对 student logits 求导时，Softmax 中的 $z/T$ 会带来一个 $\frac{1}{T}$ 因子。
-
-同时，当 $T$ 较大时，teacher 与 student 的概率差也近似随 $\frac{1}{T}$ 缩小。因此梯度量级大约会随：
-
-$$
-\frac{1}{T^2}
-$$
-
-变小。
-
-为了让不同温度下蒸馏损失的梯度量级可比，常把 KL 损失乘以：
-
-$$
-T^2
-$$
-
-即：
-
-$$
-L_{\text{KD}}=T^2D_{KL}(p_T^{\text{teacher}}\|p_T^{\text{student}})
-$$
-
-**面试回答：**
-
-$T$ 用来软化分布，暴露类别之间的暗知识；乘 $T^2$ 主要是补偿温度导致的梯度缩放，使蒸馏项和监督项在训练中保持合理权重。
+实际常将此项与温度为 1 的硬标签损失加权相加，权重需要结合任务和学生容量调整。若只使用教师生成文本做序列级蒸馏，没有可对齐的 logits，就不存在直接套用这个 $`T^2`$ 补偿的理由。
 
 ---
 
 ## 参考资料
 
-[1] Ian Goodfellow, Yoshua Bengio, Aaron Courville. *Deep Learning*. MIT Press, 2016.
+- [Mathematics for Machine Learning](https://mml-book.github.io/)
 
-[2] Vaswani et al. *Attention Is All You Need*. NeurIPS, 2017. <https://arxiv.org/abs/1706.03762>
+- [Convex Optimization](https://web.stanford.edu/~boyd/cvxbook/)
 
-[3] Ho et al. *Denoising Diffusion Probabilistic Models*. NeurIPS, 2020. <https://arxiv.org/abs/2006.11239>
+- [Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114)
 
-[4] Song et al. *Score-Based Generative Modeling through Stochastic Differential Equations*. ICLR, 2021. <https://arxiv.org/abs/2011.13456>
+- [Attention Is All You Need](https://arxiv.org/abs/1706.03762)
 
-[5] Rafailov et al. *Direct Preference Optimization: Your Language Model is Secretly a Reward Model*. NeurIPS, 2023. <https://arxiv.org/abs/2305.18290>
+- [RoFormer](https://arxiv.org/abs/2104.09864)
 
-[6] Hu et al. *LoRA: Low-Rank Adaptation of Large Language Models*. ICLR, 2022. <https://arxiv.org/abs/2106.09685>
+- [FlashAttention](https://arxiv.org/abs/2205.14135)
 
-[7] Dao et al. *FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness*. NeurIPS, 2022. <https://arxiv.org/abs/2205.14135>
+- [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)
+
+- [Denoising Diffusion Implicit Models](https://arxiv.org/abs/2010.02502)
+
+- [Score-Based Generative Modeling through SDEs](https://arxiv.org/abs/2011.13456)
+
+- [Flow Matching for Generative Modeling](https://arxiv.org/abs/2210.02747)
+
+- [Direct Preference Optimization](https://arxiv.org/abs/2305.18290)
+
+- [PPO 原始论文与算法说明](https://arxiv.org/abs/1707.06347)
+
+- [DeepSeekMath](https://arxiv.org/abs/2402.03300)
+
+- [LoRA](https://arxiv.org/abs/2106.09685)
+
+- [Distilling the Knowledge in a Neural Network](https://arxiv.org/abs/1503.02531)

@@ -1,0 +1,670 @@
+{
+  "platform": "macOS-10.16-x86_64-i386-64bit",
+  "machine": "x86_64",
+  "python": "3.11.13 (main, Jun  5 2025, 08:14:07) [Clang 14.0.6 ]",
+  "java_version": "openjdk version \"21.0.13.1\" 2026-11-17 LTS\nOpenJDK Runtime Environment Temurin-21.0.13.1+2 (build 21.0.13.1+2-LTS)\nOpenJDK 64-Bit Server VM Temurin-21.0.13.1+2 (build 21.0.13.1+2-LTS, mixed mode)\n",
+  "cpu": "Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz",
+  "cpp_version": "Apple clang version 14.0.0 (clang-1400.0.29.202)\nTarget: x86_64-apple-darwin21.6.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin\n",
+  "n": 32768,
+  "seed": 20261127,
+  "rng": "uint32 LCG 1664525*x+1013904223; value modulo 100000",
+  "process_forks": 3,
+  "samples_per_fork": 11,
+  "warmups": {
+    "python": 8,
+    "cpp": 8,
+    "java": 40
+  },
+  "input_copies": "included when required to preserve input",
+  "data_generation": "excluded",
+  "validation": "full outputs compared before timing each method",
+  "environment": "shared workstation, no CPU pinning or isolated load",
+  "files": {
+    "python/algorithms.py": "db1e84d8cef14f21076d26d3f45e5748cb0741a2b1d8015a4394e7ca10d4846e",
+    "tests/runner.py": "a818b372982f18dfd7c123fa659684a3b0c69392ca4ee3734518447811792d7a",
+    "tests/runner.cpp": "84837a0880d0530f9165a93aec45018dcd01c920d3b96d251a9936896b08f923",
+    "tests/Runner.java": "c4ba9ed321b39f19ce7463005be428bf5ef7e7c6dd9ec2e78584bf65895830b6",
+    "tests/verify.py": "52cf9906a8fd00c4c84116814d6e09f53e114cf9346f418187f47877bef4d60f",
+    "java/Algorithms.java": "2c0284b9f04bf638d85651a7e27c916ccb902b75870de6e5e7f756f734f5e9be",
+    "cpp/algorithms.hpp": "a72e8047743ced36c9767b7073c875d851537dc613fcc615337d55b68d116ae6",
+    "benchmarks/run.py": "596ae4602f8585c875c103835059f803385480ad45030e42e83799f42ae2054e",
+    "benchmarks/bench.py": "c7afbc6b6c6c7d658c7361977b2f7448c1ff94218b2e3db0a139b95bdcee5eda",
+    "benchmarks/Bench.java": "65c9d1fb1d564afe7716aa0366ebb36e4dee5178a13ec5c9523c3fe9fef42aea",
+    "benchmarks/bench.cpp": "59b726ddd0918a23933e0aaf1fd1b415896c56ea18d576cacccba65a72ac42ab"
+  },
+  "results": [
+    {
+      "language": "python",
+      "task": "sort_random",
+      "method": "merge_buffers",
+      "median_ms": 59.878002,
+      "p10_ms": 58.469023,
+      "p90_ms": 61.974768,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "sort_random",
+      "method": "builtin_sorted",
+      "median_ms": 4.729055,
+      "p10_ms": 4.606687,
+      "p90_ms": 5.006349,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "sort_sorted",
+      "method": "merge_buffers",
+      "median_ms": 53.991508,
+      "p10_ms": 51.932848,
+      "p90_ms": 56.987936,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "sort_sorted",
+      "method": "builtin_sorted",
+      "median_ms": 0.274397,
+      "p10_ms": 0.263993,
+      "p90_ms": 0.314226,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "sort_reversed",
+      "method": "merge_buffers",
+      "median_ms": 56.965021,
+      "p10_ms": 54.56807,
+      "p90_ms": 60.225167,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "sort_reversed",
+      "method": "builtin_sorted",
+      "median_ms": 0.943192,
+      "p10_ms": 0.896536,
+      "p90_ms": 1.318738,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "sort_duplicates",
+      "method": "merge_buffers",
+      "median_ms": 53.471739,
+      "p10_ms": 52.91418,
+      "p90_ms": 54.83867,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "sort_duplicates",
+      "method": "builtin_sorted",
+      "median_ms": 0.907795,
+      "p10_ms": 0.888072,
+      "p90_ms": 1.045769,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_8",
+      "method": "bounded_heap",
+      "median_ms": 0.592283,
+      "p10_ms": 0.565365,
+      "p90_ms": 0.696825,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_8",
+      "method": "adaptive",
+      "median_ms": 0.596218,
+      "p10_ms": 0.56886,
+      "p90_ms": 0.718958,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_8",
+      "method": "heapq_nlargest",
+      "median_ms": 0.565231,
+      "p10_ms": 0.558138,
+      "p90_ms": 0.664991,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_8",
+      "method": "full_sort",
+      "median_ms": 4.673789,
+      "p10_ms": 4.526276,
+      "p90_ms": 4.871493,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_128",
+      "method": "bounded_heap",
+      "median_ms": 0.722842,
+      "p10_ms": 0.691825,
+      "p90_ms": 0.914556,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_128",
+      "method": "adaptive",
+      "median_ms": 0.722973,
+      "p10_ms": 0.689225,
+      "p90_ms": 0.872966,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_128",
+      "method": "heapq_nlargest",
+      "median_ms": 0.829062,
+      "p10_ms": 0.803868,
+      "p90_ms": 1.070894,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_128",
+      "method": "full_sort",
+      "median_ms": 4.751153,
+      "p10_ms": 4.55544,
+      "p90_ms": 5.273712,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_16384",
+      "method": "bounded_heap",
+      "median_ms": 7.405205,
+      "p10_ms": 7.11088,
+      "p90_ms": 7.567034,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_16384",
+      "method": "adaptive",
+      "median_ms": 4.929178,
+      "p10_ms": 4.568349,
+      "p90_ms": 5.096077,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_16384",
+      "method": "heapq_nlargest",
+      "median_ms": 18.335764,
+      "p10_ms": 17.748821,
+      "p90_ms": 19.248438,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "top_16384",
+      "method": "full_sort",
+      "median_ms": 4.810591,
+      "p10_ms": 4.625457,
+      "p90_ms": 5.009738,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "window_128",
+      "method": "monotonic_deque",
+      "median_ms": 7.742397,
+      "p10_ms": 7.518692,
+      "p90_ms": 8.122709,
+      "samples": 33
+    },
+    {
+      "language": "python",
+      "task": "window_128",
+      "method": "scan_each_window",
+      "median_ms": 59.004352,
+      "p10_ms": 58.595011,
+      "p90_ms": 59.375784,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "sort_random",
+      "method": "merge_buffers",
+      "median_ms": 2.4776,
+      "p10_ms": 2.32666,
+      "p90_ms": 2.70124,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "sort_random",
+      "method": "std_stable_sort",
+      "median_ms": 2.15762,
+      "p10_ms": 2.01061,
+      "p90_ms": 2.32466,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "sort_sorted",
+      "method": "merge_buffers",
+      "median_ms": 0.458637,
+      "p10_ms": 0.450878,
+      "p90_ms": 0.518456,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "sort_sorted",
+      "method": "std_stable_sort",
+      "median_ms": 0.132128,
+      "p10_ms": 0.131737,
+      "p90_ms": 0.139007,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "sort_reversed",
+      "method": "merge_buffers",
+      "median_ms": 0.560797,
+      "p10_ms": 0.534605,
+      "p90_ms": 0.739395,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "sort_reversed",
+      "method": "std_stable_sort",
+      "median_ms": 1.45248,
+      "p10_ms": 1.40079,
+      "p90_ms": 1.62894,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "sort_duplicates",
+      "method": "merge_buffers",
+      "median_ms": 0.549564,
+      "p10_ms": 0.539226,
+      "p90_ms": 0.688676,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "sort_duplicates",
+      "method": "std_stable_sort",
+      "median_ms": 0.891492,
+      "p10_ms": 0.864688,
+      "p90_ms": 1.0464,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_8",
+      "method": "bounded_heap",
+      "median_ms": 0.012144,
+      "p10_ms": 0.011986,
+      "p90_ms": 0.012753,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_8",
+      "method": "adaptive",
+      "median_ms": 0.012083,
+      "p10_ms": 0.011904,
+      "p90_ms": 0.013291,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_8",
+      "method": "priority_queue",
+      "median_ms": 0.028665,
+      "p10_ms": 0.028463,
+      "p90_ms": 0.030254,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_8",
+      "method": "nth_then_sort",
+      "median_ms": 0.112836,
+      "p10_ms": 0.100167,
+      "p90_ms": 0.169331,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_8",
+      "method": "full_sort",
+      "median_ms": 1.75357,
+      "p10_ms": 1.68376,
+      "p90_ms": 1.9726,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_128",
+      "method": "bounded_heap",
+      "median_ms": 0.030308,
+      "p10_ms": 0.027855,
+      "p90_ms": 0.033134,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_128",
+      "method": "adaptive",
+      "median_ms": 0.027675,
+      "p10_ms": 0.026762,
+      "p90_ms": 0.030457,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_128",
+      "method": "priority_queue",
+      "median_ms": 0.048765,
+      "p10_ms": 0.047753,
+      "p90_ms": 0.049462,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_128",
+      "method": "nth_then_sort",
+      "median_ms": 0.114374,
+      "p10_ms": 0.104304,
+      "p90_ms": 0.13655,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_128",
+      "method": "full_sort",
+      "median_ms": 1.72639,
+      "p10_ms": 1.67833,
+      "p90_ms": 1.91226,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_16384",
+      "method": "bounded_heap",
+      "median_ms": 1.70407,
+      "p10_ms": 1.67913,
+      "p90_ms": 1.9175,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_16384",
+      "method": "adaptive",
+      "median_ms": 0.983953,
+      "p10_ms": 0.961071,
+      "p90_ms": 1.16026,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_16384",
+      "method": "priority_queue",
+      "median_ms": 1.74054,
+      "p10_ms": 1.69408,
+      "p90_ms": 1.95455,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_16384",
+      "method": "nth_then_sort",
+      "median_ms": 0.98947,
+      "p10_ms": 0.960432,
+      "p90_ms": 1.10789,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "top_16384",
+      "method": "full_sort",
+      "median_ms": 1.69752,
+      "p10_ms": 1.6764,
+      "p90_ms": 1.91011,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "window_128",
+      "method": "monotonic_ring",
+      "median_ms": 0.515533,
+      "p10_ms": 0.509221,
+      "p90_ms": 0.602479,
+      "samples": 33
+    },
+    {
+      "language": "cpp",
+      "task": "window_128",
+      "method": "scan_each_window",
+      "median_ms": 2.89696,
+      "p10_ms": 2.76755,
+      "p90_ms": 3.10467,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "sort_random",
+      "method": "merge_buffers",
+      "median_ms": 3.069085,
+      "p10_ms": 2.867102,
+      "p90_ms": 3.258858,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "sort_random",
+      "method": "arrays_sort",
+      "median_ms": 2.217458,
+      "p10_ms": 2.084312,
+      "p90_ms": 2.425325,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "sort_sorted",
+      "method": "merge_buffers",
+      "median_ms": 0.826605,
+      "p10_ms": 0.756848,
+      "p90_ms": 1.066198,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "sort_sorted",
+      "method": "arrays_sort",
+      "median_ms": 0.21455,
+      "p10_ms": 0.195576,
+      "p90_ms": 0.270673,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "sort_reversed",
+      "method": "merge_buffers",
+      "median_ms": 1.165299,
+      "p10_ms": 1.031116,
+      "p90_ms": 1.310822,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "sort_reversed",
+      "method": "arrays_sort",
+      "median_ms": 0.221197,
+      "p10_ms": 0.20479,
+      "p90_ms": 0.270606,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "sort_duplicates",
+      "method": "merge_buffers",
+      "median_ms": 1.125217,
+      "p10_ms": 1.064453,
+      "p90_ms": 1.29567,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "sort_duplicates",
+      "method": "arrays_sort",
+      "median_ms": 0.258812,
+      "p10_ms": 0.17349,
+      "p90_ms": 0.366051,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_8",
+      "method": "primitive_heap",
+      "median_ms": 0.093603,
+      "p10_ms": 0.093288,
+      "p90_ms": 0.094804,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_8",
+      "method": "adaptive",
+      "median_ms": 0.065379,
+      "p10_ms": 0.063427,
+      "p90_ms": 0.071344,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_8",
+      "method": "priority_queue",
+      "median_ms": 0.198011,
+      "p10_ms": 0.189994,
+      "p90_ms": 0.230485,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_8",
+      "method": "full_sort",
+      "median_ms": 2.004481,
+      "p10_ms": 1.959284,
+      "p90_ms": 2.254215,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_128",
+      "method": "primitive_heap",
+      "median_ms": 0.043306,
+      "p10_ms": 0.041902,
+      "p90_ms": 0.046492,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_128",
+      "method": "adaptive",
+      "median_ms": 0.042571,
+      "p10_ms": 0.041387,
+      "p90_ms": 0.044485,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_128",
+      "method": "priority_queue",
+      "median_ms": 0.261158,
+      "p10_ms": 0.24386,
+      "p90_ms": 0.304249,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_128",
+      "method": "full_sort",
+      "median_ms": 2.041417,
+      "p10_ms": 1.965048,
+      "p90_ms": 2.211588,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_16384",
+      "method": "primitive_heap",
+      "median_ms": 2.21604,
+      "p10_ms": 2.01704,
+      "p90_ms": 2.451406,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_16384",
+      "method": "adaptive",
+      "median_ms": 2.271263,
+      "p10_ms": 1.996959,
+      "p90_ms": 2.399286,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_16384",
+      "method": "priority_queue",
+      "median_ms": 5.666696,
+      "p10_ms": 5.39173,
+      "p90_ms": 5.942602,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "top_16384",
+      "method": "full_sort",
+      "median_ms": 2.109984,
+      "p10_ms": 2.012658,
+      "p90_ms": 2.390514,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "window_128",
+      "method": "monotonic_ring",
+      "median_ms": 0.706138,
+      "p10_ms": 0.677667,
+      "p90_ms": 0.918459,
+      "samples": 33
+    },
+    {
+      "language": "java",
+      "task": "window_128",
+      "method": "scan_each_window",
+      "median_ms": 3.044209,
+      "p10_ms": 2.850801,
+      "p90_ms": 3.227575,
+      "samples": 33
+    }
+  ],
+  "cpp_command": [
+    "clang++",
+    "-std=c++20",
+    "-O3",
+    "-DNDEBUG",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "benchmarks/bench.cpp",
+    "-o",
+    "<out>/bench_cpp"
+  ]
+}

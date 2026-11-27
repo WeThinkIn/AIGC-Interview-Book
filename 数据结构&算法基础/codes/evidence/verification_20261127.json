@@ -1,0 +1,67 @@
+{
+  "seed": 20261127,
+  "cases": 3407,
+  "operations": {
+    "sort": 220,
+    "next": 220,
+    "top": 221,
+    "top_heap": 220,
+    "lower": 220,
+    "list": 220,
+    "window": 218,
+    "tree": 101,
+    "lru": 101,
+    "bip": 161,
+    "topo": 161,
+    "dijkstra": 142,
+    "kmp": 200,
+    "edit": 200,
+    "trie": 41,
+    "polygon": 206,
+    "comb": 89,
+    "comb_backtrack": 89,
+    "sqrt": 163,
+    "gauss": 72,
+    "dsu": 71,
+    "fenwick": 71
+  },
+  "languages": {
+    "python": {
+      "cases": 3407,
+      "seconds": 0.47132746828719974,
+      "stderr": ""
+    },
+    "cpp": {
+      "cases": 3407,
+      "seconds": 0.654881059192121,
+      "stderr": ""
+    },
+    "java": {
+      "cases": 3407,
+      "seconds": 0.4947097063995898,
+      "stderr": ""
+    },
+    "cpp_sanitized": {
+      "cases": 3407,
+      "seconds": 1.525181250181049,
+      "stderr": ""
+    }
+  },
+  "platform": "macOS-10.16-x86_64-i386-64bit",
+  "python": "3.11.13 (main, Jun  5 2025, 08:14:07) [Clang 14.0.6 ]",
+  "failures": [],
+  "passed": true,
+  "source_sha256": {
+    "python/algorithms.py": "db1e84d8cef14f21076d26d3f45e5748cb0741a2b1d8015a4394e7ca10d4846e",
+    "tests/runner.py": "a818b372982f18dfd7c123fa659684a3b0c69392ca4ee3734518447811792d7a",
+    "tests/runner.cpp": "84837a0880d0530f9165a93aec45018dcd01c920d3b96d251a9936896b08f923",
+    "tests/Runner.java": "c4ba9ed321b39f19ce7463005be428bf5ef7e7c6dd9ec2e78584bf65895830b6",
+    "tests/verify.py": "52cf9906a8fd00c4c84116814d6e09f53e114cf9346f418187f47877bef4d60f",
+    "java/Algorithms.java": "2c0284b9f04bf638d85651a7e27c916ccb902b75870de6e5e7f756f734f5e9be",
+    "cpp/algorithms.hpp": "a72e8047743ced36c9767b7073c875d851537dc613fcc615337d55b68d116ae6",
+    "benchmarks/run.py": "596ae4602f8585c875c103835059f803385480ad45030e42e83799f42ae2054e",
+    "benchmarks/bench.py": "c7afbc6b6c6c7d658c7361977b2f7448c1ff94218b2e3db0a139b95bdcee5eda",
+    "benchmarks/Bench.java": "65c9d1fb1d564afe7716aa0366ebb36e4dee5178a13ec5c9523c3fe9fef42aea",
+    "benchmarks/bench.cpp": "59b726ddd0918a23933e0aaf1fd1b415896c56ea18d576cacccba65a72ac42ab"
+  }
+}
